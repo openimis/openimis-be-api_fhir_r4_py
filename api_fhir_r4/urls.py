@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'Patient', views.InsureeViewSet, basename="Patient_R4")
-router.register(r'Group', views.GroupViewSet, basename="Family_R4")
+router.register(r'Group', views.GroupViewSet, basename="Group_R4")
 router.register(r'Organisation',views.OrganisationViewSet,basename="Organisation_R4")
 router.register(r'Location', views.LocationViewSet, basename="Location_R4")
 router.register(r'PractitionerRole', views.PractitionerRoleViewSet, basename="PractitionerRole_R4")

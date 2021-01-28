@@ -270,10 +270,8 @@ class PatientEligibility(APIView):
         data=request.data
         patient=data['patient']['reference'].rsplit('/',1)
         try:
-            response = requests.post('http://localhost:5001/Eligibilty',json=data,auth=HTTPBasicAuth('test', 'test'))
+            response = requests.post('http://104.236.37.64:5001/Eligibilty',json=data,auth=HTTPBasicAuth('health1', 'health@123'))
             response.raise_for_status()
-            # print(response.status_code)
-            # return Response(response.json())
             if response.status_code == 200:
                 eligibility_request=ByInsureeRequest(chf_id=patient[1])
                 try:
