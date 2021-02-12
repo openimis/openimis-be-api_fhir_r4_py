@@ -2,15 +2,16 @@ from django.utils.translation import gettext
 from policyholder.models import PolicyHolder
 from location.models import Location
 from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration
-from api_fhir_r4.converters import BaseFHIRConverter,ReferenceConverterMixin
+from api_fhir_r4.converters import BaseFHIRConverter,ReferenceConverterMixin,OrganisationConverterMixin
 from api_fhir_r4.converters.healthcareServiceConverter import HealthcareServiceConverter
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from api_fhir_r4.models import Extension, PatientLink, Attachment, \
+from api_fhir_r4.models import Extension, Attachment, \
     Coding, FHIRDate,ContactPoint,Organisation
 from api_fhir_r4.models.address import AddressUse, AddressType
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 
-class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
+class OrganisationConverter(BaseFHIRConverter,OrganisationConverterMixin):
+    
     @classmethod
     def to_fhir_obj(cls,imis_organisation):
         fhir_organisation = Organisation()
@@ -25,6 +26,8 @@ class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
         cls.build_fhir_email(fhir_organisation, imis_organisation)
         cls.build_fhir_code(fhir_organisation, imis_organisation)
         cls.build_fhir_addresses(fhir_organisation,imis_organisation)
+        cls.build_fhir_accountancy_account(fhir_organisation,imis_organisation)
+        cls.build_fhir_bank_account(fhir_organisation,imis_organisation)
         return fhir_organisation
 
     @classmethod
@@ -41,10 +44,11 @@ class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
         cls.build_imis_email(imis_organisation,fhir_organisation)
         cls.build_imis_contact(imis_organisation,fhir_organisation)
         cls.build_imis_fax(imis_organisation,fhir_organisation)
+        cls.build_imis_bank_account(imis_organisation,fhir_organisation)
+        cls.build_imis_accountancy_account(imis_organisation,fhir_organisation)
         cls.build_imis_legal_form(imis_organisation,fhir_organisation,errors)
         cls.check_errors(errors)
         return imis_organisation
-    
     @classmethod
     def build_imis_addresses(cls,imis_organisation,fhir_organisation):
         addresses = fhir_organisation.address
@@ -88,6 +92,17 @@ class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
     @classmethod
     def build_imis_fax(cls,imis_organisation,fhir_organisation):
         imis_organisation.fax = fhir_organisation.fax 
+    
+    @classmethod
+    def build_imis_bank_account(cls,imis_organisation,fhir_organisation):
+        bank = cls.build_bank(fhir_organisation.bank_account)
+        imis_organisation.bank_account = bank
+    
+    @classmethod
+    def build_imis_accountancy_account(cls,imis_organisation,fhir_organisation):
+        if fhir_organisation.accountancy_account:
+        #    print(fhir_organisation.accountancy_account)
+           imis_organisation.accountancy_account = fhir_organisation.accountancy_account
     
     @classmethod
     def build_imis_contact(cls,imis_organisation,fhir_organisation):
@@ -137,6 +152,14 @@ class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
         fhir_organisation.code = code
     
     @classmethod
+    def build_fhir_accountancy_account(cls,fhir_organisation, imis_organisation):
+        if imis_organisation.accountancy_account:
+           fhir_organisation.accountancy_account = imis_organisation.accountancy_account
+    @classmethod
+    def build_fhir_bank_account(cls,fhir_organisation, imis_organisation):
+        if imis_organisation.bank_account:
+           fhir_organisation.bank_account = imis_organisation.bank_account
+    @classmethod
     def build_fhir_fax(cls,fhir_organisation, imis_organisation):
         fax = imis_organisation.fax
         fhir_organisation.fax = fax
@@ -151,8 +174,8 @@ class OrganisationConverter(BaseFHIRConverter,ReferenceConverterMixin):
     def build_imis_identifiers(cls, imis_organisation, fhir_organisation):
         value = cls.get_fhir_identifier_by_code(fhir_organisation.identifier,
                                                 R4IdentifierConfig.get_fhir_uuid_type_code())
-        if value:
-            imis_organisation.id= value
+        # if value:
+        #     imis_organisation.id= value
      
     @classmethod
     def build_fhir_location(cls, fhir_organisation, imis_organisation):

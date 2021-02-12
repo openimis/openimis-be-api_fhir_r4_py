@@ -9,7 +9,6 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 class PatientSerializer(BaseFHIRSerializer):
     fhirConverter = PatientConverter()
-
     def create(self, validated_data):
         chf_id = validated_data.get('chf_id')
         if Insuree.objects.filter(chf_id=chf_id).count() > 0:

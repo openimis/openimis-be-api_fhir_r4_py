@@ -213,14 +213,6 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     def build_imis_gender(cls, imis_insuree, fhir_patient):
         gender = fhir_patient.gender
         if gender is not None:
-            # imis_gender_code = None
-            # if gender == GeneralConfiguration.get_male_gender_code():
-            #     imis_gender_code = str(AdministrativeGender.MALE.value).upper()
-            # elif gender == GeneralConfiguration.get_female_gender_code():
-            #     imis_gender_code = str(AdministrativeGender.FEMALE.value).upper()
-            # elif gender == GeneralConfiguration.get_other_gender_code():
-            #     imis_gender_code = str(AdministrativeGender.OTHER.value).upper()
-            # if imis_gender_code is not None:
             imis_insuree.gender = Gender.objects.get(pk=gender)
 
     @classmethod

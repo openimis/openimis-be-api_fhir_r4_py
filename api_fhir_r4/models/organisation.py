@@ -20,5 +20,5 @@ class Organisation(DomainResource):
     legal_form = Property('legal_form',str)
     activity_code = Property('activity_code',str)
     accountancy_account = Property('accountancy_account',str)
-    bank_account =Property('bank_account', 'BankAccount', count_max='*')
+    bank_account =Property('bank_account', 'BankAccount')
     payment_reference = Property('payment_reference',str)

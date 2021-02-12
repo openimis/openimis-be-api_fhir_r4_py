@@ -16,18 +16,7 @@ class OrganisationSerializer(BaseFHIRSerializer):
         if request:
             validated_data['user_created_id']=request.user.id
             validated_data['user_updated_id']=request.user.id
-        obj=PolicyHolder()
-        obj.user_updated=request.user
-        obj.user_created=request.user
-        obj.trade_name =validated_data['trade_name']
-        obj.date_created=validated_data['date_created']
-        obj.date_updated=validated_data['date_updated']
-        obj.address = validated_data['address']
-        obj.code = validated_data['code']
-        obj.email = validated_data['email']
-        obj.phone = validated_data['phone']
-        obj.fax = validated_data['fax']
-        obj.legal_form= validated_data['legal_form']
+        obj=PolicyHolder(**validated_data)
         obj.save()
         return obj
 

@@ -15,7 +15,6 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
         fhir_contract = Contract()
         cls.build_contract_identifier(fhir_contract, imis_policy)
         contractTerm = ContractTerm()
-        
         contractTermAsset = ContractTermAsset()
         cls.build_contract_asset_context(contractTermAsset, imis_policy)
         cls.build_contract_valued_item(contractTermAsset, imis_policy)

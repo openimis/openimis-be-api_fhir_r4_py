@@ -18,9 +18,10 @@ from rest_framework.decorators import parser_classes,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 import datetime
+import os
 from api_fhir_r4.paginations import FhirBundleResultsSetPagination
 from api_fhir_r4.permissions import FHIRApiPermissions
-from api_fhir_r4.configurations import R4CoverageEligibilityConfiguration as Config
+from api_fhir_r4.configurations import R4CoverageEligibilityConfiguration as Config,GeneralConfiguration
 from api_fhir_r4.serializers import PatientSerializer, LocationSerializer, LocationSiteSerializer, PractitionerRoleSerializer, \
     PractitionerSerializer, ClaimSerializer, CoverageEligibilityRequestSerializer, \
     PolicyCoverageEligibilityRequestSerializer, ClaimResponseSerializer, CommunicationRequestSerializer, \
@@ -111,6 +112,7 @@ class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = OrganisationSerializer(self.paginate_queryset(queryset), many=True)
+        print(serializer.data)
         return self.get_paginated_response(serializer.data)
     
     def get_queryset(self):
@@ -269,8 +271,11 @@ class PatientEligibility(APIView):
     def post(self, request, format=None):
         data=request.data
         patient=data['patient']['reference'].rsplit('/',1)
+        url=os.environ.get('OPEHNHIM_URL')
+        technical_user =os.environ.get('OPEHNHIM_URL')
+        password =os.environ.get('OPEHNHIM_PASSWORD')
         try:
-            response = requests.post('http://104.236.37.64:5001/Eligibilty',json=data,auth=HTTPBasicAuth('health1', 'health@123'))
+            response = requests.post(url+'Eligibilty',json=data,auth=HTTPBasicAuth(technical_user,password))
             response.raise_for_status()
             if response.status_code == 200:
                 eligibility_request=ByInsureeRequest(chf_id=patient[1])

@@ -5,8 +5,7 @@ from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration,
 from api_fhir_r4.converters import BaseFHIRConverter,GroupConverterMixin, ReferenceConverterMixin
 from api_fhir_r4.converters.healthcareServiceConverter import HealthcareServiceConverter
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from api_fhir_r4.models import Patient, AdministrativeGender, ImisMaritalStatus, Extension, PatientLink, Attachment, \
-    Coding, FHIRDate,Group,Member
+from api_fhir_r4.models import  AdministrativeGender, ImisMaritalStatus, Extension,Coding, FHIRDate,Group,Member
 from api_fhir_r4.models.address import AddressUse, AddressType
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 from api_fhir_r4.exceptions import FHIRException
@@ -31,7 +30,7 @@ class GroupConverter(BaseFHIRConverter,ReferenceConverterMixin,GroupConverterMix
     def to_imis_obj(cls,fhir_family, audit_user_id):
         errors = []
         imis_family = Family()
-        # imis_family.audit_user_id = audit_user_id
+        imis_family.audit_user_id = audit_user_id
         cls.build_imis_location(imis_family,fhir_family)
         cls.build_imis_head(imis_family,fhir_family,errors)
         cls.check_errors(errors)

@@ -131,6 +131,7 @@ class BaseFHIRConverter(ABC):
         reference.reference = reference
         return reference
 from api_fhir_r4.converters.groupConverterMixin import GroupConverterMixin
+from api_fhir_r4.converters.organisationConverterMixin import OrganisationConverterMixin
 from api_fhir_r4.converters.personConverterMixin import PersonConverterMixin
 from api_fhir_r4.converters.referenceConverterMixin import ReferenceConverterMixin
 from api_fhir_r4.converters.contractConverter import ContractConverter
