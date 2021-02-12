@@ -17,7 +17,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import parser_classes,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-import datetime
 import os
 from api_fhir_r4.paginations import FhirBundleResultsSetPagination
 from api_fhir_r4.permissions import FHIRApiPermissions
@@ -28,7 +27,7 @@ from api_fhir_r4.serializers import PatientSerializer, LocationSerializer, Locat
     MedicationSerializer, ConditionSerializer, ActivityDefinitionSerializer, HealthcareServiceSerializer ,ContractSerializer,GroupSerializer,\
     OrganisationSerializer
 from api_fhir_r4.serializers.coverageSerializer import CoverageSerializer
-from django.db.models import Q, Prefetch
+from django.db.models import Prefetch
 from rest_framework.decorators import api_view
 import datetime
 from rest_framework.parsers import JSONParser
@@ -52,7 +51,7 @@ class BaseFHIRView(APIView):
 class InsureeViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = PatientSerializer
-    #permission_classes = (FHIRApiInsureePermissions,)
+    # permission_classes = (FHIRApiInsureePermissions,)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().select_related('gender').select_related('photo').select_related('family__location')
@@ -64,13 +63,12 @@ class InsureeViewSet(BaseFHIRView, viewsets.ModelViewSet):
         else:
             queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from')
             if refDate != None:
-                #year,month,day = refDate.split('-')
-                isValidDate = True
+                # isValidDate = True
                 try :
                     datevar = datetime.datetime.strptime(refDate, "%Y-%m-%d").date()
-                    #datetime.datetime(int(year),int(month),int(day))
                 except ValueError :
-                    isValidDate = False
+                    pass
+                    # isValidDate = False
                 #datevar = refDate
                 queryset = queryset.filter(validity_from__gte=datevar)
             if claim_date is not None:
@@ -112,7 +110,6 @@ class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = OrganisationSerializer(self.paginate_queryset(queryset), many=True)
-        print(serializer.data)
         return self.get_paginated_response(serializer.data)
     
     def get_queryset(self):
@@ -121,7 +118,7 @@ class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
 class LocationViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LocationSerializer
-    #permission_classes = (FHIRApiHFPermissions,)
+    permission_classes = (FHIRApiHFPermissions,)
 
     def list(self, request, *args, **kwargs):
         identifier = request.GET.get("identifier")
@@ -218,11 +215,14 @@ class ClaimViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixi
             queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from')
             if refDate is not None:
                 year,month,day = refDate.split('-')
-                isValidDate = True
+                # isValidDate = True
                 try :
-                    datetime.datetime(int(year),int(month),int(day))
+                    datetime.datetime(int(year),int(
+                        
+                        month),int(day))
                 except ValueError :
-                    isValidDate = False
+                    pass
+                    #isValidDate = False
                 datevar = refDate
                 queryset = queryset.filter(validity_from__gte=datevar)
             if patient is not None:
@@ -401,7 +401,7 @@ class ActivityDefinitionViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.
 class HealthcareServiceViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = HealthcareServiceSerializer
-    #permission_classes = (FHIRApiHealthServicePermissions,)
+    permission_classes = (FHIRApiHealthServicePermissions,)
 
     def get_queryset(self):
         #return HealthFacility.get_queryset(None, self.request.user)

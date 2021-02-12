@@ -25,6 +25,6 @@ class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
     def create_default_eligibility_response(self):
         return ByInsureeResponse(
-            eligibility_request=None,
+            by_insuree_request=None,
             items=[]
         )

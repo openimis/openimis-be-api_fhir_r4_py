@@ -1,10 +1,10 @@
 from api_fhir_r4.configurations import R4CoverageConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from api_fhir_r4.models import  Reference,  Contract, Money, Extension, Period,\
-     ContractTermAssetContext, ContractTermAssetValuedItem,  ContractTerm, ContractTermAsset, ContractTermOffer,ContractSigner
-from product.models import ProductItem, ProductService
+from api_fhir_r4.models import Contract, Money, Period,\
+     ContractTermAssetContext, ContractTermAssetValuedItem,  ContractTerm, ContractTermAsset,ContractSigner
+# from product.models import ProductItem, ProductService
 from policy.models import Policy
-from insuree.models import InsureePolicy
+# from insuree.models import InsureePolicy
 from api_fhir_r4.utils import DbManagerUtils
 
 

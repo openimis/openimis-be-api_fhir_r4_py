@@ -6,8 +6,6 @@ from claim import ClaimItemSubmit, ClaimServiceSubmit, ClaimConfig
 from claim.models import Claim, ClaimItem, ClaimService, ClaimAttachment
 from location.models import HealthFacility
 from medical.models import Diagnosis, Item, Service
-from insuree.models import InsureePolicy
-from policy.models import Policy
 from django.utils.translation import gettext
 import core
 
@@ -20,7 +18,7 @@ from api_fhir_r4.converters.healthcareServiceConverter import HealthcareServiceC
 from api_fhir_r4.converters.activityDefinitionConverter import ActivityDefinitionConverter
 from api_fhir_r4.converters.coverageConverter import CoverageConverter
 from api_fhir_r4.models import Claim as FHIRClaim, ClaimItem as FHIRClaimItem, Period, ClaimDiagnosis, Money, \
-    ImisClaimIcdTypes, ClaimSupportingInfo, Quantity, Condition, Extension, Reference, CodeableConcept, ClaimInsurance, \
+    ImisClaimIcdTypes, ClaimSupportingInfo, Quantity, Extension, Reference, ClaimInsurance, \
     Attachment
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 from api_fhir_r4.exceptions import FHIRRequestProcessException
