@@ -272,18 +272,27 @@ class PatientEligibility(APIView):
         data=request.data
         patient=data['patient']['reference'].rsplit('/',1)
         url=os.environ.get('OPEHNHIM_URL')
-        technical_user =os.environ.get('OPEHNHIM_URL')
+        technical_user =os.environ.get('OPEHNHIM_USER')
         password =os.environ.get('OPEHNHIM_PASSWORD')
         try:
             response = requests.post(url+'Eligibilty',json=data,auth=HTTPBasicAuth(technical_user,password))
             response.raise_for_status()
             if response.status_code == 200:
+                # print(response.json())
+                # eligibility_request=ByInsureeRequest(chf_id=patient[1])
+                # try:
+                #     response = ByInsureeService(request.user).request(eligibility_request)
+                # except Exception as e:
+                #     pass  
+                return Response(response.json())
+            else:
                 eligibility_request=ByInsureeRequest(chf_id=patient[1])
                 try:
                     response = ByInsureeService(request.user).request(eligibility_request)
                 except Exception as e:
                     pass  
                 return Response(PolicyCoverageEligibilityRequestSerializer(response).data)
+                
         except HTTPError as http_err:
             print(f'HTTP error occurred: {http_err}')
             eligibility_request =ByInsureeRequest(chf_id=patient[1])

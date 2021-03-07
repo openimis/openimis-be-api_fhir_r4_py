@@ -157,24 +157,25 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         
     @classmethod
     def build_imis_family(cls, imis_insuree, fhir_patient,errors):
-        chf_id= cls.build_imis_link(imis_insuree,fhir_patient.link)
-        if chf_id =='':
-            chf_id =None
-        if not cls.valid_condition(chf_id is None, gettext('Missing patient `related person` attribute'), errors):
-            if imis_insuree.head:
-                for extension in  fhir_patient.extension:
-                    if extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960495619/locationCode":
-                        value=cls.get_location_reference(extension.valueReference.reference)
-                        if value:
-                            try:
-                                imis_insuree.current_village = Location.objects.get(uuid=value)
-                            except:
-                                imis_insuree.current_village = None
-            else:
-                try:
-                    imis_insuree.family = Family.objects.get(head_insuree__uuid=chf_id)
-                except Exception as e:
-                    raise e
+        if fhir_patient.link:
+            chf_id= cls.build_imis_link(imis_insuree,fhir_patient.link)
+            if chf_id =='':
+                chf_id =None
+            if not cls.valid_condition(chf_id is None, gettext('Missing patient `related person` attribute'), errors):
+                if imis_insuree.head:
+                    for extension in  fhir_patient.extension:
+                        if extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960495619/locationCode":
+                            value=cls.get_location_reference(extension.valueReference.reference)
+                            if value:
+                                try:
+                                    imis_insuree.current_village = Location.objects.get(uuid=value)
+                                except:
+                                    imis_insuree.current_village = None
+                else:
+                    try:
+                        imis_insuree.family = Family.objects.get(head_insuree__uuid=chf_id)
+                    except Exception as e:
+                        raise e
     @classmethod
     def build_imis_link(cls, imis_insuree,fhir_link):
         patient = fhir_link[0].other.reference
@@ -183,12 +184,13 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     
     @classmethod
     def build_imis_relationship(cls, imis_insuree,fhir_patient):
-        relationship = fhir_patient.link[0].type
-        try:
-           relation=Relation.objects.get(relation=relationship)
-           imis_insuree.relationship = relation
-        except:
-            pass
+        if fhir_patient.link:
+            relationship = fhir_patient.link[0].type
+            try:
+                relation=Relation.objects.get(relation=relationship)
+                imis_insuree.relationship = relation
+            except:
+                pass
     
     @classmethod
     def build_imis_birth_date(cls, imis_insuree, fhir_patient, errors):

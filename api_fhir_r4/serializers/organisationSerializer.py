@@ -30,6 +30,8 @@ class OrganisationSerializer(BaseFHIRSerializer):
         instance.fax = validated_data.get('fax', instance.fax)
         instance.trade_name = validated_data.get('trade_name', instance.trade_name)
         instance.address = validated_data.get('address', instance.address)
+        instance.bank_account = validated_data.get('bank_account', instance.address)
+        instance.accountancy_account = validated_data.get('accountancy_account', instance.accountancy_account)
         instance.user_updated_id = validated_data.get('user_updated_id', instance.user_updated_id)
         instance.save()
         return instance

@@ -5,7 +5,6 @@ from policy.services import ByInsureeRequest, ByInsureeService, ByInsureeRespons
 from api_fhir_r4.converters import PolicyCoverageEligibilityRequestConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
 
-
 class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
     fhirConverter = PolicyCoverageEligibilityRequestConverter()
