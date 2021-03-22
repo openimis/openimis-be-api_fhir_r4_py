@@ -105,7 +105,7 @@ class GroupViewSet(BaseFHIRView, viewsets.ModelViewSet):
         return Family.objects.all().order_by('validity_from')
 
 class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
-    lookup_field = 'code'
+    lookup_field = 'id'
     serializer_class = OrganisationSerializer
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -113,8 +113,8 @@ class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
     
     def get_queryset(self):
-        return PolicyHolder.objects.all().order_by('date_created')
-    
+        return PolicyHolder.objects.filter(is_deleted=False).order_by('date_created')
+ 
 class LocationViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = LocationSerializer

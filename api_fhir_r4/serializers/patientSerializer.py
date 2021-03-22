@@ -23,7 +23,6 @@ class PatientSerializer(BaseFHIRSerializer):
     def update(self, instance, validated_data):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.other_names = validated_data.get('other_names', instance.other_names)
-        instance.chf_id = validated_data.get('chf_id', instance.chf_id)
         instance.passport = validated_data.get('passport', instance.passport)
         instance.dob = validated_data.get('dob', instance.dob)
         gender_code = validated_data.get('gender_id', instance.gender.code)

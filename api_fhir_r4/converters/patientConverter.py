@@ -214,8 +214,13 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     @classmethod
     def build_imis_gender(cls, imis_insuree, fhir_patient):
         gender = fhir_patient.gender
+    
         if gender is not None:
-            imis_insuree.gender = Gender.objects.get(pk=gender)
+            try:
+                imis_insuree.gender = Gender.objects.get(pk=gender)
+            except:
+                imis_insuree.gender = Gender.objects.get(gender__iexact=gender)
+                
 
     @classmethod
     def build_fhir_marital_status(cls, fhir_patient, imis_insuree):
@@ -374,7 +379,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         photo = Attachment()
         if imis_insuree.photo is not None:
             photo.creation = imis_insuree.photo.date.isoformat()
-            url = imis_insuree.photo.folder + imis_insuree.photo.filename
+            url = imis_insuree.photo.folder+"\\"+ imis_insuree.photo.filename+"\\"
             photo.url = url
             fhir_patient.photo = [photo]
 
@@ -382,7 +387,6 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     def build_imis_photo(cls, imis_insuree, fhir_patient, errors):
         url = fhir_patient.photo[0].url
         url = url.split("\\", 2)
-
         folder = url[0]
         filename = url[1]
         creation = fhir_patient.photo[0].creation

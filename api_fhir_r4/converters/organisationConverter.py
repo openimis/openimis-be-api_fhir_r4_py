@@ -15,7 +15,7 @@ class OrganisationConverter(BaseFHIRConverter,OrganisationConverterMixin):
     @classmethod
     def to_fhir_obj(cls,imis_organisation):
         fhir_organisation = Organisation()
-        cls.build_fhir_pk(fhir_organisation, imis_organisation.uuid)
+        cls.build_fhir_pk(fhir_organisation, imis_organisation.id)
         cls.build_fhir_location(fhir_organisation, imis_organisation)
         cls.build_fhir_name(fhir_organisation, imis_organisation)
         cls.build_fhir_contact_name(imis_organisation,fhir_organisation)
