@@ -31,12 +31,6 @@ from django.db.models import Prefetch
 from rest_framework.decorators import api_view
 import datetime
 from rest_framework.parsers import JSONParser
-import requests
-from requests.exceptions import HTTPError
-from requests.auth import HTTPBasicAuth
-from django.views import View
-from policy.services import ByInsureeRequest, ByInsureeService, ByInsureeResponse
-
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
         return
@@ -265,44 +259,7 @@ class CoverageEligibilityRequestViewSet(BaseFHIRView, mixins.CreateModelMixin, G
     def get_queryset(self):
         return Insuree.get_queryset(None, self.request.user)
     
-        
-class PatientEligibility(APIView):
-    permission_classes=[IsAuthenticated]
-    def post(self, request, format=None):
-        data=request.data
-        patient=data['patient']['reference'].rsplit('/',1)
-        url=os.environ.get('OPEHNHIM_URL')
-        technical_user =os.environ.get('OPEHNHIM_USER')
-        password =os.environ.get('OPEHNHIM_PASSWORD')
-        try:
-            response = requests.post(url+'Eligibilty',json=data,auth=HTTPBasicAuth(technical_user,password))
-            response.raise_for_status()
-            if response.status_code == 200:
-                # print(response.json())
-                # eligibility_request=ByInsureeRequest(chf_id=patient[1])
-                # try:
-                #     response = ByInsureeService(request.user).request(eligibility_request)
-                # except Exception as e:
-                #     pass  
-                return Response(response.json())
-            else:
-                eligibility_request=ByInsureeRequest(chf_id=patient[1])
-                try:
-                    response = ByInsureeService(request.user).request(eligibility_request)
-                except Exception as e:
-                    pass  
-                return Response(PolicyCoverageEligibilityRequestSerializer(response).data)
-                
-        except HTTPError as http_err:
-            print(f'HTTP error occurred: {http_err}')
-            eligibility_request =ByInsureeRequest(chf_id=patient[1])
-            try:
-                response = ByInsureeService(request.user).request(eligibility_request)
-            except Exception as e:
-                pass  
-            return Response(PolicyCoverageEligibilityRequestSerializer(response).data)
-
-        
+  
 class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin,mixins.UpdateModelMixin,mixins.CreateModelMixin,GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = CoverageSerializer

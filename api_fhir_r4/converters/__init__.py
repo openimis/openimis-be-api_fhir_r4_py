@@ -92,8 +92,7 @@ class BaseFHIRConverter(ABC):
         value = None
         for identifier in identifiers or []:
             first_coding = cls.get_first_coding_from_codeable_concept(identifier.type)
-            if first_coding.system == R4IdentifierConfig.get_fhir_identifier_type_system() \
-                and first_coding.code == lookup_code:
+            if first_coding.code == lookup_code:
                 value = identifier.value
                 break
         return value

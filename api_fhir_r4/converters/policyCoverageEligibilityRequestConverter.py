@@ -12,9 +12,13 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
     @classmethod
     def to_fhir_obj(cls, eligibility_response):
         fhir_response = FHIREligibilityResponse()
-        for item in eligibility_response.items:
-            if item.status in Config.get_fhir_active_policy_status():
-                cls.build_fhir_insurance(fhir_response, item)
+        try:
+            for item in eligibility_response.items:
+                if item.status in Config.get_fhir_active_policy_status():
+                    cls.build_fhir_insurance(fhir_response, item)
+        except:
+            for item in eligibility_response['items']:
+                fhir_response.insurance.append(item)
         return fhir_response
 
     @classmethod
