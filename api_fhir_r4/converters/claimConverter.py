@@ -200,7 +200,6 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
         claim_diagnosis.type = [cls.build_codeable_concept(icd_type)]
         diagnoses.append(claim_diagnosis)
 
-    # TODO: fix the issue with POST
     @classmethod
     def build_imis_diagnoses(cls, imis_claim, fhir_claim, errors):
         diagnoses = fhir_claim.diagnosis
@@ -212,17 +211,17 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     imis_claim.icd = cls.get_claim_diagnosis_by_code(diagnosis_code)
                     imis_claim.icd_code = diagnosis_code
                 elif diagnosis_type == ImisClaimIcdTypes.ICD_1.value:
-                    imis_claim.icd_1 = diagnosis_code
-                    imis_claim.icd1_code = cls.get_claim_diagnosis_code_by_id(diagnosis_code)
+                    imis_claim.icd1_code = diagnosis_code
+                    imis_claim.icd_1= cls.get_claim_diagnosis_by_code(diagnosis_code)
                 elif diagnosis_type == ImisClaimIcdTypes.ICD_2.value:
-                    imis_claim.icd_2 = diagnosis_code
-                    imis_claim.icd2_code = cls.get_claim_diagnosis_code_by_id(diagnosis_code)
+                    imis_claim.icd_2 = cls.get_claim_diagnosis_by_code(diagnosis_code)
+                    imis_claim.icd2_code = diagnosis_code
                 elif diagnosis_type == ImisClaimIcdTypes.ICD_3.value:
-                    imis_claim.icd_3 = diagnosis_code
-                    imis_claim.icd3_code = cls.get_claim_diagnosis_code_by_id(diagnosis_code)
+                    imis_claim.icd_3 = cls.get_claim_diagnosis_by_code(diagnosis_code)
+                    imis_claim.icd3_code = diagnosis_code
                 elif diagnosis_type == ImisClaimIcdTypes.ICD_4.value:
-                    imis_claim.icd_4 = diagnosis_code
-                    imis_claim.icd4_code = cls.get_claim_diagnosis_code_by_id(diagnosis_code)
+                    imis_claim.icd_4 = cls.get_claim_diagnosis_by_code(diagnosis_code)
+                    imis_claim.icd4_code = diagnosis_code
         cls.valid_condition(imis_claim.icd is None, gettext('Missing the main diagnosis for claim'), errors)
 
     @classmethod
@@ -230,14 +229,18 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
         diagnosis_type = None
         type_concept = cls.get_first_diagnosis_type(diagnosis)
         if type_concept:
-            diagnosis_type = type_concept.coding[0].code
+            if type_concept.coding:
+                for item in type_concept.coding:
+                    diagnosis_type = item.code
         return diagnosis_type
 
     @classmethod
     def get_first_diagnosis_type(cls, diagnosis):
-        return diagnosis.type[0]
-        # return diagnosis.type[0]
-
+        if diagnosis.type:
+            return diagnosis.type[0] if diagnosis.type else  None
+        else:
+            return None
+        
     @classmethod
     def get_claim_diagnosis_by_code(cls, icd_code):
         return Diagnosis.objects.get(code=icd_code)

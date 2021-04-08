@@ -45,8 +45,7 @@ class BaseFHIRView(APIView):
 class InsureeViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = PatientSerializer
-    # permission_classes = (FHIRApiInsureePermissions,)
-
+    permission_classes = (FHIRApiInsureePermissions,)
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().select_related('gender').select_related('photo').select_related('family__location')
         refDate = request.GET.get('refDate')
@@ -89,12 +88,15 @@ class InsureeViewSet(BaseFHIRView, viewsets.ModelViewSet):
 class GroupViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = GroupSerializer
-
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        identifier = request.GET.get("identifier") 
+        if identifier:
+            queryset = self.get_queryset(head_insuree_id__chf_id=identifier)
+        else:
+            queryset = queryset.filter(validity_to__isnull=True)
         serializer = GroupSerializer(self.paginate_queryset(queryset), many=True)
         return self.get_paginated_response(serializer.data)
-
     def get_queryset(self):
         return Family.objects.all().order_by('validity_from')
 
@@ -103,9 +105,13 @@ class OrganisationViewSet(BaseFHIRView, viewsets.ModelViewSet):
     serializer_class = OrganisationSerializer
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        identifier = request.GET.get("code")       
+        if identifier:
+            queryset = queryset.filter(code=identifier)
+        else:
+            queryset = queryset.filter().order_by('date_created')
         serializer = OrganisationSerializer(self.paginate_queryset(queryset), many=True)
         return self.get_paginated_response(serializer.data)
-    
     def get_queryset(self):
         return PolicyHolder.objects.filter(is_deleted=False).order_by('date_created')
  
@@ -149,16 +155,14 @@ class LocationViewSet(BaseFHIRView, viewsets.ModelViewSet):
 class PractitionerRoleViewSet(BaseFHIRView, viewsets.ModelViewSet):
     lookup_field = 'uuid'
     serializer_class = PractitionerRoleSerializer
-    #permission_classes = (FHIRApiPractitionerPermissions,)
-
+    permission_classes = (FHIRApiPractitionerPermissions,)
     def list(self, request, *args, **kwargs):
         identifier = request.GET.get("identifier")
         queryset = self.get_queryset()
         if identifier:
             queryset = queryset.filter(code=identifier)
         else:
-            queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from'
-                                                                          )
+            queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from')
         serializer = PractitionerRoleSerializer(self.paginate_queryset(queryset), many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -254,7 +258,6 @@ class CommunicationRequestViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixin
 class CoverageEligibilityRequestViewSet(BaseFHIRView, mixins.CreateModelMixin, GenericViewSet):
     queryset = Insuree.filter_queryset()
     serializer_class = eval(Config.get_serializer())
-    # PolicyCoverageEligibilityRequestSerializer
     permission_classes = (FHIRApiCoverageEligibilityRequestPermissions,)
     def get_queryset(self):
         return Insuree.get_queryset(None, self.request.user)
