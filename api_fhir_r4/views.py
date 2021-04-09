@@ -196,7 +196,7 @@ class ClaimViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixi
                    mixins.CreateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = ClaimSerializer
-    #permission_classes = (FHIRApiClaimPermissions,)
+    permission_classes = (FHIRApiClaimPermissions,)
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().select_related('insuree').select_related('health_facility').select_related('icd')\

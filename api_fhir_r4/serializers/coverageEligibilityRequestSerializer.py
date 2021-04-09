@@ -12,7 +12,7 @@ class CoverageEligibilityRequestSerializer(BaseFHIRSerializer):
     logger = logging.getLogger(__name__)
 
     def create(self, validated_data):
-        eligibility_request = EligibilityRequest(chf_id=validated_data.get('uuid'),
+        eligibility_request = EligibilityRequest(chf_id=validated_data.get('chf_id'),
                                                  service_code=validated_data.get('service_code'),
                                                  item_code=validated_data.get('item_code'))
         request = self.context.get("request")

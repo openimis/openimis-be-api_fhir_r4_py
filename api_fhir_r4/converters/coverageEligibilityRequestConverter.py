@@ -1,5 +1,4 @@
 from policy.services import EligibilityRequest
-
 from api_fhir_r4.configurations import R4CoverageEligibilityConfiguration as Config
 from api_fhir_r4.converters import BaseFHIRConverter, PatientConverter
 from api_fhir_r4.models import CoverageEligibilityResponse as FHIRCoverageEligibilityResponse, \
@@ -17,10 +16,10 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
     def to_imis_obj(cls, fhir_coverage_eligibility_request, audit_user_id):
-        uuid = cls.build_imis_uuid(fhir_coverage_eligibility_request)
+        chf_id = cls.build_imis_uuid(fhir_coverage_eligibility_request)
         service_code = cls.build_imis_service_code(fhir_coverage_eligibility_request)
         item_code = cls.build_imis_item_code(fhir_coverage_eligibility_request)
-        return EligibilityRequest(uuid, service_code, item_code)
+        return EligibilityRequest(chf_id, service_code, item_code)
 
     @classmethod
     def build_fhir_insurance(cls, fhir_response, response):

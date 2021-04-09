@@ -49,7 +49,6 @@ class ClaimResponseConverter(BaseFHIRConverter):
     @classmethod
     def to_imis_obj(cls, fhir_claim_response, audit_user_id):
         errors = []
-        # mis_claim = Claim()
         imis_claim = cls.get_imis_claim_from_response(fhir_claim_response)
         cls.build_imis_outcome(imis_claim, fhir_claim_response)
         cls.build_imis_errors(imis_claim, fhir_claim_response)
@@ -142,8 +141,8 @@ class ClaimResponseConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_total(cls, fhir_claim_response, imis_claim):
-        #valuated = cls.build_fhir_total_valuated(imis_claim)
-        #reinsured = cls.build_fhir_total_reinsured(imis_claim)
+        valuated = cls.build_fhir_total_valuated(imis_claim)
+        reinsured = cls.build_fhir_total_reinsured(imis_claim)
         approved = cls.build_fhir_total_approved(imis_claim)
         claimed = cls.build_fhir_total_claimed(imis_claim)
 
