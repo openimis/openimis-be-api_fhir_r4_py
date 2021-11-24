@@ -4,4 +4,6 @@ class FhirUtils(object):
 
     @classmethod
     def get_next_array_sequential_id(cls, array):
+        if array is None:
+            array = []
         return len(array) + cls.__ARRAY_ID_OFFSET

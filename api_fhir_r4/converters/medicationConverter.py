@@ -1,6 +1,11 @@
 from medical.models import Item
 from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, ReferenceConverterMixin
-from api_fhir_r4.models import Medication as FHIRMedication, Extension, Money, CodeableConcept, UsageContext, Coding
+from api_fhir_r4.models import UsageContextV2 as UsageContext
+from fhir.resources.medication import Medication as FHIRMedication
+from fhir.resources.extension import Extension
+from fhir.resources.money import Money
+from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.coding import Coding
 from django.utils.translation import gettext
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.configurations import GeneralConfiguration
@@ -10,9 +15,9 @@ import core
 class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
-    def to_fhir_obj(cls, imis_medication):
-        fhir_medication = FHIRMedication()
-        cls.build_fhir_pk(fhir_medication, imis_medication.uuid)
+    def to_fhir_obj(cls, imis_medication, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        fhir_medication = FHIRMedication.construct()
+        cls.build_fhir_pk(fhir_medication, imis_medication, reference_type)
         cls.build_fhir_identifiers(fhir_medication, imis_medication)
         cls.build_fhir_package_form(fhir_medication, imis_medication)
         #cls.build_fhir_package_amount(fhir_medication, imis_medication)
@@ -26,6 +31,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def to_imis_obj(cls, fhir_medication, audit_user_id):
         errors = []
+        fhir_medication = FHIRMedication(**fhir_medication)
         imis_medication = Item()
         cls.build_imis_identifier(imis_medication, fhir_medication, errors)
         cls.build_imis_item_code(imis_medication, fhir_medication, errors)
@@ -35,8 +41,20 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         return imis_medication
 
     @classmethod
-    def get_reference_obj_id(cls, imis_medication):
+    def get_fhir_code_identifier_type(cls):
+        return R4IdentifierConfig.get_fhir_item_code_type()
+
+    @classmethod
+    def get_reference_obj_uuid(cls, imis_medication: Item):
         return imis_medication.uuid
+
+    @classmethod
+    def get_reference_obj_id(cls, imis_medication: Item):
+        return imis_medication.id
+
+    @classmethod
+    def get_reference_obj_code(cls, imis_medication: Item):
+        return imis_medication.code
 
     @classmethod
     def get_fhir_resource_type(cls):
@@ -50,11 +68,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_identifiers(cls, fhir_medication, imis_medication):
         identifiers = []
-        cls.build_fhir_uuid_identifier(identifiers, imis_medication)
-        item_code = cls.build_fhir_identifier(imis_medication.code,
-                                              R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                              R4IdentifierConfig.get_fhir_item_code_type())
-        identifiers.append(item_code)
+        cls.build_all_identifiers(identifiers, imis_medication)
         fhir_medication.identifier = identifiers
 
     @classmethod
@@ -105,12 +119,15 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_unit_price(cls, fhir_medication, imis_medication):
         unit_price = cls.build_unit_price_extension(imis_medication.price)
-        fhir_medication.extension.append(unit_price)
+        if type(fhir_medication.extension) is not list:
+           fhir_medication.extension = [unit_price]
+        else:
+           fhir_medication.extension.append(unit_price)
 
     @classmethod
     def build_unit_price_extension(cls, value):
-        extension = Extension()
-        money = Money()
+        extension = Extension.construct()
+        money = Money.construct()
         extension.url = "unitPrice"
         extension.valueMoney = money
         extension.valueMoney.value = value
@@ -127,7 +144,12 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         item_code = fhir_medication.code.coding
         if not cls.valid_condition(item_code is None,
                                    gettext('Missing medication `item_code` attribute'), errors):
-            imis_medication.code = item_code
+            # get the code of item
+            if type(item_code) is not list:
+                imis_medication.code = item_code.code
+            else:
+                item_code_element = item_code[0]
+                imis_medication.code = item_code_element.code
 
     @classmethod
     def build_imis_item_name(cls, imis_medication, fhir_medication, errors):
@@ -148,11 +170,14 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_frequency_extension(cls, fhir_medication, imis_medication):
         serv_price = cls.build_fhir_item_frequency_extension(imis_medication)
-        fhir_medication.extension.append(serv_price)
+        if type(fhir_medication.extension) is not list:
+            fhir_medication.extension = [serv_price]
+        else:
+            fhir_medication.extension.append(serv_price)
 
     @classmethod
     def build_fhir_item_frequency_extension(cls, imis_medication):
-        extension = Extension()
+        extension = Extension.construct()
         extension.url = "frequency"
         extension.valueInteger = imis_medication.frequency
         return extension
@@ -160,11 +185,14 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_topic_extension(cls, fhir_medication, imis_medication):
         item_type = cls.build_fhir_item_type_extension(imis_medication)
-        fhir_medication.extension.append(item_type)
+        if type(fhir_medication.extension) is not list:
+            fhir_medication.extension = [item_type]
+        else:
+            fhir_medication.extension.append(item_type)
 
     @classmethod
     def build_fhir_item_type_extension(cls, imis_medication):
-        extension = Extension()
+        extension = Extension.construct()
         extension.url = "topic"
         extension.valueCodeableConcept = cls.build_codeable_concept("DefinitionTopic",
                                                                     "http://terminology.hl7.org/CodeSystem/definition-topic",
@@ -174,11 +202,18 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_use_context(cls, fhir_medication, imis_medication):
         gender = cls.build_fhir_gender(imis_medication)
-        fhir_medication.extension.append(gender)
+        # check only the first to be sure if we have list, the
+        # next ones for sure will be a part of list of extensions
+        if type(fhir_medication.extension) is not list:
+            fhir_medication.extension = [gender]
+        else:
+            fhir_medication.extension.append(gender)
         age = cls.build_fhir_age(imis_medication)
         fhir_medication.extension.append(age)
         venue = cls.build_fhir_venue(imis_medication)
         fhir_medication.extension.append(venue)
+        level = cls.build_fhir_level(imis_medication)
+        fhir_medication.extension.append(level)
 
     @classmethod
     def build_fhir_gender(cls, imis_medication):
@@ -188,23 +223,29 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             male = None
         if female == "":
             female = None
-        extension = Extension()
+        extension = Extension.construct()
         extension.url = "useContextGender"
-        extension.valueUsageContext = UsageContext()
-        extension.valueUsageContext.code = Coding()
-        extension.valueUsageContext.code.code = "gender"
-        extension.valueUsageContext.valueCodeableConcept = CodeableConcept()
+        extension.valueUsageContext = UsageContext.construct()
+        extension.valueUsageContext.valueCodeableConcept = CodeableConcept.construct()
         if male is not None:
-            coding_male = Coding()
+            coding_male = Coding.construct()
             coding_male.code = male
             coding_male.display = "Male"
-            extension.valueUsageContext.valueCodeableConcept.coding.append(coding_male)
+            if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+                extension.valueUsageContext.valueCodeableConcept.coding = [coding_male]
+            else:
+                extension.valueUsageContext.valueCodeableConcept.coding.append(coding_male)
         if female is not None:
-            coding_female = Coding()
+            coding_female = Coding.construct()
             coding_female.code = female
             coding_female.display = "Female"
-            extension.valueUsageContext.valueCodeableConcept.coding.append(coding_female)
+            if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+                extension.valueUsageContext.valueCodeableConcept.coding = [coding_female]
+            else:
+                extension.valueUsageContext.valueCodeableConcept.coding.append(coding_female)
             extension.valueUsageContext.valueCodeableConcept.text = "Male or Female"
+        extension.valueUsageContext.code = Coding.construct()
+        extension.valueUsageContext.code.code = "gender"
         return extension
 
     @classmethod
@@ -215,23 +256,29 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             adult = None
         if kid == "":
             kid = None
-        extension = Extension()
+        extension = Extension.construct()
         extension.url = "useContextAge"
-        extension.valueUsageContext = UsageContext()
-        extension.valueUsageContext.code = Coding()
-        extension.valueUsageContext.code.code = "age"
-        extension.valueUsageContext.valueCodeableConcept = CodeableConcept()
+        extension.valueUsageContext = UsageContext.construct()
+        extension.valueUsageContext.valueCodeableConcept = CodeableConcept.construct()
         if adult is not None:
-            coding_adult = Coding()
+            coding_adult = Coding.construct()
             coding_adult.code = adult
             coding_adult.display = "Adult"
-            extension.valueUsageContext.valueCodeableConcept.coding.append(coding_adult)
+            if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+                extension.valueUsageContext.valueCodeableConcept.coding = [coding_adult]
+            else:
+                extension.valueUsageContext.valueCodeableConcept.coding.append(coding_adult)
         if kid is not None:
-            coding_kid = Coding()
+            coding_kid = Coding.construct()
             coding_kid.code = kid
             coding_kid.display = "Kid"
-            extension.valueUsageContext.valueCodeableConcept.coding.append(coding_kid)
+            if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+                extension.valueUsageContext.valueCodeableConcept.coding = [coding_kid]
+            else:
+                extension.valueUsageContext.valueCodeableConcept.coding.append(coding_kid)
             extension.valueUsageContext.valueCodeableConcept.text = "Adult or Kid"
+        extension.valueUsageContext.code = Coding.construct()
+        extension.valueUsageContext.code.code = "age"
         return extension
 
     @classmethod
@@ -244,18 +291,40 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if imis_medication.care_type == "B":
             display = "Both"
 
-        extension = Extension()
+        extension = Extension.construct()
         if imis_medication.care_type is not None:
             extension.url = "useContextVenue"
-            extension.valueUsageContext = UsageContext()
-            extension.valueUsageContext.code = Coding()
-            extension.valueUsageContext.code.code = "venue"
-            extension.valueUsageContext.valueCodeableConcept = CodeableConcept()
-            coding_venue = Coding()
+            extension.valueUsageContext = UsageContext.construct()
+            extension.valueUsageContext.valueCodeableConcept = CodeableConcept.construct()
+            coding_venue = Coding.construct()
             coding_venue.code = imis_medication.care_type
             coding_venue.display = display
-            extension.valueUsageContext.valueCodeableConcept.coding.append(coding_venue)
+            if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+                extension.valueUsageContext.valueCodeableConcept.coding = [coding_venue]
+            else:
+                extension.valueUsageContext.valueCodeableConcept.coding.append(coding_venue)
             extension.valueUsageContext.valueCodeableConcept.text = "Clinical Venue"
+            extension.valueUsageContext.code = Coding.construct()
+            extension.valueUsageContext.code.code = "venue"
+        return extension
+
+    @classmethod
+    def build_fhir_level(self, imis_medication):
+        # Values for this extension are fixed for medication
+        extension = Extension.construct()
+        extension.url = 'useContextLevel'
+        extension.valueUsageContext = UsageContext.construct()
+        extension.valueUsageContext.valueCodeableConcept = CodeableConcept.construct()
+        coding = Coding.construct()
+        coding.code = 'M'
+        coding.display = 'Medication'
+        if type(extension.valueUsageContext.valueCodeableConcept.coding) is not list:
+            extension.valueUsageContext.valueCodeableConcept.coding = [coding]
+        else:
+            extension.valueUsageContext.valueCodeableConcept.coding.append(coding)
+        extension.valueUsageContext.valueCodeableConcept.text = "Item Level"
+        extension.valueUsageContext.code = Coding.construct()
+        extension.valueUsageContext.code.code = 'level'
         return extension
 
     @classmethod

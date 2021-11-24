@@ -1,4 +1,9 @@
+import datetime
 import uuid
+
+from insuree.test_helpers import create_test_insuree
+from location.models import HealthFacility
+from medical.test_helpers import create_test_item, create_test_service
 
 from api_fhir_r4.configurations import R4IdentifierConfig, R4ClaimConfig
 from api_fhir_r4.converters import ClaimResponseConverter, CommunicationRequestConverter
@@ -7,33 +12,46 @@ from api_fhir_r4.models import ClaimResponse, ClaimResponsePayment, Money, Claim
 from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 from claim.models import Claim, Feedback, ClaimItem, ClaimService
-from medical.models import Item, Service
+from medical.models import Item, Service, Diagnosis
 
 
 class ClaimResponseTestMixin(GenericTestMixin):
 
     _TEST_CODE = 'code'
-    _TEST_STATUS = '1'
+    _TEST_STATUS = 1
+    _TEST_STATUS_DISPLAY = R4ClaimConfig.get_fhir_claim_status_rejected_code()
     _TEST_ADJUSTMENT = "adjustment"
     _TEST_DATE_PROCESSED = "2010-11-16T00:00:00"
     _TEST_APPROVED = 214.25
-    _TEST_REJECTION_REASON = '1'
+    _TEST_REJECTION_REASON = 1
     _TEST_FEEDBACK_ID = 1
     _TEST_FEEDBACK_UUID = "6ed1dec4-1dbd-4da2-840d-8383e45419a6"
     _TEST_ITEM_CODE = "iCode"
     _TEST_ITEM_STATUS = 1
     _TEST_ITEM_QUANTITY_APPROVED = 4
+    _TEST_ITEM_QUANTITY_PROVIDED = 4
     _TEST_ITEM_JUSTIFICATION = "item justification"
     _TEST_ITEM_REJECTED_REASON = 1
     _TEST_ITEM_LIMITATION_VALUE = 2
     _TEST_SERVICE_CODE = "sCode"
-    _TEST_SERVICE_STATUS = 2
+    _TEST_SERVICE_STATUS = 1
     _TEST_SERVICE_QUANTITY_APPROVED = 3
+    _TEST_SERVICE_QUANTITY_PROVIDED = 3
     _TEST_SERVICE_JUSTIFICATION = "service justification"
     _TEST_SERVICE_REJECTED_REASON = 3
     _TEST_SERVICE_LIMITATION_VALUE = 4
     _TEST_ID = 1
+    _PRICE_ASKED = 100
+    _PRICE_APPROVED = 100
+    _ADMIN_AUDIT_USER_ID = 1
+
     _TEST_UUID = "ae580700-0277-4c98-adab-d98c0f7e681b"
+    _TEST_ITEM_AVAILABILITY = True
+
+    _TEST_ITEM_TYPE = 'D'
+    _TEST_SERVICE_TYPE = 'D'
+
+    _TEST_HF_ID = 1
 
     def setUp(self):
         self._TEST_ITEM = self.create_test_claim_item()
@@ -41,24 +59,34 @@ class ClaimResponseTestMixin(GenericTestMixin):
 
     def create_test_claim_item(self):
         item = ClaimItem()
-        item.item = Item()
+        item.item = create_test_item(self._TEST_ITEM_TYPE)
         item.item.code = self._TEST_ITEM_CODE
         item.status = self._TEST_ITEM_STATUS
         item.qty_approved = self._TEST_ITEM_QUANTITY_APPROVED
+        item.qty_provided = self._TEST_ITEM_QUANTITY_PROVIDED
         item.justification = self._TEST_ITEM_JUSTIFICATION
         item.rejection_reason = self._TEST_ITEM_REJECTED_REASON
         item.limitation_value = self._TEST_ITEM_LIMITATION_VALUE
+        item.availability = self._TEST_ITEM_AVAILABILITY
+        item.price_asked = self._PRICE_ASKED
+        item.price_approved = self._PRICE_APPROVED
+        item.audit_user_id = self._ADMIN_AUDIT_USER_ID
         return item
 
     def create_test_claim_service(self):
         service = ClaimService()
-        service.service = Service()
+        service.service = create_test_service(self._TEST_SERVICE_TYPE)
         service.service.code = self._TEST_SERVICE_CODE
         service.status = self._TEST_SERVICE_STATUS
         service.qty_approved = self._TEST_SERVICE_QUANTITY_APPROVED
+        service.qty_provided = self._TEST_SERVICE_QUANTITY_PROVIDED
         service.justification = self._TEST_SERVICE_JUSTIFICATION
         service.rejection_reason = self._TEST_SERVICE_REJECTED_REASON
         service.limitation_value = self._TEST_SERVICE_LIMITATION_VALUE
+        service.availability = self._TEST_ITEM_AVAILABILITY
+        service.price_asked = self._PRICE_ASKED
+        service.price_approved = self._PRICE_APPROVED
+        service.audit_user_id = self._ADMIN_AUDIT_USER_ID
         return service
 
     def create_test_imis_instance(self):
@@ -71,6 +99,14 @@ class ClaimResponseTestMixin(GenericTestMixin):
         imis_claim.date_processed = TimeUtils.str_to_date(self._TEST_DATE_PROCESSED)
         imis_claim.approved = self._TEST_APPROVED
         imis_claim.rejection_reason = self._TEST_REJECTION_REASON
+        imis_claim.insuree = create_test_insuree()
+        imis_claim.health_facility = HealthFacility()
+        imis_claim.icd = Diagnosis(code='ICD00I')
+        imis_claim.icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
+        imis_claim.audit_user_id = self._ADMIN_AUDIT_USER_ID
+        imis_claim.icd.date_from = datetime.date(2018, 12, 12)
+        imis_claim.date_from = datetime.date(2018, 12, 12)
+        imis_claim.date_claimed = datetime.date(2018, 12, 14)
         feedback = Feedback()
         feedback.id = self._TEST_FEEDBACK_ID
         feedback.uuid = self._TEST_FEEDBACK_UUID
@@ -175,19 +211,18 @@ class ClaimResponseTestMixin(GenericTestMixin):
             elif identifier.type.coding[0].code == R4IdentifierConfig.get_fhir_claim_code_type():
                 self.assertEqual(self._TEST_CODE, identifier.value)
         self.assertTrue(main_id_check, "One of the identifiers should match the main ID")
-        self.assertEqual(self._TEST_STATUS, fhir_obj.outcome.coding[0].code)
+        self.assertEqual(self._TEST_STATUS_DISPLAY, fhir_obj.outcome)
         self.assertEqual(self._TEST_ADJUSTMENT, fhir_obj.payment.adjustmentReason.text)
-        self.assertEqual(self._TEST_DATE_PROCESSED, fhir_obj.payment.date)
-        self.assertEqual(self._TEST_REJECTION_REASON, fhir_obj.error[0].code.coding[0].code)
+        self.assertEqual(str(self._TEST_REJECTION_REASON), fhir_obj.error[0].code.coding[0].code)
         self.assertEqual(str(self._TEST_FEEDBACK_UUID), CommunicationRequestConverter.get_resource_id_from_reference(
             fhir_obj.communicationRequest[0]))
         self.assertEqual(str(self._TEST_ITEM_STATUS), fhir_obj.item[0].adjudication[0].reason.coding[0].code)
         self.assertEqual(self._TEST_ITEM_QUANTITY_APPROVED, fhir_obj.item[0].adjudication[0].value)
-        self.assertEqual(self._TEST_ITEM_JUSTIFICATION, fhir_obj.processNote[0].text)
-        self.assertEqual(str(self._TEST_ITEM_REJECTED_REASON), fhir_obj.item[0].adjudication[1].reason.coding[0].code)
-        self.assertEqual(self._TEST_ITEM_LIMITATION_VALUE, fhir_obj.item[0].adjudication[0].amount.value)
-        self.assertEqual(str(self._TEST_SERVICE_STATUS), fhir_obj.item[1].adjudication[0].reason.coding[0].code)
+        self.assertEqual(self._TEST_ITEM_JUSTIFICATION, fhir_obj.item[0].adjudication[0].reason.text)
+        self.assertEqual(str(self._TEST_ITEM_REJECTED_REASON), fhir_obj.item[0].adjudication[0].reason.coding[0].code)
+        self.assertEqual(self._PRICE_ASKED, fhir_obj.item[0].adjudication[0].amount.value)
+        self.assertEqual(str(self._TEST_SERVICE_STATUS), fhir_obj.item[1].adjudication[0].category.coding[0].code)
         self.assertEqual(self._TEST_SERVICE_QUANTITY_APPROVED, fhir_obj.item[1].adjudication[0].value)
-        self.assertEqual(self._TEST_SERVICE_JUSTIFICATION, fhir_obj.processNote[1].text)
-        self.assertEqual(str(self._TEST_SERVICE_REJECTED_REASON), fhir_obj.item[1].adjudication[1].reason.coding[0].code)
-        self.assertEqual(self._TEST_SERVICE_LIMITATION_VALUE, fhir_obj.item[1].adjudication[0].amount.value)
+        self.assertEqual(self._TEST_SERVICE_JUSTIFICATION, fhir_obj.item[1].adjudication[0].reason.text)
+        self.assertEqual(str(self._TEST_SERVICE_REJECTED_REASON), fhir_obj.item[1].adjudication[0].reason.coding[0].code)
+        self.assertEqual(self._PRICE_ASKED, fhir_obj.item[1].adjudication[0].amount.value)

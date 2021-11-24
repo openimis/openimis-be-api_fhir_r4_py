@@ -1,16 +1,27 @@
 import inspect
 
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from api_fhir_r4.models import Reference
-from api_fhir_r4.converters import R4IdentifierConfig
+from fhir.resources.reference import Reference
 
+from api_fhir_r4.configurations import R4IdentifierConfig
 
 
 class ReferenceConverterMixin(object):
+    DB_ID_REFERENCE_TYPE = 'db_id_reference'
+    UUID_REFERENCE_TYPE = 'uuid_reference'
+    CODE_REFERENCE_TYPE = 'code_reference'
+
+    @classmethod
+    def get_reference_obj_uuid(cls, obj):
+        raise NotImplementedError('`get_reference_obj_uuid()` must be implemented.')
 
     @classmethod
     def get_reference_obj_id(cls, obj):
-        raise NotImplementedError('`get_imis_object_id()` must be implemented.')  # pragma: no cover
+        raise NotImplementedError('`get_reference_obj_id()` must be implemented.')
+
+    @classmethod
+    def get_reference_obj_code(cls, obj):
+        raise NotImplementedError('`get_reference_obj_code()` must be implemented.')
 
     @classmethod
     def get_fhir_resource_type(cls):
@@ -21,25 +32,19 @@ class ReferenceConverterMixin(object):
         raise NotImplementedError('`get_imis_object_by_fhir_reference()` must be implemented.')  # pragma: no cover
 
     @classmethod
-    def build_fhir_resource_reference(cls, obj, type= None, display = None):
-        if obj is None:
-            raise FHIRRequestProcessException(['Cannot construct a reference on none: {}'])
-        reference = Reference()
-        if type is None:
-            resource_type = cls.__get_fhir_resource_type_as_string()
-        else:
-            resource_type = type
-        resource_id = cls.__get_imis_object_id_as_string(obj)
+    def build_fhir_resource_reference(cls, obj, type=None, display=None, reference_type=UUID_REFERENCE_TYPE):
+        reference = Reference.construct()
+
+        resource_type = type if type else cls.__get_fhir_resource_type_as_string()
+        resource_id = cls.__get_imis_object_id_as_string(obj, reference_type)
+
         reference.type = resource_type
-        if hasattr(obj, 'uuid'):
-            reference.identifier = cls.build_fhir_identifier(obj.uuid,
-                                            R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                            R4IdentifierConfig.get_fhir_uuid_type_code())
-        else:
-             reference.identifier = obj.id
+        reference.identifier = cls.build_reference_identifier(obj, reference_type)
         reference.reference = resource_type + '/' + resource_id
-        if display is not None:
+
+        if display:
             reference.display = display
+
         return reference
 
     @classmethod
@@ -54,8 +59,16 @@ class ReferenceConverterMixin(object):
         return resource_id
 
     @classmethod
-    def __get_imis_object_id_as_string(cls, obj):
-        resource_id = cls.get_reference_obj_id(obj)
+    def __get_imis_object_id_as_string(cls, obj, reference_type):
+        if reference_type == cls.UUID_REFERENCE_TYPE:
+            resource_id = cls.get_reference_obj_uuid(obj)
+        elif reference_type == cls.DB_ID_REFERENCE_TYPE:
+            resource_id = cls.get_reference_obj_id(obj)
+        elif reference_type == cls.CODE_REFERENCE_TYPE:
+            resource_id = cls.get_reference_obj_code(obj)
+        else:
+            raise FHIRRequestProcessException([f'Could not create reference for reference type {reference_type}'])
+
         if not isinstance(resource_id, str):
             resource_id = str(resource_id)
         return resource_id
@@ -68,3 +81,23 @@ class ReferenceConverterMixin(object):
         if not isinstance(resource_type, str):
             resource_type = str(resource_type)
         return resource_type
+
+    @classmethod
+    def build_reference_identifier(cls, obj, reference_type):
+        # Methods for building identifiers are expected to be implemented by classes derived BaseFHIRConverter
+        identifiers = []
+        if reference_type == cls.UUID_REFERENCE_TYPE:
+            # If object is without uuid use id instead
+            # If uuid is requested but not available id in simple string format is used
+            if hasattr(obj, 'uuid'):
+                cls.build_fhir_uuid_identifier(identifiers, obj)
+            else:
+                identifiers.append(str(obj.id))
+        elif reference_type == cls.DB_ID_REFERENCE_TYPE:
+            cls.build_fhir_id_identifier(identifiers, obj)
+        elif reference_type == cls.CODE_REFERENCE_TYPE:
+            cls.build_fhir_code_identifier(identifiers, obj)
+        else:
+            raise NotImplementedError(f"Unhandled reference type {reference_type}")
+
+        return identifiers[0]

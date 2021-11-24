@@ -1,5 +1,7 @@
 import sys
 
+from api_fhir_r4.defaultConfig import DEFAULT_CFG
+
 
 class BaseConfiguration(object):  # pragma: no cover
 
@@ -11,6 +13,17 @@ class BaseConfiguration(object):  # pragma: no cover
     def get_config(cls):
         module_name = "api_fhir_r4"
         return sys.modules[module_name]
+
+    @classmethod
+    def get_config_attribute(cls, attribute, cfg=None):
+        conf = cls.get_config()
+        if conf and hasattr(conf, attribute):
+            return conf.__getattribute__(attribute)
+        else:
+            from core.models import ModuleConfiguration
+            cfg = cfg or ModuleConfiguration.get_or_default("api_fhir_r4", DEFAULT_CFG)
+            cls.build_configuration(cfg)
+            return conf.__getattribute__(attribute)
 
 
 class IdentifierConfiguration(BaseConfiguration):  # pragma: no cover
@@ -25,6 +38,10 @@ class IdentifierConfiguration(BaseConfiguration):  # pragma: no cover
 
     @classmethod
     def get_fhir_uuid_type_code(cls):
+        raise NotImplementedError('`get_fhir_id_type_code()` must be implemented.')
+
+    @classmethod
+    def get_fhir_id_type_code(cls):
         raise NotImplementedError('`get_fhir_id_type_code()` must be implemented.')
 
     @classmethod
@@ -218,6 +235,30 @@ class ClaimConfiguration(BaseConfiguration):  # pragma: no cover
     @classmethod
     def get_fhir_claim_item_status_rejected_code(cls):
         raise NotImplementedError('`get_fhir_claim_item_status_rejected_code()` must be implemented.')
+
+    @classmethod
+    def get_fhir_claim_item_general_adjudication_code(cls):
+        raise NotImplementedError('`get_fhir_claim_item_general_adjudication_code()` must be implemented')
+
+    @classmethod
+    def get_fhir_claim_item_rejected_reason_adjudication_code(cls):
+        raise NotImplementedError('`get_fhir_claim_item_rejected_reason_adjudication_code()` must be implemented')
+
+    @classmethod
+    def get_fhir_claim_organization_code(cls):
+        raise NotImplementedError('`get_fhir_claim_organization_code()` must be implemented')
+
+    @classmethod
+    def get_fhir_claim_attachment_code(cls):
+        raise NotImplementedError('`get_fhir_claim_attachment_code()` must be implemented')
+
+    @classmethod
+    def get_fhir_claim_attachment_system(cls):
+        raise NotImplementedError('`get_fhir_claim_attachment_system()` must be implemented')
+
+    @classmethod
+    def get_allowed_fhir_claim_attachment_mime_types_regex(cls):
+        raise NotImplementedError('`get_allowed_fhir_claim_attachment_mime_types_regex()` must be implemented')
 
 
 class CoverageEligibilityConfiguration(BaseConfiguration):  # pragma: no cover

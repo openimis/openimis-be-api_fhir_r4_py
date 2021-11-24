@@ -1,6 +1,6 @@
 import copy
 
-from insuree.models import Insuree, Gender, Education, Profession
+from insuree.models import Insuree, Gender, Education, Profession,Family
 
 from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
@@ -16,17 +16,15 @@ class PatientSerializer(BaseFHIRSerializer):
             raise FHIRException('Exists patient with following chfid `{}`'.format(chf_id))
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
-        return Insuree.objects.create(**copied_data)
+        obj = Insuree.objects.create(**copied_data)
+        if copied_data['head']:
+            obj.family=Family.objects.create(head_insuree=obj,audit_user_id=copied_data['audit_user_id'])
+        obj.save()
+        return obj
 
     def update(self, instance, validated_data):
-        # TODO the familyid isn't covered because that value is missing in the model
-        # TODO the photoId isn't covered because that value is missing in the model
-        # TODO the typeofid isn't covered because that value is missing in the model
-        # TODO the head isn't covered in the current version of API
-        # TODO the card_issued isn't covered in the current version of API
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.other_names = validated_data.get('other_names', instance.other_names)
-        instance.chf_id = validated_data.get('chf_id', instance.chf_id)
         instance.passport = validated_data.get('passport', instance.passport)
         instance.dob = validated_data.get('dob', instance.dob)
         gender_code = validated_data.get('gender_id', instance.gender.code)

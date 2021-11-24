@@ -2,18 +2,18 @@ from claim.models import Feedback
 
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from api_fhir_r4.models import CommunicationRequest, RequestStatus
+from fhir.resources.communicationrequest import CommunicationRequest
 from api_fhir_r4.utils import DbManagerUtils
 
 
 class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
-    def to_fhir_obj(cls, imis_feedback):
-        fhir_communication_request = CommunicationRequest()
-        fhir_communication_request.status = RequestStatus.UNKNOWN.value
+    def to_fhir_obj(cls, imis_feedback, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        fhir_communication_request = CommunicationRequest.construct()
+        fhir_communication_request.status = "unknown"
         cls.build_fhir_occurrence_datetime(fhir_communication_request, imis_feedback)
-        cls.build_fhir_pk(fhir_communication_request, imis_feedback.uuid)
+        cls.build_fhir_pk(fhir_communication_request, imis_feedback, reference_type)
         cls.build_fhir_identifiers(fhir_communication_request, imis_feedback)
         cls.build_fhir_reason_codes(fhir_communication_request, imis_feedback)
         cls.build_fhir_status(fhir_communication_request)
@@ -41,8 +41,14 @@ class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_identifiers(cls, fhir_communication_request, imis_feedback):
         identifiers = []
-        cls.build_fhir_uuid_identifier(identifiers, imis_feedback)
+        cls.build_all_identifiers(identifiers, imis_feedback)
         fhir_communication_request.identifier = identifiers
+
+    @classmethod
+    def build_all_identifiers(cls, identifiers, imis_object):
+        # Feedback does not provide code reference
+        cls.build_fhir_uuid_identifier(identifiers, imis_object)
+        cls.build_fhir_id_identifier(identifiers, imis_object)
 
     @classmethod
     def build_fhir_reason_codes(cls, fhir_communication_request, imis_feedback):

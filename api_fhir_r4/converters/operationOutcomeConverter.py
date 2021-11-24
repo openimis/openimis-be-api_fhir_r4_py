@@ -7,15 +7,16 @@ from rest_framework.exceptions import APIException
 from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRException
-from api_fhir_r4.models import OperationOutcome, OperationOutcomeIssue
-from api_fhir_r4.models.operationOutcome import IssueSeverity
+from api_fhir_r4.models import OperationOutcomeV2
+from fhir.resources.operationoutcome import OperationOutcomeIssue
+from pydantic.error_wrappers import ValidationError
 
 
 class OperationOutcomeConverter(BaseFHIRConverter):
 
     @classmethod
     def to_fhir_obj(cls, obj):
-        result = OperationOutcome()
+        result = OperationOutcomeV2.construct()
         if isinstance(obj, HttpResponse):
             result = cls.build_for_http_response(obj)
         elif isinstance(obj, Exception):
@@ -24,7 +25,7 @@ class OperationOutcomeConverter(BaseFHIRConverter):
 
     @classmethod
     def build_for_http_response(cls, obj):
-        severity = IssueSeverity.INFORMATION.value
+        severity = "information"
         code = R4IssueTypeConfig.get_fhir_code_for_informational()
         details_text = obj.content.decode("utf-8")
         return cls.build_outcome(severity, code, details_text)
@@ -50,33 +51,33 @@ class OperationOutcomeConverter(BaseFHIRConverter):
 
     @classmethod
     def build_for_fhir_exception(cls, obj):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = obj.detail
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_404(cls):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_not_found()
         return cls.build_outcome(severity, code)
 
     @classmethod
     def build_for_400_bad_request(cls, details_text=None):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_key_error(cls, obj):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = cls.get_last_message(obj) + ' is missing'
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_generic_error(cls, obj):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = cls.get_last_message(obj)
         return cls.build_outcome(severity, code, details_text)
@@ -87,32 +88,37 @@ class OperationOutcomeConverter(BaseFHIRConverter):
 
     @classmethod
     def build_for_key_api_exception(cls, obj):
-        severity = IssueSeverity.FATAL.value
+        severity = "fatal"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = obj.detail
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_fhir_claim_submit_error(cls, obj):
-        severity = IssueSeverity.ERROR.value
+        severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = obj.msg
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_IntegrityError(cls, obj):
-        severity = IssueSeverity.FATAL.value
+        severity = "fatal"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = obj.args[1]
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_outcome(cls, severity, code, details_text=None):
-        outcome = OperationOutcome()
-        issue = OperationOutcomeIssue()
-        issue.severity = severity
-        issue.code = code
+        outcome = OperationOutcomeV2.construct()
+        issue_data = {}
+        issue_data["severity"] = severity
+        issue_data["code"] = code
         if details_text:
-            issue.details = cls.build_simple_codeable_concept(text=details_text)
-        outcome.issue.append(issue)
+            #if type(details_text) is str:
+            issue_data["details"] = cls.build_simple_codeable_concept(text=details_text)
+        issue = OperationOutcomeIssue(**issue_data)
+        if type(outcome.issue) is not list:
+           outcome.issue = [issue]
+        else:
+           outcome.issue.append(issue)
         return outcome

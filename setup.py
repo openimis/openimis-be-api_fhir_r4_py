@@ -23,11 +23,13 @@ setup(
         'django',
         'django-db-signals',
         'djangorestframework',
+        'fhir.resources==6.2.0b3',
         'openimis-be-core',
         'openimis-be-insuree',
         'openimis-be-location',
         'openimis-be-claim',
-        'openimis-be-policy'
+        'openimis-be-policy',
+        'openimis-be-policyholder'
     ],
     classifiers=[
         'Environment :: Web Environment',

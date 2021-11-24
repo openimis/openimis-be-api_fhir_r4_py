@@ -30,7 +30,7 @@ def fhir_api_exception_handler(exc, context):
         fhir_outcome = OperationOutcomeConverter.to_fhir_obj(exc)
         if not response:
             response = __create_server_error_response()
-        response.data = fhir_outcome.toDict()
+        response.data = fhir_outcome.dict()
 
     return response
 

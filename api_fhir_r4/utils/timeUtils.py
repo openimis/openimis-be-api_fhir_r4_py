@@ -14,5 +14,7 @@ class TimeUtils(object):
 
     @classmethod
     def str_to_date(cls, str_value):
-        py_date = parser.parse(str_value)
+        if type(str_value) is not str:
+            str_value = str(str_value)
+        py_date = parser.parse(str_value+" 00:00:00")
         return core.datetime.datetime.from_ad_datetime(py_date)

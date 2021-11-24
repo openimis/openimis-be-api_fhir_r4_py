@@ -1,6 +1,6 @@
 import copy
 
-from location.models import Location
+from location.models import Location, HealthFacility
 
 from api_fhir_r4.converters import LocationSiteConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer

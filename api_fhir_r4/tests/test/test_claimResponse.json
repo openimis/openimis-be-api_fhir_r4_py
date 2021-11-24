@@ -79,7 +79,7 @@
       "noteNumber": [
         1
       ],
-      "sequenceLinkId": 1
+      "itemSequence": 1
     },
     {
       "adjudication": [
@@ -116,17 +116,10 @@
       "noteNumber": [
         2
       ],
-      "sequenceLinkId": 2
+      "itemSequence": 2
     }
   ],
-  "outcome": {
-    "coding": [
-      {
-        "code": "1"
-      }
-    ],
-    "text": "rejected"
-  },
+  "outcome": "rejected",
   "payment": {
     "adjustmentReason": {
       "text": "adjustment"
