@@ -20,13 +20,13 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
     @classmethod
     def to_fhir_obj(cls, imis_organisation: HealthFacility, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
         fhir_organisation = Organization()
-        cls.build_fhir_pk(fhir_organisation, imis_organisation.uuid)
+        cls.build_fhir_pk(fhir_organisation, imis_organisation, reference_type)
         cls.build_fhir_extensions(fhir_organisation, imis_organisation)
         cls.build_fhir_identifiers(fhir_organisation, imis_organisation)
         cls.build_fhir_type(fhir_organisation, imis_organisation)
         cls.build_fhir_name(fhir_organisation, imis_organisation)
         cls.build_fhir_telecom(fhir_organisation, imis_organisation)
-        cls.build_hf_address(fhir_organisation, imis_organisation)
+        cls.build_hf_address(fhir_organisation, imis_organisation, reference_type)
         cls.build_contacts(fhir_organisation, imis_organisation)
         return fhir_organisation
 
@@ -48,7 +48,11 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
 
     @classmethod
     def build_fhir_extensions(cls, fhir_organisation: Organization, imis_organisation: HealthFacility):
-        extensions = [cls.__legal_form_extension(), cls.__level_extension(imis_organisation)]
+        extensions = [
+            cls.__legal_form_extension(),
+            cls.__level_extension(imis_organisation),
+            cls.__type_extension(imis_organisation)
+        ]
         fhir_organisation.extension = [ext for ext in extensions if ext]
 
     @classmethod
@@ -107,7 +111,7 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
         )
 
     @classmethod
-    def build_hf_address(cls, fhir_organisation: Organization, imis_organisation: HealthFacility):
+    def build_hf_address(cls, fhir_organisation: Organization, imis_organisation: HealthFacility, reference_type):
         address = Address.construct()
         if imis_organisation.address:
             address.line = [imis_organisation.address]
@@ -116,13 +120,13 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
         address.district = imis_organisation.location.name
         address.state = imis_organisation.location.parent.name
         address.type = 'physical'
-        address.extension = [cls._build_address_ext(imis_organisation)]
+        address.extension = [cls._build_address_ext(imis_organisation, reference_type)]
 
         fhir_organisation.address = [address]
 
     @classmethod
-    def _build_address_ext(cls, imis_organisation):
-        address_ref = LocationConverter.build_fhir_resource_reference(imis_organisation, 'Organisation')
+    def _build_address_ext(cls, imis_organisation, reference_type):
+        address_ref = LocationConverter.build_fhir_resource_reference(imis_organisation, 'Organisation', reference_type=reference_type)
         address_ext = Extension.construct()
         address_ext.url = HealthFacilityOrganizationTypeMapping.ADDRESS_LOCATION_REFERENCE_URL
         address_ext.valueReference = address_ref
@@ -196,3 +200,16 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
 
         return extension
 
+    @classmethod
+    def __type_extension(cls, imis_organisation: HealthFacility):
+        care_type = imis_organisation.care_type
+        care_type_display = HealthFacilityOrganizationTypeMapping.TYPE_DISPLAY_MAPPING.get(care_type, None)
+
+        extension = Extension.construct()
+        extension.url = f'{GeneralConfiguration.get_system_base_url()}StructureDefinition/organization-hf-care-type'
+        extension.valueCodeableConcept = cls.build_codeable_concept(
+            code=care_type,
+            system=HealthFacilityOrganizationTypeMapping.TYPE_SYSTEM,
+            display=care_type_display
+        )
+        return extension

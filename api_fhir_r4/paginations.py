@@ -34,7 +34,6 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
         if previous_link:
             self.build_bundle_link(bundle, "previous", previous_link)
 
-
     def build_bundle_link(self, bundle, relation, url):
         self_link = {}
         self_link['url'] = urllib.parse.quote_plus(url)

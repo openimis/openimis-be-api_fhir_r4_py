@@ -11,7 +11,8 @@ from rest_framework.serializers import ValidationError
 from rest_framework.viewsets import GenericViewSet
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin
-from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
+from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever, \
+    DatabaseIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiClaimPermissions
 from api_fhir_r4.serializers import ClaimSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
@@ -19,7 +20,7 @@ from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
 
 class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModelMixin,
                    mixins.CreateModelMixin, GenericViewSet):
-    retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]
+    retrievers = [UUIDIdentifierModelRetriever, DatabaseIdentifierModelRetriever]
     serializer_class = ClaimSerializer
     permission_classes = (FHIRApiClaimPermissions,)
 

@@ -32,11 +32,11 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         cls.build_fhir_gender(fhir_patient, imis_insuree)
         cls.build_fhir_marital_status(fhir_patient, imis_insuree)
         cls.build_fhir_telecom(fhir_patient, imis_insuree)
-        cls.build_fhir_addresses(fhir_patient, imis_insuree)
+        cls.build_fhir_addresses(fhir_patient, imis_insuree, reference_type)
         cls.build_fhir_extentions(fhir_patient, imis_insuree, reference_type)
         cls.build_fhir_contact(fhir_patient, imis_insuree)
         cls.build_fhir_photo(fhir_patient, imis_insuree)
-        cls.build_fhir_general_practitioner(fhir_patient, imis_insuree)
+        cls.build_fhir_general_practitioner(fhir_patient, imis_insuree, reference_type)
         return fhir_patient
 
     @classmethod
@@ -340,7 +340,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         imis_insuree.phone, imis_insuree.email = cls.build_imis_phone_num_and_email(fhir_patient.telecom)
 
     @classmethod
-    def build_fhir_addresses(cls, fhir_patient, imis_insuree):
+    def build_fhir_addresses(cls, fhir_patient, imis_insuree, reference_type):
         addresses = []
         # family slice - required
         if imis_insuree.family is not None:
@@ -359,7 +359,8 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 # address location reference extension
                 extension = Extension.construct()
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
-                extension.valueReference = LocationConverter.build_fhir_resource_reference(imis_family.location, 'Location')
+                extension.valueReference = LocationConverter\
+                    .build_fhir_resource_reference(imis_family.location, 'Location', reference_type=reference_type)
                 family_address.extension.append(extension)
 
                 family_address.city = imis_family.location.name
@@ -386,7 +387,8 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 # address location reference extension
                 extension = Extension.construct()
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
-                extension.valueReference = LocationConverter.build_fhir_resource_reference(imis_insuree.current_village, 'Location')
+                extension.valueReference = LocationConverter\
+                    .build_fhir_resource_reference(imis_insuree.current_village, 'Location', reference_type=reference_type)
                 current_address.extension.append(extension)
 
                 current_address.city = imis_insuree.current_village.name
@@ -446,7 +448,8 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
             elif value == "patient.group.reference":
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-group-reference"
-                extension.valueReference = GroupConverter.build_fhir_resource_reference(imis_insuree.family, 'Group')
+                extension.valueReference = GroupConverter\
+                    .build_fhir_resource_reference(imis_insuree.family, 'Group', reference_type=reference_type)
 
             elif value == "patient.identification":
                 nested_extension = Extension.construct()
@@ -549,10 +552,11 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 imis_insuree.photo_id = obj.id
 
     @classmethod
-    def build_fhir_general_practitioner(cls, fhir_patient, imis_insuree):
+    def build_fhir_general_practitioner(cls, fhir_patient, imis_insuree, reference_type):
         if imis_insuree.health_facility:
             fhir_patient.generalPractitioner = [
-                PolicyHolderOrganisationConverter.build_fhir_resource_reference(imis_insuree.health_facility, 'Organisation')
+                PolicyHolderOrganisationConverter
+                    .build_fhir_resource_reference(imis_insuree.health_facility, 'Organisation', reference_type=reference_type)
             ]
 
     @classmethod

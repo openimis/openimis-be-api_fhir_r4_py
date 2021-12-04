@@ -28,4 +28,12 @@ class HealthFacilityOrganizationTypeMapping:
         'H': 'Hospital'
     }
 
+    TYPE_DISPLAY_MAPPING = {
+        'O': 'Out-patient',
+        'I': 'In-patient',
+        'B': 'Both'
+    }
+
     LEVEL_SYSTEM = f'{GeneralConfiguration.get_system_base_url()}/CodeSystem/organization-hf-level'
+
+    TYPE_SYSTEM = f'{GeneralConfiguration.get_system_base_url()}/CodeSystem/organization-hf-care-type'

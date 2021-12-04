@@ -13,17 +13,24 @@ from django.shortcuts import get_object_or_404
 from api_fhir_r4.configurations import R4ClaimConfig
 from api_fhir_r4.converters import ClaimResponseConverter, OperationOutcomeConverter, PatientConverter, \
     MedicationConverter, HealthFacilityOrganisationConverter, ClaimAdminPractitionerConverter, \
-    ActivityDefinitionConverter, ReferenceConverterMixin as r
+    ActivityDefinitionConverter, ReferenceConverterMixin as r, GroupConverter
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.fhirabstractmodel import FHIRAbstractModel
 from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make sure contained resources will use same reference type
+        self.__set_contained_resource_reference_types(self._reference_type)
+
     fhirConverter = ClaimConverter()
 
     contained_resources = [
         ContainedResourceConverter('insuree', PatientConverter),
+        ContainedResourceConverter('insuree', GroupConverter, lambda model, field: model.__getattribute__(field).family),
         ContainedResourceConverter('health_facility', HealthFacilityOrganisationConverter),
         ContainedResourceConverter('admin', ClaimAdminPractitionerConverter),
         ContainedResourceConverter('items', MedicationConverter,
@@ -116,9 +123,12 @@ class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
                                                    r.DB_ID_REFERENCE_TYPE]):
         if reference_type != self._reference_type:
             self._reference_type = reference_type
-            for contained in self.contained_resources:
-                contained.reference_type = reference_type
+            self.__set_contained_resource_reference_types(reference_type)
 
     def __get_attachments(self, fhir_obj):
         attachment_category = R4ClaimConfig.get_fhir_claim_attachment_code()
         return [a.valueAttachment for a in fhir_obj.supportingInfo if a.category.text == attachment_category]
+
+    def __set_contained_resource_reference_types(self, reference_type):
+        for contained in self.contained_resources:
+            contained.reference_type = reference_type
