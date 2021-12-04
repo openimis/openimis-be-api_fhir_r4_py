@@ -7,7 +7,6 @@ from api_fhir_r4.views import LoginView, fhir as fhir_viewsets
 
 imis_modules = openimis_apps()
 
-
 router = DefaultRouter()
 router.register(r'login', LoginView, basename="login")
 # register endpoint related to Product module if used
@@ -19,9 +18,14 @@ if 'location' in imis_modules:
     router.register(r'Location', fhir_viewsets.LocationViewSet, basename="Location_R4")
     # code system for openimis organization legal form
     router.register(
-        r'CodeSystem/organization-legal-form',
-        fhir_viewsets.CodeSystemOpenIMISOrganizationLegalFormViewSet,
-        basename="CodeSystem/organization-legal-form_R4"
+        r'CodeSystem/organization-hf-legal-form',
+        fhir_viewsets.CodeSystemOrganizationHFLegalFormViewSet,
+        basename="CodeSystem/organization-hf-legal-form_R4"
+    )
+    router.register(
+        r'CodeSystem/organization-hf-level',
+        fhir_viewsets.CodeSystemOrganizationHFLevelViewSet,
+        basename="CodeSystem/organization-hf-level_R4"
     )
 
 # register endpoint for insuree if used
@@ -29,7 +33,8 @@ if 'insuree' in imis_modules:
     router.register(r'Patient', fhir_viewsets.InsureeViewSet, basename="Patient_R4")
     router.register(r'Group', fhir_viewsets.GroupViewSet, basename="Group_R4")
     router.register(
-        r'CoverageEligibilityRequest', fhir_viewsets.CoverageEligibilityRequestViewSet, basename="CoverageEligibilityRequest_R4"
+        r'CoverageEligibilityRequest', fhir_viewsets.CoverageEligibilityRequestViewSet,
+        basename="CoverageEligibilityRequest_R4"
     )
     # code system for openimis patient
     router.register(
@@ -91,7 +96,14 @@ if 'policy' in imis_modules:
 # register endpoint for policy holder if used
 if 'policyholder' in imis_modules:
     router.register(r'Organisation', fhir_viewsets.OrganisationViewSet, basename="Organisation_R4")
+    router.register(r'CodeSystem/organization-ph-legal-form', fhir_viewsets.CodeSystemOrganizationPHLegalFormViewSet,
+                    basename="CodeSystem/organization-ph-legal-form_R4")
+    router.register(r'CodeSystem/organization-ph-activity', fhir_viewsets.CodeSystemOrganizationPHActivityViewSet,
+                    basename="CodeSystem/organization-ph-activity_R4")
 
+# register endpoint for policy holder if used
+if 'invoice' in imis_modules:
+    router.register(r'Invoice', fhir_viewsets.InvoiceViewSet, basename="Invoice_R4")
 
 urlpatterns = [
     path('', include(router.urls))

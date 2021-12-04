@@ -80,7 +80,7 @@ class R4ClaimConfig(ClaimConfiguration):
     @classmethod
     def get_fhir_claim_visit_type_system(cls):
         return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_claim_visit_type_system',
-                                                                    'CodeSystem-claim-visit-type')
+                                                                    'CodeSystem/claim-visit-type')
 
     @classmethod
     def get_fhir_claim_supporting_info_system(cls):
@@ -101,6 +101,10 @@ class R4ClaimConfig(ClaimConfiguration):
     def get_fhir_claim_diagnosis_system(cls):
         return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_claim_diagnosis_system',
                                                                     'CodeSystem/diagnosis-ICD10-level1')
+
+    @classmethod
+    def get_fhir_claim_attachment_system(cls):
+        pass
 
     @classmethod
     def get_allowed_fhir_claim_attachment_mime_types_regex(cls):

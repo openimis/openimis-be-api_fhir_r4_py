@@ -123,7 +123,6 @@ class LocationConfiguration(BaseConfiguration):  # pragma: no cover
     def get_fhir_code_for_both(cls):
         raise NotImplementedError('`get_fhir_code_for_both()` must be implemented')
 
-
     @classmethod
     def get_fhir_code_for_active(cls):
         raise NotImplementedError('`get_fhir_code_for_active()` must be implemented')
@@ -243,27 +242,47 @@ class ClaimConfiguration(BaseConfiguration):  # pragma: no cover
 
     @classmethod
     def get_fhir_claim_item_general_adjudication_code(cls):
-        raise NotImplementedError('`get_fhir_claim_item_general_adjudication_code()` must be implemented')
+        raise NotImplementedError('`get_fhir_claim_item_general_adjudication_code()` must be implemented.')
 
     @classmethod
     def get_fhir_claim_item_rejected_reason_adjudication_code(cls):
-        raise NotImplementedError('`get_fhir_claim_item_rejected_reason_adjudication_code()` must be implemented')
+        raise NotImplementedError('`get_fhir_claim_item_rejected_reason_adjudication_code()` must be implemented.')
 
     @classmethod
     def get_fhir_claim_organization_code(cls):
-        raise NotImplementedError('`get_fhir_claim_organization_code()` must be implemented')
+        raise NotImplementedError('`get_fhir_claim_organization_code()` must be implemented.')
 
     @classmethod
     def get_fhir_claim_attachment_code(cls):
-        raise NotImplementedError('`get_fhir_claim_attachment_code()` must be implemented')
+        raise NotImplementedError('`get_fhir_claim_attachment_code()` must be implemented.')
+
+    @classmethod
+    def get_fhir_claim_visit_type_system(cls):
+        raise NotImplementedError('`get_fhir_claim_visit_type_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_claim_supporting_info_system(cls):
+        raise NotImplementedError('`get_fhir_claim_supporting_info_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_item_reference_extension_system(cls):
+        raise NotImplementedError('`get_fhir_item_reference_extension_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_claim_item_category_system(cls):
+        raise NotImplementedError('`get_fhir_claim_item_category_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_claim_diagnosis_system(cls):
+        raise NotImplementedError('`get_fhir_claim_diagnosis_system()` must be implemented.')
 
     @classmethod
     def get_fhir_claim_attachment_system(cls):
-        raise NotImplementedError('`get_fhir_claim_attachment_system()` must be implemented')
+        raise NotImplementedError('`get_fhir_claim_attachment_system()` must be implemented.')
 
     @classmethod
     def get_allowed_fhir_claim_attachment_mime_types_regex(cls):
-        raise NotImplementedError('`get_allowed_fhir_claim_attachment_mime_types_regex()` must be implemented')
+        raise NotImplementedError('`get_allowed_fhir_claim_attachment_mime_types_regex()` must be implemented.')
 
 
 class CoverageEligibilityConfiguration(BaseConfiguration):  # pragma: no cover
@@ -354,8 +373,8 @@ class CoverageEligibilityConfiguration(BaseConfiguration):  # pragma: no cover
 
     @classmethod
     def get_fhir_status_map(cls):
-        raise NotImplementedError('`get_fhir_status_map()` must be implemented.')        
- 
+        raise NotImplementedError('`get_fhir_status_map()` must be implemented.')
+
 
 class CommunicationRequestConfiguration(BaseConfiguration):  # pragma: no cover
 
@@ -419,7 +438,7 @@ class CoverageConfiguration(BaseConfiguration):  # pragma: no cover
         raise NotImplementedError('`get_service_code()` must be implemented.')
 
     @classmethod
-    def get_service_code(cls):
+    def get_practitioner_role_code(cls):
         raise NotImplementedError('`get_practitioner_role_code()` must be implemented.')
 
     @classmethod
@@ -435,6 +454,58 @@ class CoverageConfiguration(BaseConfiguration):  # pragma: no cover
         raise NotImplementedError('`get_effective_date_code()` must be implemented.')
 
 
+class InvoiceConfiguration(BaseConfiguration):
+    @classmethod
+    def build_configuration(cls, cfg):
+        raise NotImplementedError('`build_configuration()` must be implemented.')
+
+    @classmethod
+    def get_fhir_invoice_type_system(cls):
+        raise NotImplementedError('`get_fhir_invoice_type_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_invoice_charge_item_system(cls):
+        raise NotImplementedError('`get_fhir_invoice_charge_item_system()` must be implemented.')
+
+
+class OrganisationConfiguration(BaseConfiguration):
+    @classmethod
+    def build_configuration(cls, cfg):
+        raise NotImplementedError('`build_configuration()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_type(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_type()` must be implemented.')
+
+    @classmethod
+    def get_fhir_address_municipality_extension_system(cls):
+        raise NotImplementedError('`get_fhir_address_municipality_extension_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_location_reference_extension_system(cls):
+        raise NotImplementedError('`get_fhir_location_reference_extension_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_legal_form_extension_system(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_legal_form_extension_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_activity_extension_system(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_activity_extension_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_legal_form_code_system(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_legal_form_code_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_activity_code_system(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_activity_code_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_ph_organisation_type_system(cls):
+        raise NotImplementedError('`get_fhir_ph_organisation_type_system()` must be implemented.')
+
+
 class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
 
     @classmethod
@@ -447,6 +518,7 @@ class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
         cls.get_coverage_eligibility_configuration().build_configuration(cfg)
         cls.get_communication_request_configuration().build_configuration(cfg)
         cls.get_coverage_configuration().build_configuration(cfg)
+        cls.get_organisation_configuration().build_configuration(cfg)
 
     @classmethod
     def get_identifier_configuration(cls):
@@ -480,6 +552,10 @@ class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
     def get_coverage_configuration(cls):
         raise NotImplementedError('`get_coverage_configuration()` must be implemented.')
 
+    @classmethod
+    def get_organisation_configuration(cls):
+        raise NotImplementedError('`get_organisation_configuration()` must be implemented.')
+
 
 from api_fhir_r4.configurations.generalConfiguration import GeneralConfiguration
 from api_fhir_r4.configurations.R4IdentifierConfig import R4IdentifierConfig
@@ -487,8 +563,11 @@ from api_fhir_r4.configurations.R4LocationConfig import R4LocationConfig
 from api_fhir_r4.configurations.R4MaritalConfig import R4MaritalConfig
 from api_fhir_r4.configurations.R4IssueTypeConfig import R4IssueTypeConfig
 from api_fhir_r4.configurations.R4ClaimConfig import R4ClaimConfig
+from api_fhir_r4.configurations.R4InvoiceConfig import R4InvoiceConfig
 from api_fhir_r4.configurations.R4CoverageEligibilityConfiguration import R4CoverageEligibilityConfiguration
 from api_fhir_r4.configurations.R4CommunicationRequestConfig import R4CommunicationRequestConfig
+from api_fhir_r4.configurations.R4OrganisationConfig import R4OrganisationConfig
+from api_fhir_r4.configurations.R4CoverageConfig import R4CoverageConfig
+# all specific configurations have to be imported before R4ApiFhirConfig
 from api_fhir_r4.configurations.R4ApiFhirConfig import R4ApiFhirConfig
 from api_fhir_r4.configurations.moduleConfiguration import ModuleConfiguration
-from api_fhir_r4.configurations.R4CoverageConfig import R4CoverageConfig

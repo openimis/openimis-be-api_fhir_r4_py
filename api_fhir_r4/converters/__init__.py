@@ -96,7 +96,7 @@ class BaseFHIRConverter(ABC):
             codeable_concept.coding = [coding]
 
         if text:
-            codeable_concept.text = text
+            codeable_concept.text = str(text)
 
         return codeable_concept
 
@@ -182,13 +182,13 @@ class BaseFHIRConverter(ABC):
         return next(iter([entry for entry in use_context if entry.code.code == code]), None)
 
     @classmethod
-    def build_fhir_contact_point(cls, value, contact_point_system=None, contact_point_use=None):
+    def build_fhir_contact_point(cls, value, system=None, use=None):
         contact_point = ContactPoint.construct()
-        if GeneralConfiguration.show_system() and contact_point_system:
-            contact_point.system = contact_point_system.value
+        if system and GeneralConfiguration.show_system():
+            contact_point.system = system.value
 
-        if contact_point_use:
-            contact_point.use = contact_point_use.value
+        if use:
+            contact_point.use = use.value
 
         contact_point.value = value
         return contact_point
@@ -203,13 +203,13 @@ class BaseFHIRConverter(ABC):
         return current_address
 
     @classmethod
-    def build_fhir_reference(cls, identifier, display, type, reference):
-        reference = Reference.construct()
-        reference.identifier = identifier
-        reference.display = display
-        reference.type = type
-        reference.reference = reference
-        return reference
+    def build_fhir_reference(cls, identifier, display, ref_type, reference):
+        fhir_reference = Reference.construct()
+        fhir_reference.identifier = identifier
+        fhir_reference.display = display
+        fhir_reference.type = ref_type
+        fhir_reference.reference = reference
+        return fhir_reference
 
     @classmethod
     def build_fhir_mapped_coding(cls, mapping):
@@ -230,10 +230,19 @@ class BaseFHIRConverter(ABC):
         return extension
 
     @classmethod
-    def build_fhir_money(cls, value):
+    def build_fhir_codeable_concept_extension(cls, codeable_concept: CodeableConcept, url):
+        extension = Extension.construct()
+        extension.url = url
+        extension.valueCodeableConcept = codeable_concept
+        return extension
+
+    @classmethod
+    def build_fhir_money(cls, value, currency=None):
         money = Money.construct()
         money.value = value
-        if hasattr(core, 'currency'):
+        if currency:
+            money.currency = currency
+        elif hasattr(core, 'currency'):
             money.currency = core.currency
         return money
 
@@ -257,7 +266,7 @@ from api_fhir_r4.converters.operationOutcomeConverter import OperationOutcomeCon
 from api_fhir_r4.converters.claimAdminPractitionerConverter import ClaimAdminPractitionerConverter
 from api_fhir_r4.converters.claimAdminPractitionerRoleConverter import ClaimAdminPractitionerRoleConverter
 from api_fhir_r4.converters.coverageEligibilityRequestConverter import CoverageEligibilityRequestConverter
-#from api_fhir_r4.converters.policyCoverageEligibilityRequestConverter import PolicyCoverageEligibilityRequestConverter
+# from api_fhir_r4.converters.policyCoverageEligibilityRequestConverter import PolicyCoverageEligibilityRequestConverter
 from api_fhir_r4.converters.communicationRequestConverter import CommunicationRequestConverter
 from api_fhir_r4.converters.claimResponseConverter import ClaimResponseConverter
 from api_fhir_r4.converters.medicationConverter import MedicationConverter
@@ -270,3 +279,4 @@ from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFac
 from api_fhir_r4.converters.enrolmentOfficerPractitionerConverter import EnrolmentOfficerPractitionerConverter
 from api_fhir_r4.converters.enrolmentOfficerPractitionerRoleConverter import EnrolmentOfficerPractitionerRoleConverter
 from api_fhir_r4.converters.communicationConverter import CommunicationConverter
+from api_fhir_r4.converters.invoiceConverter import InvoiceConverter

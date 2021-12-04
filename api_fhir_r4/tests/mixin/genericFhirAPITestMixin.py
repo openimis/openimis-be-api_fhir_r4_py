@@ -27,9 +27,10 @@ class GenericFhirAPITestMixin(object):
     _test_request_data = None
 
     def setUp(self):
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        json_representation = open(dir_path + self._test_json_path).read()
-        self._test_request_data = json.loads(json_representation)
+        if self._test_json_path:
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            json_representation = open(dir_path + self._test_json_path).read()
+            self._test_request_data = json.loads(json_representation)
 
     def login(self):
         user = DbManagerUtils.get_object_or_none(User, username=self._TEST_SUPERUSER_NAME)

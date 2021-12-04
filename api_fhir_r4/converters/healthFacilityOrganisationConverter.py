@@ -9,7 +9,7 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin, L
 from fhir.resources.organization import Organization
 from fhir.resources.organization import OrganizationContact
 from fhir.resources.extension import Extension
-from api_fhir_r4.mapping.hfOrganizationMapping import HealthFacilityOrganizationTypeMapping
+from api_fhir_r4.mapping.organizationMapping import HealthFacilityOrganizationTypeMapping
 from api_fhir_r4.utils import DbManagerUtils
 
 logger = logging.getLogger(__name__)
@@ -93,21 +93,21 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
     def _build_email_contact_point(cls, imis_organisation):
         return cls.build_fhir_contact_point(
             value=imis_organisation.email,
-            contact_point_system=HealthFacilityOrganizationTypeMapping.EMAIL_CONTACT_POINT_SYSTEM
+            system=HealthFacilityOrganizationTypeMapping.EMAIL_CONTACT_POINT_SYSTEM
         )
 
     @classmethod
     def _build_phone_contact_point(cls, imis_organisation):
         return cls.build_fhir_contact_point(
             value=imis_organisation.phone,
-            contact_point_system=HealthFacilityOrganizationTypeMapping.PHONE_CONTACT_POINT_SYSTEM
+            system=HealthFacilityOrganizationTypeMapping.PHONE_CONTACT_POINT_SYSTEM
         )
 
     @classmethod
     def _build_fax_contact_point(cls, imis_organisation):
         return cls.build_fhir_contact_point(
             value=imis_organisation.fax,
-            contact_point_system=HealthFacilityOrganizationTypeMapping.FAX_CONTACT_POINT_SYSTEM
+            system=HealthFacilityOrganizationTypeMapping.FAX_CONTACT_POINT_SYSTEM
         )
 
     @classmethod

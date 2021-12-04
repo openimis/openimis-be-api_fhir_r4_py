@@ -12,9 +12,8 @@ from api_fhir_r4.configurations import GeneralConfiguration
 
 
 class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
-
     base_url = GeneralConfiguration.get_base_url()
-    url_to_test_authorization = base_url+'Group/'
+    url_to_test_authorization = base_url + 'Group/'
 
     _test_json_path = "/test/test_login.json"
     _test_json_path_credentials = "/tests/test/test_login.json"
@@ -56,7 +55,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         return DbManagerUtils.get_object_or_none(User, username=self._TEST_USER_NAME)
 
     def test_post_should_authorize_correctly(self):
-        response = self.client.post(self.base_url+'login/', data=self._test_request_data_credentials, format='json')
+        response = self.client.post(self.base_url + 'login/', data=self._test_request_data_credentials, format='json')
         response_json = response.json()
         token = response_json["token"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -74,7 +73,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         self.assertEqual(response_json["issue"][0]["details"]["text"], "Authentication credentials were not provided.")
 
     def test_post_should_raise_error_decode_token(self):
-        response = self.client.post(self.base_url+'login/', data=self._test_request_data_credentials, format='json')
+        response = self.client.post(self.base_url + 'login/', data=self._test_request_data_credentials, format='json')
         response_json = response.json()
         token = response_json["token"]
         headers = {
@@ -87,7 +86,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         self.assertEqual(response_json["issue"][0]["details"]["text"], "Error on decoding token")
 
     def test_post_should_raise_lack_of_bearer_prefix(self):
-        response = self.client.post(self.base_url+'login/', data=self._test_request_data_credentials, format='json')
+        response = self.client.post(self.base_url + 'login/', data=self._test_request_data_credentials, format='json')
         response_json = response.json()
         token = response_json["token"]
         headers = {
@@ -97,10 +96,14 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         response = self.client.get(self.url_to_test_authorization, format='json', **headers)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response_json["issue"][0]["details"]["text"], "Missing 'Bearer' prefix")
+
+        if os.getenv('REMOTE_USER_AUTHENTICATION', 'False').lower() == 'false':
+            self.assertEqual(response_json["issue"][0]["details"]["text"], "Missing 'Bearer' prefix")
+        else:
+            self.assertEqual(response_json["issue"][0]["details"]["text"], "Basic auth error: there is no basic header")
 
     def test_post_should_raise_unproper_structure_of_token(self):
-        response = self.client.post(self.base_url+'login/', data=self._test_request_data_credentials, format='json')
+        response = self.client.post(self.base_url + 'login/', data=self._test_request_data_credentials, format='json')
         response_json = response.json()
         token = response_json["token"]
         headers = {
@@ -113,14 +116,14 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         self.assertEqual(response_json["issue"][0]["details"]["text"], "Improper structure of token")
 
     def test_post_should_raise_forbidden(self):
-        response = self.client.post(self.base_url+'login/', data=self._test_request_data_credentials, format='json')
+        response = self.client.post(self.base_url + 'login/', data=self._test_request_data_credentials, format='json')
         response_json = response.json()
         token = response_json["token"]
         headers = {
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
-        response = self.client.get(self.base_url+'Organisation/', format='json', **headers)
+        response = self.client.get(self.base_url + 'Organisation/', format='json', **headers)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(

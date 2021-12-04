@@ -1,40 +1,50 @@
-from django.contrib.contenttypes.models import ContentType
 from api_fhir_r4.converters import BaseFHIRConverter
 from fhir.resources.codesystem import CodeSystem, CodeSystemConcept
+
+from api_fhir_r4.utils import FhirUtils
 
 
 class CodeSystemConverter(BaseFHIRConverter):
 
     @classmethod
-    def to_fhir_obj(cls, imis_model, code_field, display_field, id, name, title, description, url):
+    def to_imis_obj(cls, data, audit_user_id):
+        raise NotImplementedError('`toImisObj()` not implemented.')  # pragma: no cover
+
+    @classmethod
+    def get_fhir_code_identifier_type(cls):
+        raise NotImplementedError('`get_fhir_code_identifier_type()` not implemented.')  # pragma: no cover
+
+    @classmethod
+    def to_fhir_obj(cls, obj, reference_type):
         fhir_code_system = {}
         cls.build_fhir_code_system_status(fhir_code_system)
         cls.build_fhir_code_system_content(fhir_code_system)
         fhir_code_system = CodeSystem(**fhir_code_system)
-        cls.build_fhir_id(fhir_code_system, id)
-        cls.build_fhir_url(fhir_code_system, url)
-        cls.build_fhir_code_system_name(fhir_code_system, name)
-        cls.build_fhir_code_system_title(fhir_code_system, title)
+        cls.build_fhir_id(fhir_code_system, obj)
+        cls.build_fhir_url(fhir_code_system, obj)
+        cls.build_fhir_code_system_name(fhir_code_system, obj)
+        cls.build_fhir_code_system_title(fhir_code_system, obj)
         cls.build_fhir_code_system_date(fhir_code_system)
-        cls.build_fhir_code_system_description(fhir_code_system, description)
-        cls.build_fhir_code_system_concept(fhir_code_system, imis_model, code_field, display_field)
+        cls.build_fhir_code_system_description(fhir_code_system, obj)
+        cls.build_fhir_code_system_count(fhir_code_system, obj)
+        cls.build_fhir_code_system_concept(fhir_code_system, obj)
         return fhir_code_system
 
     @classmethod
-    def build_fhir_id(cls, fhir_code_system, id):
-        fhir_code_system.id = id
+    def build_fhir_id(cls, fhir_code_system, obj):
+        fhir_code_system.id = obj['id']
 
     @classmethod
-    def build_fhir_url(cls, fhir_code_system, url):
-        fhir_code_system.url = url
+    def build_fhir_url(cls, fhir_code_system, obj):
+        fhir_code_system.url = obj['url']
 
     @classmethod
-    def build_fhir_code_system_name(cls, fhir_code_system, name):
-        fhir_code_system.name = name
+    def build_fhir_code_system_name(cls, fhir_code_system, obj):
+        fhir_code_system.name = obj['name']
 
     @classmethod
-    def build_fhir_code_system_title(cls, fhir_code_system, title):
-        fhir_code_system.title = title
+    def build_fhir_code_system_title(cls, fhir_code_system, obj):
+        fhir_code_system.title = obj['title']
 
     @classmethod
     def build_fhir_code_system_date(cls, fhir_code_system):
@@ -42,8 +52,8 @@ class CodeSystemConverter(BaseFHIRConverter):
         fhir_code_system.date = TimeUtils.now()
 
     @classmethod
-    def build_fhir_code_system_description(cls, fhir_code_system, description):
-        fhir_code_system.description = description
+    def build_fhir_code_system_description(cls, fhir_code_system, obj):
+        fhir_code_system.description = obj['description']
 
     @classmethod
     def build_fhir_code_system_status(cls, fhir_code_system):
@@ -54,21 +64,14 @@ class CodeSystemConverter(BaseFHIRConverter):
         fhir_code_system['content'] = 'complete'
 
     @classmethod
-    def build_fhir_code_system_count(cls, fhir_code_system, number_of_records):
-        fhir_code_system.count = f"{number_of_records}"
+    def build_fhir_code_system_count(cls, fhir_code_system, obj):
+        fhir_code_system.count = f'{len(obj["data"])}'
 
     @classmethod
-    def build_fhir_code_system_concept(cls, fhir_code_system, imis_model, code_field, display_field):
-        content_type = ContentType.objects.get(model=imis_model)
-        model_class = content_type.model_class()
-        results = model_class.objects.all()
-        number_of_records = results.count()
-        cls.build_fhir_code_system_count(fhir_code_system, number_of_records)
-        for result in results:
+    def build_fhir_code_system_concept(cls, fhir_code_system, obj):
+        fhir_code_system.concept = []
+        for item in obj["data"]:
             code_system_concept = CodeSystemConcept.construct()
-            code_system_concept.code = getattr(result, code_field)
-            code_system_concept.display = getattr(result, display_field)
-            if type(fhir_code_system.concept) is not list:
-                fhir_code_system.concept = [code_system_concept]
-            else:
-                fhir_code_system.concept.append(code_system_concept)
+            code_system_concept.code = FhirUtils.get_attr(item, obj["code_field"])
+            code_system_concept.display = FhirUtils.get_attr(item, obj["display_field"])
+            fhir_code_system.concept.append(code_system_concept)

@@ -1,224 +1,49 @@
-from django.utils.translation import gettext
+from urllib.parse import urljoin
+
+from django.utils.translation import gettext as _
+from fhir.resources.address import Address
+from fhir.resources.extension import Extension
+from fhir.resources.humanname import HumanName
+
+from api_fhir_r4.mapping.organizationMapping import PolicyHolderOrganisationLegalFormMapping, \
+    PolicyHolderOrganisationActivityMapping
+from api_fhir_r4.models.imisModelEnums import ImisLocationType, ContactPointSystem, AddressType
+from location.models import Location
 from policyholder.models import PolicyHolder
-from api_fhir_r4.configurations import R4IdentifierConfig
+from api_fhir_r4.configurations import R4IdentifierConfig, R4OrganisationConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from fhir.resources.organization import Organization
-from api_fhir_r4.utils import TimeUtils, DbManagerUtils
+from api_fhir_r4.utils import DbManagerUtils
 
 
 class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMixin):
-
     @classmethod
     def to_fhir_obj(cls, imis_organisation, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
-        # TODO reshape this fhir object and imis, fix BankAccount
         fhir_organisation = Organization()
-        cls.build_fhir_pk(fhir_organisation, imis_organisation.id)
-        # TODO - locaction - as an extension?
-        #cls.build_fhir_location(fhir_organisation, imis_organisation)
+        cls.build_fhir_pk(fhir_organisation, imis_organisation, reference_type)
+        cls.build_fhir_extensions(fhir_organisation, imis_organisation)
+        cls.build_fhir_identifiers(fhir_organisation, imis_organisation, reference_type)
+        cls.build_fhir_type(fhir_organisation)
         cls.build_fhir_name(fhir_organisation, imis_organisation)
-        # TODO - fix contact name field
-        #cls.build_fhir_contact_name(imis_organisation, fhir_organisation)
-        cls.build_fhir_date(fhir_organisation, imis_organisation)
-        cls.build_fhir_legal_form(fhir_organisation, imis_organisation)
-        cls.build_fhir_phone(fhir_organisation, imis_organisation)
-        cls.build_fhir_fax(fhir_organisation, imis_organisation)
-        cls.build_fhir_email(fhir_organisation, imis_organisation)
-        cls.build_fhir_code(fhir_organisation, imis_organisation)
-        cls.build_fhir_addresses(fhir_organisation, imis_organisation)
-        cls.build_fhir_accountancy_account(fhir_organisation, imis_organisation)
-        #cls.build_fhir_bank_account(fhir_organisation,imis_organisation)
+        cls.build_fhir_telecom(fhir_organisation, imis_organisation)
+        cls.build_fhir_ph_address(fhir_organisation, imis_organisation, reference_type)
+        cls.build_fhir_contact(fhir_organisation, imis_organisation)
         return fhir_organisation
 
     @classmethod
     def to_imis_obj(cls, fhir_organisation, audit_user_id):
-        errors = []
-        fhir_organisation = Organization(**fhir_organisation)
-        imis_organisation = PolicyHolder()
-        imis_organisation.date_created = TimeUtils.now()
-        imis_organisation.date_updated = TimeUtils.now()
-        cls.build_imis_addresses(imis_organisation,fhir_organisation)
-        cls.build_imis_identifiers(imis_organisation,fhir_organisation)
-        cls.build_imis_name(imis_organisation,fhir_organisation)
-        cls.build_imis_code(imis_organisation,fhir_organisation,errors)
-        cls.build_imis_phone(imis_organisation,fhir_organisation,errors)
-        cls.build_imis_email(imis_organisation,fhir_organisation)
-        cls.build_imis_contact(imis_organisation,fhir_organisation)
-        cls.build_imis_fax(imis_organisation,fhir_organisation)
-        cls.build_imis_bank_account(imis_organisation,fhir_organisation)
-        cls.build_imis_accountancy_account(imis_organisation,fhir_organisation)
-        cls.build_imis_legal_form(imis_organisation,fhir_organisation,errors)
-        cls.check_errors(errors)
-        return imis_organisation
-
-    @classmethod
-    def build_imis_addresses(cls,imis_organisation,fhir_organisation):
-        addresses = fhir_organisation.address
-        address={}
-        if addresses is not None:
-            address['text']=addresses[0].text
-            address['type']=addresses[0].type
-            address['use']=addresses[0].use
-        imis_organisation.address=address
-
-    @classmethod
-    def get_reference_obj_id(cls, imis_organisation):
-        return imis_organisation.uuid
-
-    @classmethod
-    def get_fhir_resource_type(cls):
-        return Organization
+        raise NotImplementedError(
+            _('PH Organisation to_imis_obj() not implemented.')
+        )
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_organisation_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Insuree, uuid=imis_organisation_uuid)
+        imis_ph_uuid = cls.get_resource_id_from_reference(reference)
+        return DbManagerUtils.get_object_or_none(PolicyHolder, uuid=imis_ph_uuid)
 
     @classmethod
-    def build_imis_code(cls,imis_organisation,fhir_organisation,errors):
-        code =fhir_organisation.code
-        if not cls.valid_condition(code is None,gettext('Missing  `code` attribute'), errors):
-            imis_organisation.code=fhir_organisation.code
-         
-    @classmethod
-    def build_imis_phone(cls,imis_organisation,fhir_organisation,errors):
-        phone=fhir_organisation.phone
-        if not cls.valid_condition(phone is None,gettext('Missing  `phone` attribute'), errors):
-            imis_organisation.phone=fhir_organisation.phone
-            
-    @classmethod
-    def build_imis_legal_form(cls,imis_organisation,fhir_organisation,errors):
-        legal_form=fhir_organisation.legal_form
-        if not cls.valid_condition(legal_form is None,gettext('Missing  `legal_form` attribute'), errors):
-            imis_organisation.legal_form = fhir_organisation.legal_form
-    
-    @classmethod
-    def build_imis_fax(cls,imis_organisation,fhir_organisation):
-        imis_organisation.fax = fhir_organisation.fax 
-    
-    @classmethod
-    def build_imis_bank_account(cls,imis_organisation,fhir_organisation):
-        bank = cls.build_bank(fhir_organisation.bank_account)
-        imis_organisation.bank_account = bank
-    
-    @classmethod
-    def build_imis_accountancy_account(cls,imis_organisation,fhir_organisation):
-        if fhir_organisation.accountancy_account:
-        #    print(fhir_organisation.accountancy_account)
-           imis_organisation.accountancy_account = fhir_organisation.accountancy_account
-    
-    @classmethod
-    def build_imis_contact(cls,imis_organisation,fhir_organisation):
-        if fhir_organisation.contact:
-            imis_organisation.contact_name = fhir_organisation.contact[0]
-        
-    @classmethod
-    def build_imis_email(cls,imis_organisation,fhir_organisation):
-        imis_organisation.email=fhir_organisation.email 
-      
-    @classmethod
-    def build_fhir_name(cls,fhir_organisation, imis_organisation):
-        name = imis_organisation.trade_name
-        fhir_organisation.name = name
-        
-        
-        
-    @classmethod
-    def build_imis_name(cls,imis_organisation,fhir_organisation):
-        imis_organisation.trade_name = fhir_organisation.name
-         
-    @classmethod
-    def build_fhir_phone(cls,fhir_organisation, imis_organisation):
-        phone = imis_organisation.phone
-        fhir_organisation.phone = phone
-        
-    @classmethod
-    def build_fhir_legal_form(cls,fhir_organisation, imis_organisation):
-        fhir_organisation.legal_form = imis_organisation.legal_form
-    @classmethod
-    def build_fhir_date(cls,fhir_organisation, imis_organisation):
-        fhir_organisation.date_created = imis_organisation.date_created.isoformat()
-        
-    @classmethod
-    def build_fhir_phone(cls,fhir_organisation, imis_organisation):
-        phone = imis_organisation.phone
-        fhir_organisation.phone = phone
-    
-    @classmethod
-    def build_fhir_email(cls,fhir_organisation, imis_organisation):
-        email = imis_organisation.email
-        fhir_organisation.email = email
-        
-    @classmethod
-    def build_fhir_code(cls,fhir_organisation, imis_organisation):
-        code = imis_organisation.code
-        fhir_organisation.code = code
-    
-    @classmethod
-    def build_fhir_accountancy_account(cls,fhir_organisation, imis_organisation):
-        if imis_organisation.accountancy_account:
-           fhir_organisation.accountancy_account = imis_organisation.accountancy_account
-    @classmethod
-    def build_fhir_bank_account(cls,fhir_organisation, imis_organisation):
-        if imis_organisation.bank_account:
-           fhir_organisation.bank_account = imis_organisation.bank_account
-    @classmethod
-    def build_fhir_fax(cls,fhir_organisation, imis_organisation):
-        fax = imis_organisation.fax
-        fhir_organisation.fax = fax
-        
-    @classmethod
-    def build_fhir_identifiers(cls, fhir_organisation, imis_organisation):
-        identifiers = []
-        cls.build_fhir_uuid_identifier(identifiers, imis_organisation)
-        fhir_organisation.identifier = identifiers
-
-    @classmethod
-    def build_imis_identifiers(cls, imis_organisation, fhir_organisation):
-        value = cls.get_fhir_identifier_by_code(fhir_organisation.identifier,
-                                                R4IdentifierConfig.get_fhir_uuid_type_code())
-        # if value:
-        #     imis_organisation.id= value
-     
-    @classmethod
-    def build_fhir_location(cls, fhir_organisation, imis_organisation):
-        locations = []
-        if imis_organisation.locations is not None:
-            locations.append({"name": imis_organisation.locations.name})
-        if type(fhir_organisation.location) is not list:
-            fhir_organisation.location = locations
-        else:
-            fhir_organisation.location.append(locations)
-    
-
-    @classmethod
-    def build_fhir_telecom(cls, fhir_organisation, imis_organisation):
-        fhir_organisation.telecom = cls.build_fhir_telecom_for_person(phone=imis_organisation.phone, email=imis_organisation.email)
-
-    @classmethod
-    def build_imis_contacts(cls, imis_organisation, fhir_organisation):
-        imis_organisation.phone, imis_organisation.email = cls.build_imis_phone_num_and_email(fhir_organisation.telecom)
-
-    @classmethod
-    def build_fhir_addresses(cls, fhir_organisation, imis_organisation):
-        addresses = []
-        if imis_organisation.address is not None:
-            addresses.append(imis_organisation.address)
-        if type(fhir_organisation.address) is not list:
-            fhir_organisation.address = addresses
-        else:
-            fhir_organisation.address.append(addresses)
-
-    @classmethod
-    def build_fhir_contact_name(cls,imis_organisation,fhir_organisation):
-        contacts =[]
-        #contact = ContactPoint()
-        if imis_organisation.contact_name is not None:
-            # contact.system = imis_organisation.contact_name['system']
-            contacts.append(imis_organisation.contact_name)
-        if type(fhir_organisation.contact) is not list:
-            fhir_organisation.contact = contacts
-        else:
-            fhir_organisation.contact.append(contacts)
+    def get_reference_obj_id(cls, obj):
+        return obj.uuid
 
     @classmethod
     def get_reference_obj_uuid(cls, obj):
@@ -227,3 +52,134 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
     @classmethod
     def get_reference_obj_code(cls, obj):
         return obj.code
+
+    @classmethod
+    def get_fhir_code_identifier_type(cls):
+        return R4IdentifierConfig.get_fhir_generic_type_code()
+
+    @classmethod
+    def get_fhir_resource_type(cls):
+        return Organization
+
+    @classmethod
+    def build_fhir_identifiers(cls, fhir_organisation, imis_organisation, reference_type):
+        identifiers = []
+        cls.build_all_identifiers(identifiers, imis_organisation, reference_type)
+        fhir_organisation.identifier = identifiers
+
+    @classmethod
+    def build_fhir_extensions(cls, fhir_organisation, imis_organisation):
+        cls.build_fhir_legal_form_extension(fhir_organisation, imis_organisation)
+        cls.build_fhir_activity_extension(fhir_organisation, imis_organisation)
+
+    @classmethod
+    def build_fhir_legal_form_extension(cls, fhir_organisation, imis_organisation):
+        codeable_concept = cls.build_codeable_concept_from_coding(cls.build_fhir_mapped_coding(
+            PolicyHolderOrganisationLegalFormMapping.fhir_ph_code_system(imis_organisation.legal_form)
+        ))
+        base = GeneralConfiguration.get_system_base_url()
+        url = urljoin(base, R4OrganisationConfig.get_fhir_ph_organisation_legal_form_extension_system())
+        extension = cls.build_fhir_codeable_concept_extension(codeable_concept, url)
+        if isinstance(fhir_organisation.extension, list):
+            fhir_organisation.extension.append(extension)
+        else:
+            fhir_organisation.extension = [extension]
+
+    @classmethod
+    def build_fhir_activity_extension(cls, fhir_organisation, imis_organisation):
+        codeable_concept = cls.build_codeable_concept_from_coding(cls.build_fhir_mapped_coding(
+            PolicyHolderOrganisationActivityMapping.fhir_ph_code_system(imis_organisation.activity_code)
+        ))
+        base = GeneralConfiguration.get_system_base_url()
+        url = urljoin(base, R4OrganisationConfig.get_fhir_ph_organisation_activity_extension_system())
+        extension = cls.build_fhir_codeable_concept_extension(codeable_concept, url)
+        if isinstance(fhir_organisation.extension, list):
+            fhir_organisation.extension.append(extension)
+        else:
+            fhir_organisation.extension = [extension]
+
+    @classmethod
+    def build_fhir_type(cls, fhir_organisation):
+        fhir_organisation.type = [cls.build_codeable_concept(
+            R4OrganisationConfig.get_fhir_ph_organisation_type(),
+            system=R4OrganisationConfig.get_fhir_ph_organisation_type_system()
+        )]
+
+    @classmethod
+    def build_fhir_name(cls, fhir_organisation, imis_organisation):
+        fhir_organisation.name = imis_organisation.trade_name
+
+    @classmethod
+    def build_fhir_telecom(cls, fhir_organisation, imis_organisation):
+        fhir_organisation.telecom = []
+        if imis_organisation.email:
+            fhir_organisation.telecom.append(cls.build_fhir_contact_point(
+                system=ContactPointSystem.EMAIL,
+                value=imis_organisation.email))
+        if imis_organisation.fax:
+            fhir_organisation.telecom.append(cls.build_fhir_contact_point(
+                system=ContactPointSystem.FAX,
+                value=imis_organisation.fax))
+        if imis_organisation.phone:
+            fhir_organisation.telecom.append(cls.build_fhir_contact_point(
+                system=ContactPointSystem.PHONE,
+                value=imis_organisation.phone))
+
+    @classmethod
+    def build_fhir_ph_address(cls, fhir_organisation, imis_organisation, reference_type):
+        address = Address.construct()
+        address.type = AddressType.PHYSICAL.value
+        if imis_organisation.address and "address" in imis_organisation.address:
+            address.line = [imis_organisation.address["address"]]
+        fhir_organisation.address = [address]
+        if imis_organisation.locations:
+            cls.build_fhir_address_field(fhir_organisation, imis_organisation.locations)
+            cls.build_fhir_location_extension(fhir_organisation, imis_organisation, reference_type)
+
+    @classmethod
+    def build_fhir_address_field(cls, fhir_organisation, location: Location):
+        current_location = location
+        while current_location:
+            if current_location.type == ImisLocationType.REGION.value:
+                fhir_organisation.address[0].state = current_location.name
+            elif current_location.type == ImisLocationType.DISTRICT.value:
+                fhir_organisation.address[0].district = current_location.name
+            elif current_location.type == ImisLocationType.WARD.value:
+                cls.build_fhir_municipality_extension(fhir_organisation, current_location)
+            elif current_location.type == ImisLocationType.VILLAGE.value:
+                fhir_organisation.address[0].city = current_location.name
+            current_location = current_location.parent
+
+    @classmethod
+    def build_fhir_municipality_extension(cls, fhir_organisation, municipality: Location):
+        extension = Extension.construct()
+        base = GeneralConfiguration.get_system_base_url()
+        extension.url = urljoin(base, R4OrganisationConfig.get_fhir_address_municipality_extension_system())
+        extension.valueString = municipality.name
+        if isinstance(fhir_organisation.address[0].extension, list):
+            fhir_organisation.address[0].extension.append(extension)
+        else:
+            fhir_organisation.address[0].extension = [extension]
+
+    @classmethod
+    def build_fhir_location_extension(cls, fhir_organisation, imis_organisation, reference_type):
+        base = GeneralConfiguration.get_system_base_url()
+        url = urljoin(base, R4OrganisationConfig.get_fhir_location_reference_extension_system())
+        extension = cls.build_fhir_reference_extension(cls.build_fhir_resource_reference
+                                                       (imis_organisation.locations,
+                                                        type='Location',
+                                                        display=imis_organisation.locations.name,
+                                                        reference_type=reference_type),
+                                                       url)
+        if isinstance(fhir_organisation.address[0].extension, list):
+            fhir_organisation.address[0].extension.append(extension)
+        else:
+            fhir_organisation.address[0].extension = [extension]
+
+    @classmethod
+    def build_fhir_contact(cls, fhir_organisation, imis_organisation):
+        fhir_organisation.contact = []
+        if imis_organisation.contact_name:
+            name = HumanName.construct()
+            name.text = "%s %s" % (imis_organisation.contact_name['name'], imis_organisation.contact_name['surname'])
+            fhir_organisation.contact.append({'name': name})

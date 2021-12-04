@@ -5,6 +5,7 @@ from policy.apps import PolicyConfig
 from policyholder.apps import PolicyholderConfig
 from product.apps import ProductConfig
 from medical.apps import MedicalConfig
+from invoice.apps import InvoiceConfig
 from rest_framework import exceptions
 from rest_framework.permissions import DjangoModelPermissions
 
@@ -141,3 +142,10 @@ class FHIRApiProductPermissions(FHIRApiPermissions):
     permissions_patch = ProductConfig.gql_mutation_products_edit_perms
     permissions_delete = ProductConfig.gql_mutation_products_delete_perms
 
+
+class FHIRApiInvoicePermissions(FHIRApiPermissions):
+    permissions_get = InvoiceConfig.gql_invoice_search_perms
+    permissions_post = InvoiceConfig.gql_invoice_create_perms
+    permissions_put = InvoiceConfig.gql_invoice_update_perms
+    permissions_patch = InvoiceConfig.gql_invoice_update_perms
+    permissions_delete = InvoiceConfig.gql_invoice_delete_perms

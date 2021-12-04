@@ -94,3 +94,9 @@ class ContactPointUse(Enum):
     TEMP = "temp"
     OLD = "old"
     MOBILE = "mobile"
+
+
+class AddressType(Enum):
+    POSTAL = "postal"
+    PHYSICAL = "physical"
+    BOTH = "both"

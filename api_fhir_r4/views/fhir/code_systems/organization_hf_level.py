@@ -6,10 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.views import APIView
 from api_fhir_r4.views import CsrfExemptSessionAuthentication
+from location.services import HealthFacilityLevel
 
 
-class CodeSystemOpenIMISOrganizationLegalFormViewSet(viewsets.ViewSet):
-
+class CodeSystemOrganizationHFLevelViewSet(viewsets.ViewSet):
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
     authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
@@ -19,15 +19,15 @@ class CodeSystemOpenIMISOrganizationLegalFormViewSet(viewsets.ViewSet):
         serializer = CodeSystemSerializer(
             instance=None,
             **{
-                "model_name": 'HealthFacilityLegalForm',
-                "code_field": 'code',
-                "display_field": 'legal_form',
-                "id": 'openIMISOrganizationLegalForm',
-                "name": 'openIMISOrganizationLegalForm',
-                "title": 'openIMIS Organization Legal Form',
-                "description": "Indicates the legal forms of the Organization. "
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                'data': HealthFacilityLevel(request.user).get_all()['data'],
+                'code_field': 'code',
+                'display_field': 'display',
+                'id': 'organization-hf-level',
+                'name': 'OrganizationHFLevelCS',
+                'title': 'Health Facility Level (Organization)',
+                'description': 'Indicates the legal forms of the Organization. '
+                               'Values defined by openIMIS. Can be extended.',
+                'url': self.request.build_absolute_uri()
             }
         )
         data = serializer.to_representation(obj=None)

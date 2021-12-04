@@ -14,10 +14,11 @@ from api_fhir_r4.mapping.activityDefinitionMapping import ServiceTypeMapping, Us
     VenueMapping
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
 from api_fhir_r4.tests import GenericTestMixin
+from api_fhir_r4.tests.mixin import FhirConverterTestMixin
 from api_fhir_r4.utils import TimeUtils
 
 
-class ActivityDefinitionTestMixin(GenericTestMixin):
+class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_SERVICE_UUID = "1234-1234-1234"
     _TEST_SERVICE_CODE = "TEST"
     _TEST_SERVICE_NAME = "Test Service"
@@ -223,12 +224,6 @@ class ActivityDefinitionTestMixin(GenericTestMixin):
         self.verify_fhir_use_context(fhir_obj, UseContextMapping.fhir_use_context_coding["venue"],
                                      [VenueMapping.fhir_venue_coding[Service.CARE_TYPE_IN_PATIENT],
                                       VenueMapping.fhir_venue_coding[Service.CARE_TYPE_OUT_PATIENT]])
-
-    def verify_fhir_identifier(self, fhir_obj, identifier_type, expected_identifier_value):
-        identifiers = [identifier for identifier in fhir_obj.identifier
-                       if identifier.type.coding[0].code == identifier_type]
-        self.assertEqual(len(identifiers), 1)
-        self.assertEqual(identifiers[0].value, expected_identifier_value)
 
     def verify_fhir_use_context(self, fhir_obj, use_context_type, expected_use_contexts):
         if len(expected_use_contexts) > 0:
