@@ -20,7 +20,7 @@ from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
 
 class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModelMixin,
                    mixins.CreateModelMixin, GenericViewSet):
-    retrievers = [UUIDIdentifierModelRetriever, DatabaseIdentifierModelRetriever]
+    retrievers = [UUIDIdentifierModelRetriever]
     serializer_class = ClaimSerializer
     permission_classes = (FHIRApiClaimPermissions,)
 
