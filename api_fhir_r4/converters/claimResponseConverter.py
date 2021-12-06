@@ -39,6 +39,7 @@ class ClaimResponseConverter(BaseFHIRConverter):
         cls.build_fhir_type(fhir_claim_response, imis_claim)
         cls.build_fhir_insurer(fhir_claim_response)
         cls.build_fhir_requestor(fhir_claim_response, imis_claim, reference_type)
+        cls.build_fhir_request(fhir_claim_response, imis_claim, reference_type)
         return fhir_claim_response
                
     @classmethod
@@ -498,3 +499,8 @@ class ClaimResponseConverter(BaseFHIRConverter):
             requestor = fhir_claim_response.requestor
             _, claim_admin_uuid = requestor.reference.split("/")
             imis_claim.admin = ClaimAdmin.objects.get(uuid=claim_admin_uuid)
+
+    @classmethod
+    def build_fhir_request(cls, fhir_claim_response: ClaimResponse, imis_claim: Claim, reference_type):
+        fhir_claim_response.request = ClaimConverter\
+            .build_fhir_resource_reference(imis_claim, reference_type=reference_type)
