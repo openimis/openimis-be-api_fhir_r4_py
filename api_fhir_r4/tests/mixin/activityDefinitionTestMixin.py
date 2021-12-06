@@ -29,6 +29,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_SERVICE_PATIENT_CATEGORY = 15  # 1 & 2 & 4 & 8 (all patient categories)
     _TEST_SERVICE_PRICE = 1.0
     _TEST_SERVICE_VALIDITY_FROM = TimeUtils.str_to_date("2020-01-01", "18:50:00")
+    _TEST_SERVICE_LEVEL = "D"
 
     _TEST_ACTIVITY_DEFINITION_RESOURCE_TYPE = "ActivityDefinition"
     _TEST_ACTIVITY_DEFINITION_STATUS = "active"
@@ -38,6 +39,12 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_ACTIVITY_DEFINITION_CURRENCY = core.currency
     _TEST_ACTIVITY_DEFINITION_TIMING_FREQUENCY = 1
     _TEST_ACTIVITY_DEFINITION_TIMING_UNIT = "d"
+
+    _TEST_ACTIVITY_DEFINITION_LEVEL_EXT_URL = \
+        F"{GeneralConfiguration.get_system_base_url()}StructureDefinition/activity-definition-level"
+    _TEST_ACTIVITY_DEFINITION_LEVEL_CODING_TEXT = F"Day of service"
+    _TEST_ACTIVITY_DEFINITION_LEVEL_CODING_SYSTEM = \
+        F"{GeneralConfiguration.get_system_base_url()}ValueSet/activity-definition-level"
 
     def create_test_imis_instance(self):
         imis_service = Service()
@@ -51,6 +58,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         imis_service.patient_category = self._TEST_SERVICE_PATIENT_CATEGORY
         imis_service.price = self._TEST_SERVICE_PRICE
         imis_service.validity_from = self._TEST_SERVICE_VALIDITY_FROM
+        imis_service.level = self._TEST_SERVICE_LEVEL
         return imis_service
 
     def verify_imis_instance(self, imis_obj):
@@ -64,6 +72,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         self.assertEqual(self._TEST_SERVICE_PATIENT_CATEGORY, imis_obj.patient_category)
         self.assertAlmostEqual(self._TEST_SERVICE_PRICE, imis_obj.price, places=2)
         self.assertEqual(self._TEST_SERVICE_VALIDITY_FROM, imis_obj.validity_from)
+        self.assertEqual(self._TEST_SERVICE_LEVEL, imis_obj.level)
 
     def create_test_fhir_instance(self):
         fhir_activity_definition = ActivityDefinition.construct()
@@ -98,7 +107,19 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         price_extension.valueMoney = Money.construct()
         price_extension.valueMoney.value = self._TEST_SERVICE_PRICE
         price_extension.valueMoney.currency = self._TEST_ACTIVITY_DEFINITION_CURRENCY
-        fhir_activity_definition.extension = [price_extension]
+
+        level_extension = Extension(
+                url=self._TEST_ACTIVITY_DEFINITION_LEVEL_EXT_URL,
+                valueCodeableConcept=CodeableConcept(
+                    coding=[Coding(
+                        system=self._TEST_ACTIVITY_DEFINITION_LEVEL_CODING_SYSTEM,
+                        code=self._TEST_SERVICE_LEVEL,
+                        display=self._TEST_ACTIVITY_DEFINITION_LEVEL_CODING_TEXT
+                    )],
+                    text=self._TEST_ACTIVITY_DEFINITION_LEVEL_CODING_TEXT
+                )
+            )
+        fhir_activity_definition.extension = [price_extension, level_extension]
 
         topic_codeable_concept = CodeableConcept.construct()
         topic_coding = Coding.construct()
@@ -198,7 +219,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         self.assertEqual(fhir_obj.status, self._TEST_ACTIVITY_DEFINITION_STATUS)
         self.assertEqual(fhir_obj.id, self._TEST_SERVICE_UUID)
         self.assertEqual(fhir_obj.date, self._TEST_SERVICE_VALIDITY_FROM)
-        self.assertEqual(len(fhir_obj.extension), 1)
+        self.assertEqual(len(fhir_obj.extension), 2)
         price_extension = fhir_obj.extension[0]
         self.assertIs(type(price_extension), Extension)
         self.assertEqual(price_extension.url, self._TEST_ACTIVITY_DEFINITION_PRICE_EXTENSION_URL)

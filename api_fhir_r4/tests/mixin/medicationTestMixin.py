@@ -153,7 +153,7 @@ class MedicationTestMixin(GenericTestMixin):
         return fhir_medication
 
     def verify_fhir_instance(self, fhir_obj):
-        self.assertEqual(4, len(fhir_obj.extension))
+        self.assertEqual(5, len(fhir_obj.extension))
         extension_unit_price = fhir_obj.extension[0].valueMoney
         self.assertTrue(isinstance(extension_unit_price, Money))
         self.assertAlmostEqual(decimal.Decimal(self._TEST_MEDICATION_PRICE), extension_unit_price.value, places=2)

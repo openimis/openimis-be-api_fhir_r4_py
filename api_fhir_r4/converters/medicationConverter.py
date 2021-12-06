@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from medical.models import Item
 from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.models import UsageContextV2 as UsageContext
-from api_fhir_r4.mapping.medicationMapping import ItemTypeMapping, ItemVenueTypeMapping
+from api_fhir_r4.mapping.medicationMapping import ItemTypeMapping, ItemVenueTypeMapping, ItemContextlevel
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
 from fhir.resources.medication import Medication as FHIRMedication
 from fhir.resources.extension import Extension
@@ -31,6 +31,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_fhir_medication_extension(fhir_medication, imis_medication)
         cls.build_fhir_code(fhir_medication, imis_medication)
         cls.build_fhir_status(fhir_medication, imis_medication)
+        cls.build_fhir_level(fhir_medication, imis_medication)
         return fhir_medication
 
     @classmethod
@@ -399,3 +400,21 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             raise FHIRException(
                 _('Medication FHIR without code - this field is obligatory')
             )
+
+    @classmethod
+    def build_fhir_level(cls, fhir_medication: FHIRMedication, imis_medication: Item):
+        coding = cls.build_fhir_mapped_coding(ItemContextlevel.item_context_level_coding)
+        extension = Extension(
+            url=f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/medication-level",
+            valueCodeableConcept=CodeableConcept(
+                coding=[coding],
+                text=coding.display
+            )
+        )
+
+        if isinstance(fhir_medication.extension, list):
+            fhir_medication.extension.append(extension)
+        else:
+            fhir_medication.extension = [extension]
+
+

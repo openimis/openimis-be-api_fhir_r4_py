@@ -5,14 +5,13 @@ from fhir.resources.extension import Extension
 from fhir.resources.money import Money
 from fhir.resources.usagecontext import UsageContext
 from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.coding import Coding
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, ReferenceConverterMixin
 from django.utils.translation import gettext
 
 from api_fhir_r4.mapping.activityDefinitionMapping import ServiceTypeMapping, UseContextMapping, VenueMapping, \
-    WorkflowMapping
+    WorkflowMapping, ServiceLevelMapping
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 import core
@@ -34,6 +33,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_fhir_topic(fhir_activity_definition, imis_activity_definition)
         cls.build_fhir_timing(fhir_activity_definition, imis_activity_definition)
         cls.build_fhir_activity_definition_extension(fhir_activity_definition, imis_activity_definition)
+        cls.build_fhir_level(fhir_activity_definition, imis_activity_definition)
         return fhir_activity_definition
 
     @classmethod
@@ -56,6 +56,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_imis_serv_pat_cat(imis_activity_definition, fhir_activity_definition, errors)
         cls.build_imis_serv_category(imis_activity_definition, fhir_activity_definition, errors)
         cls.build_imis_serv_care_type(imis_activity_definition, fhir_activity_definition, errors)
+        cls.build_imis_level(imis_activity_definition, fhir_activity_definition, errors)
         cls.check_errors(errors)
         return imis_activity_definition
 
@@ -387,3 +388,40 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
         timing.repeat = timing_repeat
         fhir_activity_definition.timingTiming = timing
+
+    @classmethod
+    def build_fhir_level(cls, fhir_activity_definition: ActivityDefinition, imis_activity_definition: Service):
+        imis_level = imis_activity_definition.level
+        coding_data = ServiceLevelMapping.fhir_service_level_coding.get(imis_level, None)
+        if coding_data:
+            coding = cls.build_fhir_mapped_coding(coding_data)
+            extension = Extension(
+                url=f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/activity-definition-level",
+                valueCodeableConcept=CodeableConcept(
+                    coding=[coding],
+                    text=coding.display
+                )
+            )
+            if isinstance(fhir_activity_definition.extension, list):
+                fhir_activity_definition.extension.append(extension)
+            else:
+                fhir_activity_definition.extension = [extension]
+
+    @classmethod
+    def build_imis_level(cls, imis_service: Service, fhir_service: ActivityDefinition, errors: list):
+        level_ext = next(
+            (ext for ext in fhir_service.extension if ext.url.lower().endswith('activity-definition-level')),
+            None
+        )
+
+        if level_ext:
+            code = level_ext.valueCodeableConcept.coding[0].code
+            valid_codes = ServiceLevelMapping.fhir_service_level_coding.keys()
+
+            if code not in valid_codes:
+                errors.append(
+                    F"Invalid code system {code} for ActivityDefinition Level, "
+                    F"Valid codes are: {valid_codes}"
+                )
+
+            imis_service.level = code

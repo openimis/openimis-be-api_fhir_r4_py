@@ -212,7 +212,7 @@ class BaseFHIRConverter(ABC):
         return fhir_reference
 
     @classmethod
-    def build_fhir_mapped_coding(cls, mapping):
+    def build_fhir_mapped_coding(cls, mapping) -> Coding:
         coding = Coding.construct()
 
         if GeneralConfiguration.show_system():

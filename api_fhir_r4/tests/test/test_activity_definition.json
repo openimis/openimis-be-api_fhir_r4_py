@@ -8,6 +8,19 @@
                 "value": 1.0,
                 "currency": "$"
             }
+        },
+        {
+            "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/activity-definition-level",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/ValueSet/activity-definition-level",
+                        "code": "D",
+                        "display": "Day of stay"
+                    }
+                ],
+                "text": "Day of stay"
+            }
         }
     ],
     "identifier": [

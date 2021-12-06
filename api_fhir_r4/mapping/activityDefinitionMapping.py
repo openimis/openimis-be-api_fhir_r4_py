@@ -20,6 +20,33 @@ class ServiceTypeMapping(object):
     }
 
 
+class ServiceLevelMapping(object):
+    SYSTEM = f"{GeneralConfiguration.get_system_base_url()}ValueSet/activity-definition-level"
+
+    fhir_service_level_coding = {
+        Service.LEVEL_SIMPLE_SERVICE: {
+            "system": SYSTEM,
+            "code": "S",
+            "display": "Simple Service",
+        },
+        Service.LEVEL_VISIT: {
+            "system": SYSTEM,
+            "code": "V",
+            "display": "Visit",
+        },
+        Service.LEVEL_DAY_HOSPITAL: {
+            "system": SYSTEM,
+            "code": "D",
+            "display": "Day of stay",
+        },
+        Service.LEVEL_HOSPITAL_CARE: {
+            "system": SYSTEM,
+            "code": "H",
+            "display": "Hospital case",
+        },
+    }
+
+
 class UseContextMapping(object):
     SYSTEM = "http://terminology.hl7.org/CodeSystem/usage-context-type"
 
