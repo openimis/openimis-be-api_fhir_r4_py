@@ -34,7 +34,7 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
         self._TEST_CLAIM_ADMIN.save()
         self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + self._TEST_CLAIM_ADMIN.uuid
         self._TEST_HF = self.create_test_health_facility()
-        self._TEST_ORGANIZATION_REFERENCE = "Organisation/" + self._TEST_HF.uuid
+        self._TEST_ORGANIZATION_REFERENCE = "Organization/" + self._TEST_HF.uuid
 
     def create_test_health_facility(self):
         location = LocationTestMixin().create_test_imis_instance()

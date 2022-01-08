@@ -2,8 +2,9 @@ from unittest.mock import patch, MagicMock
 
 from django.test import TestCase
 
-from api_fhir_r4.mixins import ContainedContentSerializerMixin
 from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+
+from api_fhir_r4.serializers import PatientSerializer
 
 
 class ContainedContentHelper(object):
@@ -15,6 +16,7 @@ class ContainedContentHelper(object):
 
 
 class ContainedContentSerializerMixinTestCase(TestCase):
+    from api_fhir_r4.containedResources.serializerMixin import ContainedContentSerializerMixin
 
     class BaseTestSerializer:
         context = {'contained': True}
@@ -26,14 +28,22 @@ class ContainedContentSerializerMixinTestCase(TestCase):
 
         @property
         def contained_resources(self):
-            return [
-                ContainedContentHelper.build_test_converter()
-            ]
+            from api_fhir_r4.containedResources.containedResources import AbstractContainedResourceCollection
+            class TestContainedResource(AbstractContainedResourceCollection):
+                @classmethod
+                def _definitions_for_serializers(cls):
+                    from api_fhir_r4.containedResources.containedResources import ContainedResourceDefinition
+                    return {
+                        PatientSerializer: ContainedResourceDefinition('insuree', 'Patient')
+                    }
+
+            return TestContainedResource
 
     def test_resource_transformation(self):
         test_serializer = self.TestSerializer()
         test_imis_obj = MagicMock()
+        test_imis_obj.insuree = MagicMock()
         representation = test_serializer.to_representation(test_imis_obj)
 
-        expected_outcome = {'contained': [{}]}
-        self.assertEqual(representation, expected_outcome)
+        expected_outcome = {'contained': []}
+        self.assertEqual(dict(representation), expected_outcome)

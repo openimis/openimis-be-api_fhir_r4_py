@@ -25,7 +25,7 @@ class PolicyHolderOrganisationTestMixin(GenericTestMixin):
     _FIXED_LOCATION_TYPE = "physical"
 
     def create_test_fhir_instance(self):
-        NotImplementedError('PH Organisation to_imis_obj() not implemented.')
+        NotImplementedError('PH Organization to_imis_obj() not implemented.')
 
     def verify_fhir_instance(self, fhir_obj):
         self.assertEqual(self._TEST_UUID, fhir_obj.id)
@@ -80,7 +80,7 @@ class PolicyHolderOrganisationTestMixin(GenericTestMixin):
         self.assertEqual(self._FIXED_TYPE, fhir_obj.type[0].coding[0].code)
 
     def verify_imis_instance(self, imis_obj):
-        NotImplementedError('PH Organisation to_imis_obj() not implemented.')
+        NotImplementedError('PH Organization to_imis_obj() not implemented.')
 
     def create_test_imis_instance(self):
         location = DbManagerUtils.get_object_or_none(Location, id=self._TEST_LOCATION_ID)

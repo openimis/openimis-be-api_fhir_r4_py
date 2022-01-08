@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 
 class OrganisationAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase):
-    base_url = GeneralConfiguration.get_base_url() + 'Organisation/'
+    base_url = GeneralConfiguration.get_base_url() + 'Organization/'
     _test_json_path = None
 
     def setUp(self):

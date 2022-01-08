@@ -95,7 +95,7 @@ if 'policy' in imis_modules:
 
 # register endpoint for policy holder if used
 if 'policyholder' in imis_modules:
-    router.register(r'Organisation', fhir_viewsets.OrganisationViewSet, basename="Organisation_R4")
+    router.register(r'Organization', fhir_viewsets.OrganisationViewSet, basename="Organisation_R4")
     router.register(r'CodeSystem/organization-ph-legal-form', fhir_viewsets.CodeSystemOrganizationPHLegalFormViewSet,
                     basename="CodeSystem/organization-ph-legal-form_R4")
     router.register(r'CodeSystem/organization-ph-activity', fhir_viewsets.CodeSystemOrganizationPHActivityViewSet,

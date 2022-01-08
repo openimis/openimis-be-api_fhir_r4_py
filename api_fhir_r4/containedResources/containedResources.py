@@ -1,8 +1,6 @@
-import sys
 from abc import ABC, abstractmethod
-from copy import deepcopy, copy
+from copy import copy
 from dataclasses import dataclass
-from functools import lru_cache
 
 from typing import Type, Dict, Callable, Any
 
@@ -10,9 +8,7 @@ from django.db import models
 
 from api_fhir_r4.containedResources.containedResourceHandler import ContainedResourceManager
 from api_fhir_r4.containedResources.converters import FHIRContainedResourceConverter, IMISContainedResourceConverter
-from api_fhir_r4.serializers import PatientSerializer, BaseFHIRSerializer, GroupSerializer, \
-    HealthFacilityOrganisationSerializer, ClaimAdminPractitionerSerializer, MedicationSerializer, \
-    ActivityDefinitionSerializer
+from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 @dataclass

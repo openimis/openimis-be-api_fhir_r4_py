@@ -3,8 +3,8 @@ from claim.gql_mutations import create_attachments
 from claim.models import Claim
 from typing import List, Union
 
-from api_fhir_r4.converters.containedResourceConverter import ContainedResourceConverter
-from api_fhir_r4.mixins import ContainedContentSerializerMixin
+from api_fhir_r4.containedResources.claimContainedResources import ClaimContainedResources
+from api_fhir_r4.containedResources.serializerMixin import ContainedContentSerializerMixin
 from api_fhir_r4.models import Claim as FHIRClaim
 from django.http import HttpResponseForbidden
 from django.http.response import HttpResponseBase
@@ -19,31 +19,11 @@ from fhir.resources.fhirabstractmodel import FHIRAbstractModel
 from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
-class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make sure contained resources will use same reference type
-        self.__set_contained_resource_reference_types(self._reference_type)
+class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
     fhirConverter = ClaimConverter()
 
-    contained_resources = [
-        ContainedResourceConverter('insuree', PatientConverter),
-        ContainedResourceConverter('insuree', GroupConverter, lambda model, field: model.__getattribute__(field).family),
-        ContainedResourceConverter('health_facility', HealthFacilityOrganisationConverter),
-        ContainedResourceConverter('admin', ClaimAdminPractitionerConverter),
-        ContainedResourceConverter('items', MedicationConverter,
-                                   lambda model, field: [
-                                       item.item
-                                       for item in model.__getattribute__(field).filter(validity_to=None).all()
-                                   ]),
-        ContainedResourceConverter('services', ActivityDefinitionConverter,
-                                   lambda model, field: [
-                                       service.service
-                                       for service in model.__getattribute__(field).filter(validity_to=None).all()
-                                   ]),
-    ]
+    contained_resources = ClaimContainedResources
 
     def fhir_object_reference_fields(self, fhir_obj: FHIRClaim) -> List[FHIRAbstractModel]:
         return [
@@ -54,6 +34,7 @@ class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
         ]
 
     def create(self, validated_data):
+        self._create_or_update_contained(self.initial_data)
         claim_submit = ClaimSubmit(date=validated_data.get('date_claimed'),
                                    code=validated_data.get('code'),
                                    icd_code=validated_data.get('icd_code'),
@@ -130,5 +111,4 @@ class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
         return [a.valueAttachment for a in fhir_obj.supportingInfo if a.category.text == attachment_category]
 
     def __set_contained_resource_reference_types(self, reference_type):
-        for contained in self.contained_resources:
-            contained.reference_type = reference_type
+        self._contained_definitions.update_reference_type(reference_type)

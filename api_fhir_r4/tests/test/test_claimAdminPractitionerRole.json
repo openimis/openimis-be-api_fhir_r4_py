@@ -29,7 +29,7 @@
       }
    },
    "organization":{
-      "reference":"Organisation/6d0eea8c-62eb-11ea-94d6-c36229a16c2f",
+      "reference":"Organization/6d0eea8c-62eb-11ea-94d6-c36229a16c2f",
       "type":"Organization",
       "identifier":{
          "type":{
