@@ -1,11 +1,12 @@
 from rest_framework import viewsets
-from product.models import Product
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiProductPermissions
 from api_fhir_r4.serializers import InsurancePlanSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from product.models import Product
 
 
 class ProductViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin, viewsets.ModelViewSet):
@@ -28,4 +29,5 @@ class ProductViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, MultiIdentifie
         return response
 
     def get_queryset(self):
-        return Product.objects.all().order_by('validity_from')
+        queryset = Product.objects.all().order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

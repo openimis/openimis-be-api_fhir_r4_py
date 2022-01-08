@@ -154,6 +154,8 @@ DEFAULT_CFG = {
     },
     "R4_fhir_invoice_config": {
         "fhir_invoice_type_system": "CodeSystem/invoice-type",
-        "fhir_invoice_charge_item_system": "CodeSystem/invoice-charge-item"
+        "fhir_invoice_charge_item_system": "CodeSystem/invoice-charge-item",
+        "fhir_bill_type_system": "CodeSystem/bill-type",
+        "fhir_bill_charge_item_system": "CodeSystem/bill-charge-item"
     }
 }

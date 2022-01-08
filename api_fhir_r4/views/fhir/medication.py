@@ -1,4 +1,3 @@
-from medical.models import Item
 from rest_framework import viewsets
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
@@ -6,6 +5,8 @@ from api_fhir_r4.model_retrievers import CodeIdentifierModelRetriever, UUIDIdent
 from api_fhir_r4.permissions import FHIRApiMedicationPermissions
 from api_fhir_r4.serializers import MedicationSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from medical.models import Item
 
 
 class MedicationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin, viewsets.ModelViewSet):
@@ -28,4 +29,5 @@ class MedicationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, MultiIdenti
         return response
 
     def get_queryset(self):
-        return Item.get_queryset(None, self.request.user)
+        queryset = Item.get_queryset(None, self.request.user).order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

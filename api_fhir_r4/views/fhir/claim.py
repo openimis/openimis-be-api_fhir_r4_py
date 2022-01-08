@@ -1,9 +1,6 @@
 import datetime
 
-from django.db.models import Prefetch, Q
-
-from insuree.models import Insuree, InsureePolicy
-from claim.models import Claim, Feedback, ClaimItem, ClaimService
+from django.db.models import Prefetch
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
@@ -14,6 +11,9 @@ from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdent
 from api_fhir_r4.permissions import FHIRApiClaimPermissions
 from api_fhir_r4.serializers import ClaimSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from claim.models import Claim, ClaimItem, ClaimService
+from insuree.models import Insuree, InsureePolicy
 
 
 class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModelMixin,
@@ -54,17 +54,17 @@ class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModel
         return Response(serializer.data)
 
     def get_queryset(self):
-        return Claim.get_queryset(None, self.request.user)\
-            .select_related('insuree')\
-            .select_related('health_facility')\
-            .select_related('icd')\
-            .select_related('icd_1')\
-            .select_related('icd_2')\
-            .select_related('icd_3')\
-            .select_related('icd_4')\
-            .prefetch_related(Prefetch('items', queryset=ClaimItem.objects.filter(validity_to__isnull=True)))\
-            .prefetch_related(Prefetch('services', queryset=ClaimService.objects.filter(validity_to__isnull=True)))\
-            .prefetch_related(Prefetch(
-                'insuree__insuree_policies',
-                queryset=InsureePolicy.objects.filter(validity_to__isnull=True).select_related("policy")
-            ))
+        queryset = Claim.get_queryset(None, self.request.user).order_by('validity_from') \
+            .select_related('insuree') \
+            .select_related('health_facility') \
+            .select_related('icd') \
+            .select_related('icd_1') \
+            .select_related('icd_2') \
+            .select_related('icd_3') \
+            .select_related('icd_4') \
+            .prefetch_related(Prefetch('items', queryset=ClaimItem.objects.filter(validity_to__isnull=True))) \
+            .prefetch_related(Prefetch('services', queryset=ClaimService.objects.filter(validity_to__isnull=True))) \
+            .prefetch_related(Prefetch('insuree__insuree_policies',
+                                       queryset=InsureePolicy.objects.filter(validity_to__isnull=True).select_related(
+                                           "policy")))
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

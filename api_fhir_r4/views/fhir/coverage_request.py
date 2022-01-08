@@ -1,16 +1,17 @@
 import datetime
 
-from policy.models import Policy
-
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
 from api_fhir_r4.permissions import FHIRApiCoverageRequestPermissions
 from api_fhir_r4.serializers.coverageSerializer import CoverageSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from policy.models import Policy
 
 
-class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin,mixins.UpdateModelMixin,mixins.CreateModelMixin,GenericViewSet):
+class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin,
+                              mixins.CreateModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = CoverageSerializer
     permission_classes = (FHIRApiCoverageRequestPermissions,)
@@ -27,16 +28,16 @@ class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.Li
             queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from')
             if refDate != None:
                 isValidDate = True
-                try :
+                try:
                     datevar = datetime.datetime.strptime(refDate, "%Y-%m-%d").date()
-                except ValueError :
+                except ValueError:
                     isValidDate = False
                 queryset = queryset.filter(validity_from__gte=datevar)
             if refEndDate != None:
                 isValidDate = True
-                try :
+                try:
                     datevar = datetime.datetime.strptime(refEndDate, "%Y-%m-%d").date()
-                except ValueError :
+                except ValueError:
                     isValidDate = False
                 queryset = queryset.filter(validity_from__lt=datevar)
 
@@ -44,4 +45,5 @@ class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.Li
         return self.get_paginated_response(serializer.data)
 
     def get_queryset(self):
-        return Policy.get_queryset(None, self.request.user)
+        queryset = Policy.get_queryset(None, self.request.user)
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

@@ -5,13 +5,14 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from fhir.resources.invoice import Invoice as FHIRInvoice, \
     InvoiceLineItem as FHIRInvoiceLineItem, InvoiceLineItemPriceComponent
 from fhir.resources.money import Money
-from api_fhir_r4.mapping.invoiceMapping import ChargeItemMapping, InvoiceTypeMapping
+from api_fhir_r4.mapping.invoiceMapping import InvoiceChargeItemMapping, InvoiceTypeMapping, BillTypeMapping, \
+    BillChargeItemMapping
 from api_fhir_r4.utils import DbManagerUtils
 from insuree.models import Insuree
 from invoice.models import Invoice
 
 
-class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
+class GenericInvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def to_imis_obj(cls, data, audit_user_id):
         raise NotImplementedError('to_imis_obj() not implemented.')
@@ -26,7 +27,7 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_fhir_recipient(fhir_invoice, imis_invoice, reference_type)
         cls.build_fhir_date(fhir_invoice, imis_invoice)
         cls.build_fhir_totals(fhir_invoice, imis_invoice)
-        cls.build_fhir_line_items(fhir_invoice, imis_invoice.line_items, imis_invoice.currency_code)
+        cls.build_fhir_line_items(fhir_invoice, imis_invoice, imis_invoice.currency_code)
         cls.build_fhir_note(fhir_invoice, imis_invoice)
         return fhir_invoice
 
@@ -64,7 +65,7 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_type(cls, fhir_invoice, imis_invoice):
-        invoice_type = InvoiceTypeMapping.invoice_type[imis_invoice.subject_type.model]
+        invoice_type = cls.get_type_mapping()[imis_invoice.subject_type.model]
         fhir_invoice.type = cls.build_codeable_concept_from_coding(cls.build_fhir_mapped_coding(invoice_type))
 
     @classmethod
@@ -81,7 +82,7 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_date(cls, fhir_invoice, imis_invoice):
-        fhir_invoice.date = imis_invoice.date_invoice
+        fhir_invoice.date = cls.get_invoice_date(imis_invoice)
 
     @classmethod
     def build_fhir_totals(cls, fhir_invoice, imis_invoice):
@@ -89,9 +90,9 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
         fhir_invoice.totalGross = cls.build_fhir_money(imis_invoice.amount_total, imis_invoice.currency_code)
 
     @classmethod
-    def build_fhir_line_items(cls, fhir_invoice, imis_line_items, currency):
+    def build_fhir_line_items(cls, fhir_invoice, imis_invoice, currency):
         fhir_invoice.lineItem = []
-        for line in imis_line_items.all():
+        for line in cls.get_invoice_line_items(imis_invoice):
             fhir_line_item = FHIRInvoiceLineItem.construct()
             cls.build_line_item_charge_item_codeable_concept(fhir_line_item, line)
             fhir_line_item.priceComponent = []
@@ -106,7 +107,7 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_line_item_charge_item_codeable_concept(cls, fhir_line_item, line_item):
-        charge_item = ChargeItemMapping.charge_item[line_item.line_type.model]
+        charge_item = cls.get_charge_item_mapping()[line_item.line_type.model]
         codeable_concept = cls.build_codeable_concept_from_coding(cls.build_fhir_mapped_coding(charge_item))
         fhir_line_item.chargeItemCodeableConcept = codeable_concept
 
@@ -184,3 +185,55 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
             annotation = Annotation.construct()
             annotation.text = imis_invoice.note
             fhir_invoice.note = [annotation]
+
+    @classmethod
+    def get_type_mapping(cls):
+        raise NotImplementedError('get_type_mapping() not implemented')
+
+    @classmethod
+    def get_charge_item_mapping(cls):
+        raise NotImplementedError('get_charge_item_mapping() not implemented')
+
+    @classmethod
+    def get_invoice_date(cls, invoice):
+        raise NotImplementedError('get_invoice_date() not implemented')
+
+    @classmethod
+    def get_invoice_line_items(cls, invoice):
+        raise NotImplementedError('get_invoice_date() not implemented')
+
+
+class InvoiceConverter(GenericInvoiceConverter):
+    @classmethod
+    def get_type_mapping(cls):
+        return InvoiceTypeMapping.invoice_type
+
+    @classmethod
+    def get_charge_item_mapping(cls):
+        return InvoiceChargeItemMapping.charge_item
+
+    @classmethod
+    def get_invoice_date(cls, invoice):
+        return invoice.date_invoice
+
+    @classmethod
+    def get_invoice_line_items(cls, invoice):
+        return invoice.line_items.all()
+
+
+class BillInvoiceConverter(GenericInvoiceConverter):
+    @classmethod
+    def get_type_mapping(cls):
+        return BillTypeMapping.invoice_type
+
+    @classmethod
+    def get_charge_item_mapping(cls):
+        return BillChargeItemMapping.charge_item
+
+    @classmethod
+    def get_invoice_date(cls, invoice):
+        return invoice.date_bill
+
+    @classmethod
+    def get_invoice_line_items(cls, invoice):
+        return invoice.line_items_bill.all()

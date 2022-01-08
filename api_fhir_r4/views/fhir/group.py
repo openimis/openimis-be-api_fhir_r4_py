@@ -1,11 +1,12 @@
 from rest_framework import viewsets
-from insuree.models import Family
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, GroupIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiGroupPermissions
 from api_fhir_r4.serializers import GroupSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from insuree.models import Family
 
 
 class GroupViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
@@ -29,4 +30,5 @@ class GroupViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
         return response
 
     def get_queryset(self):
-        return Family.objects.all().order_by('validity_from')
+        queryset = Family.objects.all().order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

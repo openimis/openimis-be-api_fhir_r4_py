@@ -467,6 +467,14 @@ class InvoiceConfiguration(BaseConfiguration):
     def get_fhir_invoice_charge_item_system(cls):
         raise NotImplementedError('`get_fhir_invoice_charge_item_system()` must be implemented.')
 
+    @classmethod
+    def get_fhir_bill_type_system(cls):
+        raise NotImplementedError('`get_fhir_invoice_type_system()` must be implemented.')
+
+    @classmethod
+    def get_fhir_bill_charge_item_system(cls):
+        raise NotImplementedError('`get_fhir_invoice_charge_item_system()` must be implemented.')
+
 
 class OrganisationConfiguration(BaseConfiguration):
     @classmethod

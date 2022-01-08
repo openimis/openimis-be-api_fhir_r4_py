@@ -1,16 +1,14 @@
-from claim.models import ClaimAdmin
-from core.models import Officer
-
 from rest_framework.request import Request
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
-
 from api_fhir_r4.multiserializer import modelViewset
-
 from api_fhir_r4.permissions import FHIRApiPractitionerPermissions
 from api_fhir_r4.serializers import ClaimAdminPractitionerSerializer, EnrolmentOfficerPractitionerSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseMultiserializerFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from claim.models import ClaimAdmin
+from core.models import Officer
 
 
 class PractitionerViewSet(BaseMultiserializerFHIRView,
@@ -66,10 +64,12 @@ class PractitionerViewSet(BaseMultiserializerFHIRView,
         return ClaimAdmin.objects
 
     def _ca_queryset(self):
-        return ClaimAdmin.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        queryset = ClaimAdmin.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def _eo_queryset(self):
-        return Officer.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        queryset = Officer.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
 
     @classmethod
     def _get_type_from_body(cls, request):

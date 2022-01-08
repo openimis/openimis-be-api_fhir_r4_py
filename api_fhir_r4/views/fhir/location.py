@@ -1,11 +1,12 @@
-from location.models import HealthFacility, Location
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiHFPermissions
 from api_fhir_r4.serializers import LocationSerializer, LocationSiteSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
+from location.models import HealthFacility, Location
 
 
 class LocationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
@@ -32,14 +33,15 @@ class LocationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
     def retrieve(self, *args, **kwargs):
         physical_type = self.request.GET.get('physicalType')
         if physical_type and physical_type == 'si':
-            self.serializer_class=LocationSiteSerializer
+            self.serializer_class = LocationSiteSerializer
             self.queryset = self.get_queryset('si')
         response = super().retrieve(self, *args, **kwargs)
         return response
 
-    def get_queryset(self, physicalType = 'area'):
+    def get_queryset(self, physicalType='area'):
         if physicalType == 'si':
             hf_queryset = HealthFacility.get_queryset(None, self.request.user)
-            return hf_queryset.select_related('location').select_related('sub_level').select_related('legal_form')
+            queryset = hf_queryset.select_related('location').select_related('sub_level').select_related('legal_form')
         else:
-            return Location.get_queryset(None, self.request.user)
+            queryset = Location.get_queryset(None, self.request.user)
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

@@ -1,13 +1,15 @@
 from rest_framework.request import Request
-from policyholder.models import PolicyHolder
-from location.models import HealthFacility
+
+from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
 from api_fhir_r4.model_retrievers import CodeIdentifierModelRetriever, DatabaseIdentifierModelRetriever, \
     UUIDIdentifierModelRetriever
 from api_fhir_r4.multiserializer import modelViewset
 from api_fhir_r4.permissions import FHIRApiOrganizationPermissions
 from api_fhir_r4.serializers import PolicyHolderOrganisationSerializer, HealthFacilityOrganisationSerializer
-from api_fhir_r4.views.fhir.fhir_base_viewset import BaseFHIRView, BaseMultiserializerFHIRView
-from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
+from api_fhir_r4.views.fhir.fhir_base_viewset import BaseMultiserializerFHIRView
+from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter, DateUpdatedRequestParameterFilter
+from location.models import HealthFacility
+from policyholder.models import PolicyHolder
 
 
 class OrganisationViewSet(BaseMultiserializerFHIRView,
@@ -63,10 +65,12 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
         return HealthFacility.objects
 
     def _hf_queryset(self):
-        return HealthFacility.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        queryset = HealthFacility.objects.filter(validity_to__isnull=True).order_by('validity_from')
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def _ph_queryset(self):
-        return PolicyHolder.objects.filter(is_deleted=False).order_by('date_created')
+        queryset = PolicyHolder.objects.filter(is_deleted=False).order_by('date_created')
+        return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     @classmethod
     def _get_type_from_body(cls, request):

@@ -1,17 +1,21 @@
 from rest_framework.request import Request
-from invoice.models import Invoice
+
+from api_fhir_r4.mapping.invoiceMapping import InvoiceTypeMapping, BillTypeMapping
+from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
 from api_fhir_r4.model_retrievers import CodeIdentifierModelRetriever, DatabaseIdentifierModelRetriever, \
     UUIDIdentifierModelRetriever
 from api_fhir_r4.multiserializer import modelViewset
 from api_fhir_r4.permissions import FHIRApiInvoicePermissions
-from api_fhir_r4.serializers import InvoiceSerializer
+from api_fhir_r4.serializers import InvoiceSerializer, BillSerializer
 from api_fhir_r4.views.fhir.fhir_base_viewset import BaseMultiserializerFHIRView
-from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
+from api_fhir_r4.views.filters import DateUpdatedRequestParameterFilter
+from invoice.models import Bill
+from invoice.models import Invoice
 
 
 class InvoiceViewSet(BaseMultiserializerFHIRView,
-                          modelViewset.MultiSerializerModelViewSet,
-                          MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin):
+                     modelViewset.MultiSerializerModelViewSet,
+                     MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin):
     retrievers = [UUIDIdentifierModelRetriever, DatabaseIdentifierModelRetriever, CodeIdentifierModelRetriever]
     permission_classes = (FHIRApiInvoicePermissions,)
 
@@ -21,15 +25,27 @@ class InvoiceViewSet(BaseMultiserializerFHIRView,
     def serializers(self):
         return {
             InvoiceSerializer: (self._invoice_queryset(), self._invoice_serializer_validator),
+            BillSerializer: (self._bill_queryset(), self._bill_serializer_validator)
         }
 
     @classmethod
     def _invoice_serializer_validator(cls, context):
         return cls._base_request_validator_dispatcher(
             request=context['request'],
-            get_check=lambda x: cls._get_type_from_query(x) in ('prov', None),
-            post_check=lambda x: cls._get_type_from_body(x) == 'prov',
-            put_check=lambda x: cls._get_type_from_body(x) in ('prov', None),
+            get_check=lambda x: cls._get_type_from_query(x) in ('invoice', None),
+            post_check=lambda x: cls._get_type_from_body(x) in [item['code'] for item in
+                                                                InvoiceTypeMapping.invoice_type],
+            put_check=lambda x: cls._get_type_from_body(x) in [item['code'] for item in
+                                                               InvoiceTypeMapping.invoice_type],
+        )
+
+    @classmethod
+    def _bill_serializer_validator(cls, context):
+        return cls._base_request_validator_dispatcher(
+            request=context['request'],
+            get_check=lambda x: cls._get_type_from_query(x) in ('bill', None),
+            post_check=lambda x: cls._get_type_from_body(x) in [item['code'] for item in BillTypeMapping.invoice_type],
+            put_check=lambda x: cls._get_type_from_body(x) in [item['code'] for item in BillTypeMapping.invoice_type],
         )
 
     @classmethod
@@ -52,12 +68,16 @@ class InvoiceViewSet(BaseMultiserializerFHIRView,
         return Invoice.objects
 
     def _invoice_queryset(self):
-        return Invoice.objects.filter(is_deleted=False).order_by('date_created')
+        queryset = Invoice.objects.filter(is_deleted=False).order_by('date_created')
+        return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
+
+    def _bill_queryset(self):
+        queryset = Bill.objects.filter(is_deleted=False).order_by('date_created')
+        return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     @classmethod
     def _get_type_from_body(cls, request):
         try:
-            # See: http://hl7.org/fhir/R4/organization.html
             return request.data['type'][0]['coding'][0]['code'].lower()
         except KeyError:
             return None

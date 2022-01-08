@@ -123,7 +123,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
-        response = self.client.get(self.base_url + 'Organization/', format='json', **headers)
+        response = self.client.get(self.base_url + 'Invoice/', format='json', **headers)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
