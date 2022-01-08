@@ -72,7 +72,7 @@ class InvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if isinstance(imis_invoice.thirdparty, Insuree):
             reference_resource = 'Patient'
         else:
-            reference_resource = 'Organisation'
+            reference_resource = 'Organization'
 
         fhir_invoice.recipient = cls.build_fhir_resource_reference(
             imis_invoice.thirdparty,

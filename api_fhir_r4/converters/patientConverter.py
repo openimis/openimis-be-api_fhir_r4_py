@@ -554,10 +554,12 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     @classmethod
     def build_fhir_general_practitioner(cls, fhir_patient, imis_insuree, reference_type):
         if imis_insuree.health_facility:
-            fhir_patient.generalPractitioner = [
-                PolicyHolderOrganisationConverter
-                    .build_fhir_resource_reference(imis_insuree.health_facility, 'Organisation', reference_type=reference_type)
-            ]
+            hf = PolicyHolderOrganisationConverter.build_fhir_resource_reference(
+                imis_insuree.health_facility,
+                'Organization',
+                reference_type=reference_type
+            )
+            fhir_patient.generalPractitioner = [hf]
 
     @classmethod
     def _family_reference_identifier_type(cls, reference_type):

@@ -188,19 +188,17 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin, GroupConverterM
         for extension in fhir_family.extension:
             if extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-address":
                 address = extension.valueAddress
-                if address:
-                    # insuree use temp address
-                    if address.use == "home":
-                        if address.type == "physical":
-                            imis_family.address = address.text
-                            for ext in address.extension:
-                                if "StructureDefinition/address-location-reference" in ext.url:
-                                    value = cls.get_location_reference(ext.valueReference.reference)
-                                    if value:
-                                        try:
-                                            imis_family.location = Location.objects.get(uuid=value, validity_to__isnull=True)
-                                        except:
-                                            imis_family.location = None
+                # insuree use temp address
+                if address and address.use == "home" and address.type == "physical":
+                    imis_family.address = address.text
+                    for ext in address.extension:
+                        if "StructureDefinition/address-location-reference" in ext.url:
+                            value = cls.get_location_reference(ext.valueReference.reference)
+                            if value:
+                                try:
+                                    imis_family.location = Location.objects.get(uuid=value, validity_to__isnull=True)
+                                except Location.DoesNotExist:
+                                    imis_family.location = None
 
             elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-poverty-status":
                 imis_family.poverty = extension.valueBoolean

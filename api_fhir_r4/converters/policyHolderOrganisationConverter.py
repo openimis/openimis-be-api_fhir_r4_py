@@ -33,7 +33,7 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
     @classmethod
     def to_imis_obj(cls, fhir_organisation, audit_user_id):
         raise NotImplementedError(
-            _('PH Organisation to_imis_obj() not implemented.')
+            _('PH Organization to_imis_obj() not implemented.')
         )
 
     @classmethod

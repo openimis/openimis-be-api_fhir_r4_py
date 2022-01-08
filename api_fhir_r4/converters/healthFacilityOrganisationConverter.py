@@ -87,9 +87,6 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
     @classmethod
     def build_fhir_telecom(cls, fhir_organisation: Organization, imis_organisation: HealthFacility):
         telecom = []
-        imis_organisation.email = 'test_email'
-        imis_organisation.phone = 'test_phone'
-        imis_organisation.fax = 'test_fax'
 
         if imis_organisation.email:
             telecom.append(cls._build_email_contact_point(imis_organisation))
@@ -357,6 +354,6 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
         count = matching_locations.count()
         if count == 0:
             return _(F"No matching location for district {address.district}, state {address.state}.")
-        else:
+        elif count > 1:
             return _(F"More than one matching location district {address.district}, state {address.state}:\n"
                      F"{matching_locations}.")

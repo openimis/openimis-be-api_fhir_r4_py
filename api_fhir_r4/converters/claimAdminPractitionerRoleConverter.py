@@ -82,7 +82,7 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
     def build_fhir_healthcare_service_references(cls, fhir_practitioner_role, imis_claim_admin, reference_type):
         if imis_claim_admin.health_facility:
             reference = HealthFacilityOrganisationConverter.build_fhir_resource_reference(
-                imis_claim_admin.health_facility, 'Organisation', reference_type=reference_type)
+                imis_claim_admin.health_facility, 'Organization', reference_type=reference_type)
             fhir_practitioner_role.organization = reference
 
     @classmethod
