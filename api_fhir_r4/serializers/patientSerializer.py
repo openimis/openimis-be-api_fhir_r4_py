@@ -19,7 +19,8 @@ class PatientSerializer(BaseFHIRSerializer):
         if Insuree.objects.filter(chf_id=chf_id).count() > 0:
             raise FHIRException('Exists patient with following chfid `{}`'.format(chf_id))
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in validated_data:
+            del copied_data['_state']
         obj = update_or_create_insuree(copied_data, user)
         # create photo as a file to specified configured path
         if InsureeConfig.insuree_photos_root_path:

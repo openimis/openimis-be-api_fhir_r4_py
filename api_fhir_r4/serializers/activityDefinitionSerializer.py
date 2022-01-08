@@ -1,4 +1,6 @@
 import copy
+import uuid
+
 from medical.models import Service
 from api_fhir_r4.converters import ActivityDefinitionConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
@@ -8,6 +10,11 @@ class ActivityDefinitionSerializer(BaseFHIRSerializer):
     fhirConverter = ActivityDefinitionConverter()
 
     def create(self, validated_data):
+        if 'uuid' in validated_data.keys() and validated_data.get('uuid') is None:
+            # In serializers using graphql services can't provide uuid. If uuid is provided then
+            # resource is updated and not created. This check ensure UUID was provided.
+            validated_data['uuid'] = uuid.uuid4()
+
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
         return Service.objects.create(**copied_data)

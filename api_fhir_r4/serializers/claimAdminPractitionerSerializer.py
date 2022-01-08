@@ -1,4 +1,5 @@
 import copy
+import uuid
 
 from claim.models import ClaimAdmin
 
@@ -13,6 +14,11 @@ class ClaimAdminPractitionerSerializer(BaseFHIRSerializer):
 
     def create(self, validated_data):
         code = validated_data.get('code')
+        if 'uuid' in validated_data.keys() and validated_data.get('uuid') is None:
+            # In serializers using graphql services can't provide uuid. If uuid is provided then
+            # resource is updated and not created. This check ensure UUID was provided.
+            validated_data['uuid'] = uuid.uuid4()
+
         if ClaimAdmin.objects.filter(code=code).count() > 0:
             raise FHIRException('Exists practitioner with following code `{}`'.format(code))
         copied_data = copy.deepcopy(validated_data)

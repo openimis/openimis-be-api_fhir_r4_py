@@ -1,4 +1,6 @@
 import copy
+import uuid
+
 from medical.models import Item
 from api_fhir_r4.converters import MedicationConverter
 from api_fhir_r4.exceptions import FHIRException
@@ -12,6 +14,12 @@ class MedicationSerializer(BaseFHIRSerializer):
         code = validated_data.get('code')
         if Item.objects.filter(code=code).count() > 0:
             raise FHIRException('Exists medical item with following code `{}`'.format(code))
+
+        if 'uuid' in validated_data.keys() and validated_data.get('uuid') is None:
+            # In serializers using graphql services can't provide uuid. If uuid is provided then
+            # resource is updated and not created. This check ensure UUID was provided.
+            validated_data['uuid'] = uuid.uuid4()
+
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
         return Item.objects.create(**copied_data)
