@@ -46,7 +46,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         imis_product.max_installments = self._TEST_MAX_INSTALLMENTS
         imis_product.grace_period = self._TEST_GRACE_PERIOD_PAYMENT
         imis_product.insurance_period = self._TEST_INSURANCE_PERIOD
-        imis_product.member_count = self._TEST_MEMBER_COUNT
+        imis_product.max_members = self._TEST_MEMBER_COUNT
         imis_product.lump_sum = self._TEST_LUMPSUM
         imis_product.threshold = self._TEST_THRESHOLD
         imis_product.premium_adult = self._TEST_PREMIUM_ADULT
@@ -64,7 +64,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_MAX_INSTALLMENTS, imis_obj.max_installments)
         self.assertEqual(self._TEST_GRACE_PERIOD_PAYMENT, imis_obj.grace_period)
         self.assertEqual(self._TEST_INSURANCE_PERIOD, imis_obj.insurance_period)
-        self.assertEqual(self._TEST_MEMBER_COUNT, imis_obj.member_count)
+        self.assertEqual(self._TEST_MEMBER_COUNT, imis_obj.max_members)
         self.assertEqual(self._TEST_LUMPSUM, imis_obj.lump_sum)
         self.assertEqual(self._TEST_THRESHOLD, imis_obj.threshold)
         self.assertEqual(self._TEST_PREMIUM_ADULT, imis_obj.premium_adult)
