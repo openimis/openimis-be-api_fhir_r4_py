@@ -197,7 +197,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 display=_("Member Count"),
                 system=system,
                 unit="member",
-                value=imis_product.member_count
+                value=imis_product.max_members
             )
         )
 
@@ -226,7 +226,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def __build_imis_limit(cls, imis_product, benefit_limits):
         for limit in benefit_limits:
             if limit.code.coding[0].code == 'memberCount':
-                imis_product.member_count = int(limit.value.value)
+                imis_product.max_members = int(limit.value.value)
             if limit.code.coding[0].code == 'period':
                 imis_product.insurance_period = int(limit.value.value)
 
