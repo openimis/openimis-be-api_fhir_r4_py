@@ -1,4 +1,4 @@
-from claim import ClaimSubmitError
+from claim.services import ClaimSubmitError
 from django.db import IntegrityError
 from django.http import Http404
 from django.http.response import HttpResponse

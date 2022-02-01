@@ -2,7 +2,7 @@ import base64
 import hashlib
 import re
 
-from claim import ClaimItemSubmit, ClaimServiceSubmit, ClaimConfig
+from claim.services import ClaimItemSubmit, ClaimServiceSubmit, ClaimConfig
 from claim.models import Claim, ClaimItem, ClaimService, ClaimAttachment
 from location.models import HealthFacility
 from medical.models import Diagnosis, Item, Service

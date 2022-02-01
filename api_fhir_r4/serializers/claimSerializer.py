@@ -1,4 +1,4 @@
-from claim import ClaimSubmitService, ClaimSubmit, ClaimConfig
+from claim.services import ClaimSubmitService, ClaimSubmit, ClaimConfig
 from claim.gql_mutations import create_attachments
 from claim.models import Claim
 from typing import List, Union
