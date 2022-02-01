@@ -321,25 +321,26 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         # family slice - required
         if imis_insuree.family is not None:
             imis_family = imis_insuree.family
-            family_address = cls.build_fhir_address(imis_family.address, "home", "physical")
-            if imis_family.location:
-                family_address.state = imis_family.location.parent.parent.parent.name
-                family_address.district = imis_family.location.parent.parent.name
+            if imis_family.address:
+                family_address = cls.build_fhir_address(imis_family.address, "home", "physical")
+                if imis_family.location:
+                    family_address.state = imis_family.location.parent.parent.parent.name
+                    family_address.district = imis_family.location.parent.parent.name
 
-                # municipality extension
-                extension = Extension.construct()
-                extension.url = "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/municipality"
-                extension.valueString = imis_family.location.parent.name
-                family_address.extension = [extension]
+                    # municipality extension
+                    extension = Extension.construct()
+                    extension.url = "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/municipality"
+                    extension.valueString = imis_family.location.parent.name
+                    family_address.extension = [extension]
 
-                family_address.city = imis_family.location.name
-                family_address.postalCode = imis_family.location.code
+                    family_address.city = imis_family.location.name
+                    family_address.postalCode = imis_family.location.code
 
-            if family_address:
-                if type(addresses) is not list:
-                    addresses = [family_address]
-                else:
-                    addresses.append(family_address)
+                if imis_family.address:
+                    if type(addresses) is not list:
+                        addresses = [family_address]
+                    else:
+                        addresses.append(family_address)
 
         # insuree slice
         if imis_insuree.current_address:
