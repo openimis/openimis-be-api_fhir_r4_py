@@ -335,14 +335,14 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 family_address.city = imis_family.location.name
                 family_address.postalCode = imis_family.location.code
 
-            if family_address is not None:
+            if family_address:
                 if type(addresses) is not list:
                     addresses = [family_address]
                 else:
                     addresses.append(family_address)
 
         # insuree slice
-        if imis_insuree.current_address is not None:
+        if imis_insuree.current_address:
             current_address = cls.build_fhir_address(imis_insuree.current_address, "temp", "physical")
             if imis_insuree.current_village:
                 current_address.state = imis_insuree.current_village.parent.parent.parent.name
@@ -357,7 +357,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 current_address.city = imis_insuree.current_village.name
                 current_address.postalCode = imis_insuree.current_village.code
 
-            if current_address is not None:
+            if current_address:
                 if type(addresses) is not list:
                     addresses = [current_address]
                 else:
