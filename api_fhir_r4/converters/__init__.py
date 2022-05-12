@@ -257,7 +257,6 @@ class BaseFHIRConverter(ABC):
         return quantity
 
 
-from api_fhir_r4.converters.groupConverterMixin import GroupConverterMixin
 from api_fhir_r4.converters.personConverterMixin import PersonConverterMixin
 from api_fhir_r4.converters.referenceConverterMixin import ReferenceConverterMixin
 from api_fhir_r4.converters.medicationConverter import MedicationConverter
