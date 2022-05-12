@@ -11,7 +11,6 @@ from claim.models import Claim, ClaimItem, ClaimService, ClaimAttachment
 
 from api_fhir_r4.containedResources.converterUtils import get_from_contained_or_by_reference
 from api_fhir_r4.mapping.claimMapping import ClaimPriorityMapping, ClaimVisitTypeMapping
-from insuree.models import InsureePolicy
 from medical.models import Diagnosis
 from django.utils.translation import gettext as _
 
@@ -443,13 +442,13 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_insurance(cls, fhir_claim, imis_claim, reference_type):
-        imis_insuree_policies = InsureePolicy.objects.filter(insuree__uuid__iexact=imis_claim.insuree.uuid)
-        # .filter(policy__status__iexact=Policy.STATUS_ACTIVE)
-        if imis_insuree_policies.exists():
+        policies = list(imis_claim.insuree.insuree_policies.all())
+        if policies:
+            sorted_by_enrol = sorted(list(policies), key=lambda x: x.enrollment_date, reverse=True)
+            latest = sorted_by_enrol[0]
             claim_insurance_data = {'focal': True, 'sequence': 1}
             insurance = ClaimInsurance(**claim_insurance_data)
-            imis_insuree_policy = imis_insuree_policies.latest('enrollment_date')
-            insurance.coverage = cls.build_fhir_resource_reference(imis_insuree_policy.policy, type="Coverage",
+            insurance.coverage = cls.build_fhir_resource_reference(latest.policy, type="Coverage",
                                                                    reference_type=reference_type)
             fhir_claim.insurance = [insurance]
 

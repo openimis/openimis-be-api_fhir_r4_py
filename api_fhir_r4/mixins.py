@@ -98,7 +98,7 @@ class MultiIdentifierUpdateManySerializersMixin(MultiSerializerUpdateModelMixin,
         self._validate_update_request()
         partial = kwargs.pop('partial', False)
         results = []
-        for serializer, (qs, _) in self.get_eligible_serializers_iterator():
+        for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
             update_result = self._update_for_serializer(serializer, instance, request.data, partial,
                                                         reference_type=ref_type)
@@ -113,7 +113,7 @@ class MultiIdentifierRetrieveManySerializersMixin(MultiSerializerRetrieveModelMi
     def retrieve(self, request, *args, **kwargs):
         self._validate_retrieve_model_request()
         retrieved = []
-        for serializer, (qs, _) in self.get_eligible_serializers_iterator():
+        for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
             if instance:
                 serializer = serializer(instance, reference_type=ref_type)

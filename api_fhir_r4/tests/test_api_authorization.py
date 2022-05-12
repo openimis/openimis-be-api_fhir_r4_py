@@ -98,7 +98,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
-            response_json["issue"][0]["details"]["text"], "You do not have permission to perform this action."
+            response_json["issue"][0]["details"]["text"], "User unauthorized for any of the resourceType available in the view."
         )
 
     def test_get_should_required_login(self):

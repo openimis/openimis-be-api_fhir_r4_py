@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 
 from django.http.response import HttpResponseBase
@@ -9,6 +10,10 @@ from api_fhir_r4.converters import BaseFHIRConverter, OperationOutcomeConverter,
 from core.models import User, TechnicalUser
 
 
+
+logger = logging.getLogger(__name__)
+
+
 class BaseFHIRSerializer(serializers.Serializer):
     fhirConverter = BaseFHIRConverter()
 
@@ -17,11 +22,17 @@ class BaseFHIRSerializer(serializers.Serializer):
         super().__init__(*args, **kwargs)
 
     def to_representation(self, obj):
-        if isinstance(obj, HttpResponseBase):
-            return OperationOutcomeConverter.to_fhir_obj(obj).dict()
-        elif isinstance(obj, FHIRAbstractModel):
-            return obj.dict()
-        return self.fhirConverter.to_fhir_obj(obj, self.reference_type).dict()
+        try:
+            if isinstance(obj, HttpResponseBase):
+                return OperationOutcomeConverter.to_fhir_obj(obj).dict()
+            elif isinstance(obj, FHIRAbstractModel):
+                return obj.dict()
+            return self.fhirConverter.to_fhir_obj(obj, self.reference_type).dict()
+        except Exception as e:
+            from django.conf import settings
+            if settings.DEBUG:
+                self._print_debug_log(e)
+            raise e
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()
@@ -64,6 +75,12 @@ class BaseFHIRSerializer(serializers.Serializer):
         core_user = User.objects.get(t_user=technical_user_uuid)
         interactive_user = core_user.i_user
         return interactive_user.id if interactive_user else technical_user.id_for_audit
+
+    def _print_debug_log(self, e):
+        import traceback
+        debug_log = "FHIR Mapping for Serializer {self} has failed with exception {e}. Traceback: \n" \
+                    + str(traceback.format_stack())
+        logger.debug(debug_log)
 
 
 from api_fhir_r4.serializers.patientSerializer import PatientSerializer

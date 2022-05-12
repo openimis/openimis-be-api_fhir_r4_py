@@ -42,7 +42,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_contract_status(fhir_contract, imis_policy)
         cls.build_contract_state(fhir_contract, imis_policy)
         return fhir_contract
-    
+
     @classmethod
     def to_imis_obj(cls,fhir_contract, audit_user_id):
         errors = []
@@ -237,7 +237,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
         offer.party = [offer_party]
         contract_term_offer.offer = offer
-        
+
     @classmethod
     def build_contract_status(cls, contract, imis_policy):
         if f"{imis_policy.status}" in ContractStatus.contract_status:
@@ -300,14 +300,13 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     if asset.period:
                         for period in asset.period:
                             if not cls.valid_condition(period.start is None, _('Missing  `period start` attribute'),errors):
-                                imis_policy.start_date = TimeUtils.str_to_date(period.start) 
-                                imis_policy.enroll_date = TimeUtils.str_to_date(period.start) 
+                                imis_policy.start_date = TimeUtils.str_to_date(period.start)
+                                imis_policy.enroll_date = TimeUtils.str_to_date(period.start)
                             if not cls.valid_condition(period.end is None, _('Missing  `period end` attribute'),errors):
-                                imis_policy.expiry_date = TimeUtils.str_to_date(period.end) 
-                                imis_policy.validity_to = TimeUtils.str_to_date(period.end)
+                                imis_policy.expiry_date = TimeUtils.str_to_date(period.end)
                     else:
                         cls.valid_condition(not asset.period, _('Missing  `period` attribute'),errors)
-                        
+
     @classmethod
     def build_imis_useperiod(cls, imis_policy,fhir_contract,errors):
         for term in  fhir_contract:
@@ -318,10 +317,10 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                             if not cls.valid_condition(period.start is None, _('Missing  `usePeriod start` attribute'),errors):
                                 imis_policy.effective_date = TimeUtils.str_to_date(period.start)
                             if not cls.valid_condition(period.end is None, _('Missing  `usePeriod end` attribute'),errors):
-                                imis_policy.expiry_date = TimeUtils.str_to_date(period.end) 
+                                imis_policy.expiry_date = TimeUtils.str_to_date(period.end)
                     else:
                         cls.valid_condition(not asset.usePeriod, _('Missing  `usePeriod` attribute'),errors)
-    
+
     @classmethod
     def build_imis_status(cls, fhir_contract, imis_policy,errors):
         if fhir_contract.status:
@@ -379,12 +378,12 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                             reference = signer.party.reference.split("/", 2)
                             imis_policy.officer = Officer.objects.get(uuid=reference[1])
                         else:
-                            pass     
+                            pass
                 else:
                     cls.valid_condition(signer.type is None, _('Missing  `type` attribute'),errors)
         else:
             cls.valid_condition(not fhir_contract.signer, _('Missing  `signer` attribute'),errors)
-            
+
     @classmethod
     def build_imis_insurees(cls,fhir_contract,imis_policy,errors):
         if fhir_contract.term:
@@ -411,7 +410,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                             cls.valid_condition(not asset.context, _('Missing  `context` attribute'),errors)
                 else:
                     cls.valid_condition(not term.asset, _('Missing  `asset` attribute'),errors)
-                        
+
         else:
             cls.valid_condition(not fhir_contract, _('Missing  `term` attribute'),errors)
 
@@ -429,15 +428,15 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                                         imis_policy.product = Product.objects.get(uuid=reference[1])
                                 if item.net is not None:
                                     if item.net.value is not None:
-                                        imis_policy.value = item.net.value                                                       
+                                        imis_policy.value = item.net.value
                         else:
                             cls.valid_condition(not asset.valuedItem, _('Missing  `valuedItem` attribute'), errors)
                 else:
                     cls.valid_condition(not term.asset, _('Missing  `asset` attribute'), errors)
-                        
+
         else:
             cls.valid_condition(not fhir_contract, _('Missing  `term` attribute'), errors)
-                        
+
     @classmethod
     def build_imis_state(cls,fhir_contract, imis_policy, errors):
         if fhir_contract.legalState:
@@ -447,7 +446,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 elif fhir_contract.legalState.text == R4CoverageConfig.get_status_renewed_code():
                     imis_policy.stage = ContractState.imis_map_stage(R4CoverageConfig.get_status_renewed_code(), imis_policy)
                 else:
-                    pass       
+                    pass
         else:
             cls.valid_condition(fhir_contract.legalState is None, _('Missing  `legalState` attribute'), errors)
 

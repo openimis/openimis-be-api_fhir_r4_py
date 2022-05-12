@@ -9,6 +9,7 @@ from api_fhir_r4.subscriptions import SubscriptionSerializer
 from api_fhir_r4.services import SubscriptionService
 from api_fhir_r4.subscriptions.subscriptionSerializer import SubscriptionSerializerSchema
 from api_fhir_r4.views.fhir.base import BaseFHIRView
+from api_fhir_r4.views.filters import DateUpdatedRequestParameterFilter
 
 
 @extend_schema_view(
@@ -30,9 +31,12 @@ from api_fhir_r4.views.fhir.base import BaseFHIRView
 class SubscriptionViewSet(BaseFHIRView, ModelViewSet):
     _error_while_deleting = 'Error while deleting a subscription: %(msg)s'
     serializer_class = SubscriptionSerializer
-    queryset = Subscription.objects.filter(is_deleted=False).order_by('date_created')
     http_method_names = ('get', 'post', 'put', 'delete')
     permission_classes = (FHIRApiSubscriptionPermissions,)
+
+    def get_queryset(self):
+        queryset = Subscription.objects.filter(is_deleted=False).order_by('date_created')
+        return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def perform_destroy(self, instance):
         if not self.check_if_owner(self.request.user, instance):

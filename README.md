@@ -201,5 +201,44 @@ Example of response ([mapping description](https://openimis.atlassian.net/wiki/s
 }
 ```
 
+## Subscriptions
+
+FHIR API R4 module allows users to define subscriptions and receive notifications when new resources are created or 
+updated. Currently, supported resources are:
+- Patient
+- Organisation (only of `bus` or HealthFacility type)
+- Invoice (All Bill and Invoice types defined in `invoiceMapping.py`)
+
+To use the subscription feature a user is required to have related subscription permissions and read permission for subscribed 
+resource. To create a subscription the following payload should be sent to `/Subscription/` endpoint:
+```JSON
+{
+    "status": "active",
+    "end": "2030-01-01T00:00:00Z",
+    "reason": "Invoice",
+    "criteria": "Invoice?resourceType=policy",
+    "channel": {
+        "type": "rest-hook",
+        "endpoint": "http://example.com/path",
+        "header": [
+            "{\"example\": \"1234\"}"
+        ]
+    }
+}
+```
+
+Explanation of the payload:
+- `status` - required to be `"active"`
+- `end` - subscription expiration time (required to have datetime information, `Z` for UTC)
+- `reason` - required to match subscribed resource name
+- `criteria` - allows to filter resources that should be included in a notification (should match GET arguments format). 
+  - To subscribe all resources of a given name, leave the same as `reason`
+  - To subscribe all resources of a given type, include `resourceType` argument and specify a type. To subscribe multiple types of a given resource (but not all), create multiple subscriptions
+  - You can specify additional filtering arguments after that. Currently, the format should match queryset filter keyword arguments of the underlying IMIS model
+- `channel` - specify the target for notifications
+  - `type` - currently the only supported type is `rest-hook`
+  - `endpoint` - url to send notifications to (should allow POST method)
+  - `header` - serialized json string specifying additional headers to be included in POST request, beside the standard HTTP headers (i.e. `Authentication` header with bearer token should be `"{\"Authentication\": \"bearer abcdef0123456789\"}"`). To not include any headers leave as `"{}"`.
+
 # Dependencies
 All required dependencies can be found in the [setup.py](https://github.com/openimis/openimis-be-api_fhir_r4_py/blob/master/setup.py) file.

@@ -1,8 +1,10 @@
+import datetime
 from copy import deepcopy
 from urllib import parse
 
 from fhir.resources.subscription import Subscription as FHIRSubscription
 
+from api_fhir_r4.configurations import R4SubscriptionConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.mapping.subscriptionMapping import SubscriptionChannelMapping, SubscriptionStatusMapping
@@ -59,18 +61,23 @@ class SubscriptionConverter(BaseFHIRConverter):
 
     @classmethod
     def _build_fhir_end(cls, fhir_subscription, imis_subscription):
-        fhir_subscription['end'] = imis_subscription.expiring.astimezone()
+        date = imis_subscription.expiring.astimezone().isoformat()
+        fhir_subscription['end'] = date
 
     @classmethod
     def _build_fhir_reason(cls, fhir_subscription, imis_subscription):
-        fhir_subscription['reason'] = imis_subscription.criteria['resource_type']
+        fhir_subscription['reason'] = \
+            imis_subscription.criteria[R4SubscriptionConfig.get_fhir_sub_criteria_key_resource()]
 
     @classmethod
     def _build_fhir_criteria(cls, fhir_subscription, imis_subscription):
         criteria = deepcopy(imis_subscription.criteria)
-        resource = criteria.pop('resource_type')
-        fhir_subscription['criteria'] = parse.urlunparse(
-            ('', '', resource, '', parse.urlencode(criteria, doseq=True), ''))
+        resource = criteria.pop(R4SubscriptionConfig.get_fhir_sub_criteria_key_resource())
+        resource_type = criteria.pop(R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type(), None)
+        if resource_type:
+            criteria['resourceType'] = resource_type
+        fhir_subscription['criteria'] = \
+            parse.urlunparse(('', '', resource, '', parse.urlencode(criteria, doseq=True), ''))
 
     @classmethod
     def _build_fhir_error(cls, fhir_subscription, imis_subscription):
@@ -117,7 +124,8 @@ class SubscriptionConverter(BaseFHIRConverter):
     @classmethod
     def _build_imis_end(cls, imis_subscription, fhir_subscription):
         if fhir_subscription.end:
-            imis_subscription['expiring'] = TimeUtils.str_iso_to_date(fhir_subscription.end)
+            imis_subscription['expiring'] = TimeUtils.str_iso_to_date(fhir_subscription.end).astimezone(
+                datetime.timezone.utc)
         else:
             raise FHIRException(cls._error_invalid_attr % {'attr': 'end'})
 
@@ -126,7 +134,10 @@ class SubscriptionConverter(BaseFHIRConverter):
         if fhir_subscription.criteria:
             parsed_criteria = parse.urlparse(fhir_subscription.criteria)
             imis_criteria = dict(parse.parse_qsl(parsed_criteria.query))
-            imis_criteria['resource_type'] = parsed_criteria.path.strip('/')
+            resource_type = imis_criteria.pop('resourceType', None)
+            if resource_type:
+                imis_criteria[R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type()] = resource_type
+            imis_criteria[R4SubscriptionConfig.get_fhir_sub_criteria_key_resource()] = parsed_criteria.path.strip('/')
             imis_subscription['criteria'] = imis_criteria
             cls._validate_fhir_reason(imis_subscription, fhir_subscription)
         else:
@@ -137,7 +148,8 @@ class SubscriptionConverter(BaseFHIRConverter):
         # there is no imis reason so validation only
         if 'criteria' not in imis_subscription:
             raise FHIRException(cls._error_invalid_attr % {'attr': 'criteria'})
-        if fhir_subscription.reason.lower() != imis_subscription['criteria']['resource_type'].lower():
+        if fhir_subscription.reason.lower() \
+                != imis_subscription['criteria'][R4SubscriptionConfig.get_fhir_sub_criteria_key_resource()].lower():
             raise FHIRException(cls._error_invalid_attr % {'attr': 'reason'})
 
     @classmethod
@@ -148,7 +160,8 @@ class SubscriptionConverter(BaseFHIRConverter):
 
     @classmethod
     def _build_imis_channel_type(cls, imis_subscription, fhir_subscription):
-        if fhir_subscription.channel.type and fhir_subscription.channel.type in SubscriptionChannelMapping.to_imis_channel:
+        if fhir_subscription.channel.type \
+                and fhir_subscription.channel.type in SubscriptionChannelMapping.to_imis_channel:
             imis_subscription['channel'] = SubscriptionChannelMapping.to_imis_channel[fhir_subscription.channel.type]
         else:
             raise FHIRException(cls._error_invalid_attr % {'attr': 'channel.type'})

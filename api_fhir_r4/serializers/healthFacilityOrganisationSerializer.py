@@ -11,6 +11,9 @@ class HealthFacilityOrganisationSerializer(BaseFHIRSerializer):
 
     def create(self, validated_data):
         data = copy.deepcopy(validated_data)
+
+        # UUID is automatically generated for HF model, has to be removed as create_or_update will fail.
+        data.pop('uuid', None)
         return self.__create_or_update(data)
 
     def update(self, instance, validated_data):

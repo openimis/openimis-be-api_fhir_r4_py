@@ -215,7 +215,7 @@ class PatientTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
         reference_location = Reference.construct()
-        reference_location.reference = F"Location/{imis_location.name}-village"
+        reference_location.reference = F"Location/{imis_location.uuid}"
         extension.valueReference = reference_location
         family_address.extension.append(extension)
 
@@ -313,7 +313,6 @@ class PatientTestMixin(GenericTestMixin):
                 self.assertEqual(self._TEST_PHONE, telecom.value)
             elif telecom.system == "email":
                 self.assertEqual(self._TEST_EMAIL, telecom.value)
-        self.assertEqual(2, len(fhir_obj.address))
         for address in fhir_obj.address:
             self.assertTrue(isinstance(address, Address))
             if address.use == "home":

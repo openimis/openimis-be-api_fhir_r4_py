@@ -547,6 +547,14 @@ class SubscriptionConfiguration(BaseConfiguration):
     def get_fhir_subscription_status_active(cls):
         raise NotImplementedError('`get_fhir_subscription_status_active()` must be implemented.')
 
+    @classmethod
+    def get_fhir_sub_criteria_key_resource(cls):
+        raise NotImplementedError('`get_fhir_sub_criteria_key_resource()` must be implemented.')
+
+    @classmethod
+    def get_fhir_sub_criteria_key_resource_type(cls):
+        raise NotImplementedError('`get_fhir_sub_criteria_key_resource_type()` must be implemented.')
+
 
 class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
 

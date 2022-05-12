@@ -183,6 +183,8 @@ DEFAULT_CFG = {
         "fhir_sub_delete_perms": ['158004'],
         "fhir_sub_channel_rest_hook": "rest-hook",
         "fhir_sub_status_off": "off",
-        "fhir_sub_status_active": "active"
+        "fhir_sub_status_active": "active",
+        "get_fhir_sub_criteria_key_resource": "resource",
+        "get_fhir_sub_criteria_key_resource_type": "resource_type"
     }
 }

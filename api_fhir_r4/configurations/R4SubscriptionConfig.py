@@ -35,3 +35,13 @@ class R4SubscriptionConfig(SubscriptionConfiguration):
     @classmethod
     def get_fhir_subscription_status_active(cls):
         return cls.get_config_attribute('R4_fhir_subscription_config').get('fhir_sub_status_active', 'active')
+
+    @classmethod
+    def get_fhir_sub_criteria_key_resource(cls):
+        return cls.get_config_attribute('R4_fhir_subscription_config').get('get_fhir_sub_criteria_key_resource',
+                                                                           'resource')
+
+    @classmethod
+    def get_fhir_sub_criteria_key_resource_type(cls):
+        return cls.get_config_attribute('R4_fhir_subscription_config').get('get_fhir_sub_criteria_key_resource_type',
+                                                                           'resource_type')

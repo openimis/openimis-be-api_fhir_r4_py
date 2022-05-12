@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from api_fhir_r4.converters import PatientConverter, BillInvoiceConverter, InvoiceConverter, \
     HealthFacilityOrganisationConverter
+from api_fhir_r4.mapping.invoiceMapping import InvoiceTypeMapping, BillTypeMapping
 from api_fhir_r4.subscriptions.notificationManager import RestSubscriptionNotificationManager
 from api_fhir_r4.subscriptions.subscriptionCriteriaFilter import SubscriptionCriteriaFilter
 from core.service_signals import ServiceSignalBindType
@@ -20,7 +21,7 @@ def bind_service_signals():
         def on_insuree_create_or_update(**kwargs):
             model = kwargs.get('result', None)
             if model:
-                notify_subscribers(model, PatientConverter(), 'Patient')
+                notify_subscribers(model, PatientConverter(), 'Patient', None)
 
         bind_service_signal(
             'insuree_service.create_or_update',
@@ -32,7 +33,7 @@ def bind_service_signals():
         def on_hf_create_or_update(**kwargs):
             model = kwargs.get('result', None)
             if model:
-                notify_subscribers(model, HealthFacilityOrganisationConverter(), 'Organisation')
+                notify_subscribers(model, HealthFacilityOrganisationConverter(), 'Organisation', 'bus')
 
         bind_service_signal(
             'health_facility_service.update_or_create',
@@ -47,7 +48,8 @@ def bind_service_signals():
                 model_uuid = kwargs['result']['data']['uuid']
                 try:
                     model = Bill.objects.get(uuid=model_uuid)
-                    notify_subscribers(model, BillInvoiceConverter(), 'Bill')
+                    notify_subscribers(model, BillInvoiceConverter(), 'Invoice',
+                                       BillTypeMapping.invoice_type[model.subject_type.model])
                 except ObjectDoesNotExist:
                     logger.error(f'Bill returned from service does not exists ({model_uuid})')
                     import traceback
@@ -58,7 +60,8 @@ def bind_service_signals():
                 model_uuid = kwargs['result']['data']['uuid']
                 try:
                     model = Invoice.objects.get(uuid=model_uuid)
-                    notify_subscribers(model, InvoiceConverter(), 'Invoice')
+                    notify_subscribers(model, InvoiceConverter(), 'Invoice',
+                                       InvoiceTypeMapping.invoice_type[model.subject_type.model])
                 except ObjectDoesNotExist:
                     logger.error(f'Invoice returned from service does not exists ({model_uuid})')
                     import traceback
@@ -76,9 +79,10 @@ def bind_service_signals():
         )
 
 
-def notify_subscribers(model, converter, resource_type):
+def notify_subscribers(model, converter, resource_name, resource_type_name):
     try:
-        subscriptions = SubscriptionCriteriaFilter(model, resource_type).get_filtered_subscriptions()
+        subscriptions = SubscriptionCriteriaFilter(model, resource_name,
+                                                   resource_type_name).get_filtered_subscriptions()
         RestSubscriptionNotificationManager(converter).notify_subscribers_with_resource(model, subscriptions)
     except Exception as e:
         logger.error(f'Notifying subscribers failed: {e}')

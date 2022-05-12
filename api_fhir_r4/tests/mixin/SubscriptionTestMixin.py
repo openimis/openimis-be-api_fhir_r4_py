@@ -11,7 +11,7 @@ class SubscriptionTestMixin(GenericTestMixin):
     _TEST_SUB_IMIS_EXPIRING = '2020-01-01T00:00:00+00:00'
 
     _TEST_SUB_IMIS_CRITERIA = {
-        'resource_type': 'Patient',
+        'resource': 'Patient',
         'chfid__startswith': '0'
     }
     _TEST_SUB_IMIS_STATUS = 1

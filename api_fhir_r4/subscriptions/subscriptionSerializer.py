@@ -4,9 +4,11 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError, APIException, PermissionDenied
 
+from api_fhir_r4.configurations import R4SubscriptionConfig
 from api_fhir_r4.subscriptions import SubscriptionConverter
 from api_fhir_r4.models import Subscription
-from api_fhir_r4.permissions import FHIRApiInsureePermissions, FHIRApiInvoicePermissions, FHIRApiHealthServicePermissions
+from api_fhir_r4.permissions import FHIRApiInsureePermissions, FHIRApiInvoicePermissions, \
+    FHIRApiHealthServicePermissions
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from api_fhir_r4.services import SubscriptionService
 
@@ -18,7 +20,6 @@ class SubscriptionSerializer(BaseFHIRSerializer):
     resource_permissions = {
         'patient': FHIRApiInsureePermissions.permissions_get,
         'invoice': FHIRApiInvoicePermissions.permissions_get,
-        'bill': FHIRApiInvoicePermissions.permissions_get,
         'organisation': FHIRApiHealthServicePermissions.permissions_get
     }
 
@@ -50,13 +51,13 @@ class SubscriptionSerializer(BaseFHIRSerializer):
             raise APIException(self._error_while_saving % {'msg': result.get('message', 'Unknown')})
 
     def check_resource_rights(self, user, data):
-        resource_type = data.get('criteria', {}).get('resource_type', '').lower()
-        if not resource_type or resource_type not in self.resource_permissions:
-            raise ValidationError(self._error_while_saving % {'msg': f'Invalid resource_type ({resource_type})'})
+        resource = data.get('criteria', {}).get(R4SubscriptionConfig.get_fhir_sub_criteria_key_resource(), '').lower()
+        if not resource or resource not in self.resource_permissions:
+            raise ValidationError(self._error_while_saving % {'msg': f'Invalid resource ({resource})'})
 
-        if not user.has_perms(self.resource_permissions[resource_type]):
+        if not user.has_perms(self.resource_permissions[resource]):
             raise PermissionDenied(
-                detail=self._error_while_saving % {'msg': f'You have no permissions to subscribe to {resource_type}'})
+                detail=self._error_while_saving % {'msg': f'You have no permissions to subscribe to {resource}'})
 
     def check_object_owner(self, user, instance):
         if str(user.id).lower() != str(instance.user_created.id).lower():

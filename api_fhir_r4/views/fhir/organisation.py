@@ -9,14 +9,27 @@ from rest_framework.response import Response
 
 from api_fhir_r4.defaultConfig import DEFAULT_CFG
 from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
-from api_fhir_r4.model_retrievers import CodeIdentifierModelRetriever, DatabaseIdentifierModelRetriever, \
+from api_fhir_r4.model_retrievers import (
+    CodeIdentifierModelRetriever,
+    DatabaseIdentifierModelRetriever,
     UUIDIdentifierModelRetriever
+)
 from api_fhir_r4.multiserializer import modelViewset
-from api_fhir_r4.permissions import FHIRApiOrganizationPermissions
+from api_fhir_r4.permissions import (
+    FHIRApiOrganizationPermissions,
+    FHIRApiHealthServicePermissions,
+    FHIRApiInsuranceOrganizationPermissions
+)
 from api_fhir_r4.views.fhir.base import BaseMultiserializerFHIRView
-from api_fhir_r4.serializers import PolicyHolderOrganisationSerializer, HealthFacilityOrganisationSerializer, \
+from api_fhir_r4.serializers import (
+    PolicyHolderOrganisationSerializer,
+    HealthFacilityOrganisationSerializer,
     InsuranceOrganizationSerializer
-from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter, DateUpdatedRequestParameterFilter
+)
+from api_fhir_r4.views.filters import (
+    ValidityFromRequestParameterFilter,
+    DateUpdatedRequestParameterFilter
+)
 from location.models import HealthFacility
 from core.models import ModuleConfiguration
 from policyholder.models import PolicyHolder
@@ -28,16 +41,18 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
                           modelViewset.MultiSerializerModelViewSet,
                           MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin):
     retrievers = [UUIDIdentifierModelRetriever, DatabaseIdentifierModelRetriever, CodeIdentifierModelRetriever]
-    permission_classes = (FHIRApiOrganizationPermissions,)
 
     lookup_field = 'identifier'
 
     @property
     def serializers(self):
         return {
-            HealthFacilityOrganisationSerializer: (self._hf_queryset(), self._hf_serializer_validator),
-            PolicyHolderOrganisationSerializer: (self._ph_queryset(), self._ph_serializer_validator),
-            InsuranceOrganizationSerializer: (self._io_queryset(), self._io_serializer_validator),
+            HealthFacilityOrganisationSerializer:
+                (self._hf_queryset(), self._hf_serializer_validator, (FHIRApiHealthServicePermissions,)),
+            PolicyHolderOrganisationSerializer:
+                (self._ph_queryset(), self._ph_serializer_validator, (FHIRApiOrganizationPermissions,)),
+            InsuranceOrganizationSerializer:
+                (self._io_queryset(), self._io_serializer_validator, (FHIRApiInsuranceOrganizationPermissions,)),
         }
 
     @classmethod
@@ -86,20 +101,21 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
         self._validate_list_model_request()
         filtered_querysets = {}  # {serialzer: qs}
 
-        for serializer, (qs, _) in self.get_eligible_serializers_iterator():
+        for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             next_serializer_data = self.filter_queryset(qs)
             model = next_serializer_data.model
             filtered_querysets[model, serializer] = next_serializer_data
 
         # if insurance organisation queryset is empty - take the default one
         if resource_type is None or resource_type == 'io':
-            if len(filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer]) == 0:
-                filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer] = \
-                    [DEFAULT_CFG['R4_fhir_insurance_organisation_config']]
-            else:
-                # save in 'filtered_queryset' values from module db config to have good value in 'total_count'
-                filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer] = \
-                    self._get_insurance_organisations_as_list()
+            if (ModuleConfiguration, InsuranceOrganizationSerializer) in filtered_querysets:
+                if len(filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer]) == 0:
+                    filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer] = \
+                        [DEFAULT_CFG['R4_fhir_insurance_organisation_config']]
+                else:
+                    # save in 'filtered_queryset' values from module db config to have good value in 'total_count'
+                    filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer] = \
+                        self._get_insurance_organisations_as_list()
 
         page = self.paginate_queryset(list(chain(*filtered_querysets.values())))
         data = self.__dispatch_page_data(page)
@@ -116,7 +132,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
     def retrieve(self, request, *args, **kwargs):
         self._validate_retrieve_model_request()
         retrieved = []
-        for serializer, (qs, _) in self.get_eligible_serializers_iterator():
+        for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             if qs.model is not ModuleConfiguration:
                 ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
                 if instance:

@@ -165,51 +165,28 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
     def test_post_should_raise_missing_fhir_home_address_details(self):
         self.login()
         self.create_dependencies()
-        expected_output = _('At least one of required fields for address is missing: state, district, city')
         # missing city
-        modified_payload = self.update_payload_missing_fhir_address_details(data=self._test_request_data, field="city",
-                                                                            kind_of_address="home")
-        response = self.client.post(self.base_url, data=modified_payload, format='json')
-        response_json_city = response.json()
-        # missing district
-        modified_payload = self.update_payload_missing_fhir_address_details(data=self._test_request_data,
-                                                                            field="district", kind_of_address="home")
-        response = self.client.post(self.base_url, data=modified_payload, format='json')
-        response_json_district = response.json()
-        # missing state
-        modified_payload = self.update_payload_missing_fhir_address_details(data=self._test_request_data, field="state",
-                                                                            kind_of_address="home")
-        response = self.client.post(self.base_url, data=modified_payload, format='json')
-        response_json_state = response.json()
-        self.assertEqual(
-            response_json_city["issue"][0]["details"]["text"],
-            expected_output
-        )
-        self.assertEqual(
-            response_json_district["issue"][0]["details"]["text"],
-            expected_output
-        )
-        self.assertEqual(
-            response_json_state["issue"][0]["details"]["text"],
-            expected_output
-        )
+        self._assert_filed_mandatory('city')
+        self._assert_filed_mandatory('district')
+        self._assert_filed_mandatory('state')
 
     def test_post_should_raise_missing_fhir_address_home_family_extensions(self):
         self.login()
         self.create_dependencies()
         # missing municipality extension
-        modified_payload = self.update_payload_missing_fhir_address_extension(data=self._test_request_data,
-                                                                              kind_of_extension='address-municipality')
+        modified_payload = self.update_payload_missing_fhir_address_extension(
+            data=self._test_request_data, kind_of_extension='address-municipality')
         response = self.client.post(self.base_url, data=modified_payload, format='json')
         response_json_municipality = response.json()
         # missing all extensions
         modified_payload = self.update_payload_missing_fhir_address_extensions_all(data=self._test_request_data)
         response = self.client.post(self.base_url, data=modified_payload, format='json')
         response_json_no_extensions = response.json()
-        self.assertEqual(
+        self.assertIn(
+            "FHIR Patient address without address-municipality reference.",
             response_json_municipality["issue"][0]["details"]["text"],
-            _('At least one of required extensions for address is missing: address-location-reference or address-municipality')
         )
+
         self.assertEqual(
             response_json_no_extensions["issue"][0]["details"]["text"],
             _("Missing extensions for Address")
@@ -267,3 +244,17 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
             response_json_no_name["issue"][0]["details"]["text"],
             _('Missing fhir patient attribute: name')
         )
+
+    def _assert_filed_mandatory(self, field):
+        modified_payload = self.update_payload_missing_fhir_address_details(
+            data=self._test_request_data, field=field, kind_of_address="home")
+        response = self.client.post(self.base_url, data=modified_payload, format='json')
+        json_response = response.json()
+
+        # Missing mandatory field should result in operation failure.
+        self.assertEqual(response.status_code, 500)
+        # Information regarding failure reason should be provided
+        self.assertIsNotNone(json_response["issue"][0]["details"]["text"])
+        # Information regarding field should be part of failure reason
+        self.assertIn(field, json_response["issue"][0]["details"]["text"])
+
