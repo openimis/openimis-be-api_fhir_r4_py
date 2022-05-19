@@ -57,7 +57,9 @@ class ReferenceConverterMixin(object):
             if isinstance(reference, str) and '/' in reference:
                 path, resource_id = reference.rsplit('/', 1)
         if resource_id is None:
-            raise FHIRRequestProcessException(['Could not fetch id from reference: {}'])
+            raise FHIRRequestProcessException(
+                [F'Could not fetch id from reference `{reference}`. Invalid reference format']
+            )
         return resource_id
 
     @classmethod

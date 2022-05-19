@@ -16,6 +16,7 @@ class GroupAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, 
     base_url = GeneralConfiguration.get_base_url() + 'Group/'
     _test_json_path = "/test/test_group.json"
     _TEST_INSUREE_CHFID = "TestChfId1"
+    _TEST_INSUREE_UUID = "01916024-20a9-45ba-a295-019ab0830000"
     _TEST_INSUREE_LAST_NAME = "Test"
     _TEST_INSUREE_OTHER_NAMES = "TestInsuree"
     _TEST_POVERTY_STATUS = True
@@ -52,8 +53,10 @@ class GroupAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, 
                 "chf_id": self._TEST_INSUREE_CHFID,
                 "last_name": self._TEST_INSUREE_LAST_NAME,
                 "other_names": self._TEST_INSUREE_OTHER_NAMES,
+                "uuid": self._TEST_INSUREE_UUID
             }
         )
+        insuree.save()
         imis_location = GroupTestMixin().create_mocked_location()
         imis_location.save()
 
@@ -103,19 +106,18 @@ class GroupAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, 
         self.create_dependencies()
         modified_payload = self.update_payload_no_such_chf_id(data=self._test_request_data)
         response = self.client.post(self.base_url, data=modified_payload, format='json')
+        self.assertTrue(status.is_server_error(response.status_code))
+
         response_json = response.json()
-        self.assertEqual(
-            response_json["issue"][0]["details"]["text"],
-            _('Such insuree %(chf_id)s does not exist') % {'chf_id': self._TEST_INSUREE_CHFID_NOT_EXIST}
-        )
+        self.assertIsNotNone(response_json["issue"][0]["details"]["text"])
 
     def test_post_should_raise_error_no_chf_id_in_payload(self):
         self.login()
         self.create_dependencies()
         modified_payload = self.update_payload_remove_chf_id_from_it(data=self._test_request_data)
         response = self.client.post(self.base_url, data=modified_payload, format='json')
+
+        self.assertTrue(status.is_server_error(response.status_code))
+
         response_json = response.json()
-        self.assertEqual(
-            response_json["issue"][0]["details"]["text"],
-            _("Family Group FHIR without code - this field is obligatory")
-        )
+        self.assertIsNotNone(response_json["issue"][0]["details"]["text"])

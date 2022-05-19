@@ -294,6 +294,7 @@ class ClaimAPIContainedTests(ClaimAPIContainedTestBaseMixin, GenericFhirAPITestM
         # Create claim
         response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
         response_json = response.json()
+        self.assertTrue(status.is_success(response.status_code))
         uuid = response_json['id']
         url = F"{GeneralConfiguration.get_base_url()}Claim/{uuid}/?contained=True"
         response = self.client.get(url, data=None, format='json', **headers)

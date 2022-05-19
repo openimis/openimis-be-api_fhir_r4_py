@@ -384,8 +384,20 @@
             "member": [
                 {
                     "entity": {
-                        "reference": "Patient/105000003",
-                        "type": "Patient"
+                        "reference": "Patient/AAAA08B5-6E85-470C-83EC-0EE9370F0000",
+                        "type": "Patient",
+                        "identifier": {
+                            "type": {
+                                "coding": [
+                                    {
+                                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                        "code": "UUID"
+                                    }
+                                ]
+                            },
+                            "value": "AAAA08B5-6E85-470C-83EC-0EE9370F0000"
+                        },
+                        "display": "TestChfId1"
                     }
                 }
             ]

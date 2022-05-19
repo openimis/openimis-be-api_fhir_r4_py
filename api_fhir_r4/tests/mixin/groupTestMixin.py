@@ -70,7 +70,7 @@ class GroupTestMixin(GenericTestMixin):
         # create mocked insuree so as to create test family
         imis_mocked_insuree = create_test_insuree()
         imis_mocked_insuree.last_name = self._TEST_LAST_NAME
-        imis_mocked_insuree.other_names =  self._TEST_OTHER_NAME
+        imis_mocked_insuree.other_names = self._TEST_OTHER_NAME
         imis_mocked_insuree.uuid = self._TEST_INSUREE_MOCKED_UUID
         imis_mocked_insuree.chf_id = self._TEST_INSUREE_MOCKED_CHFID
         imis_mocked_insuree.save()
@@ -103,7 +103,7 @@ class GroupTestMixin(GenericTestMixin):
 
     def create_test_fhir_instance(self):
         # create mocked insuree so as to create test family
-        imis_mocked_insuree = create_test_insuree()
+        imis_mocked_insuree = create_test_insuree(with_family=False)
         imis_mocked_insuree.uuid = self._TEST_INSUREE_MOCKED_UUID
         imis_mocked_insuree.chf_id = self._TEST_INSUREE_MOCKED_CHFID
         imis_mocked_insuree.save()
@@ -146,7 +146,7 @@ class GroupTestMixin(GenericTestMixin):
         members = []
         member = GroupMember.construct()
         reference = Reference.construct()
-        reference.reference = f"Patient/{self._TEST_CHF_ID}"
+        reference.reference = f"Patient/{self._TEST_INSUREE_MOCKED_UUID}"
         reference.type = "Patient"
         member.entity = reference
         members.append(member)

@@ -61,10 +61,22 @@
    "quantity":1,
    "member":[
       {
-         "entity":{
-            "reference":"Patient/TestChfId1",
-            "type": "Patient"
-         }
-      }
+            "entity": {
+                "reference": "Patient/01916024-20a9-45ba-a295-019ab0830000",
+                "type": "Patient",
+                "identifier": {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                "code": "UUID"
+                            }
+                        ]
+                    },
+                    "value": "01916024-20a9-45ba-a295-019ab0830000"
+                },
+                "display": "TestChfId1"
+            }
+        }
    ]
 }
