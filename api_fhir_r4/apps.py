@@ -1,5 +1,7 @@
 import logging
+from collections import OrderedDict
 
+import yaml
 from django.apps import AppConfig
 
 from api_fhir_r4.configurations import ModuleConfiguration
@@ -17,7 +19,15 @@ class ApiFhirConfig(AppConfig):
         from core.models import ModuleConfiguration
         cfg = ModuleConfiguration.get_or_default(MODULE_NAME, DEFAULT_CFG)
         self.__configure_module(cfg)
+        setup_yaml()
 
     def __configure_module(self, cfg):
         ModuleConfiguration.build_configuration(cfg)
         logger.info('Module $s configured successfully', MODULE_NAME)
+
+
+def setup_yaml():
+    def represent_ordered_dict(dumper, data):
+        return dumper.represent_mapping('tag:yaml.org,2002:map', data.items())
+
+    yaml.SafeDumper.add_representer(OrderedDict, represent_ordered_dict)

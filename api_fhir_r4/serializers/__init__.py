@@ -1,27 +1,38 @@
+import logging
 from typing import Union
 
-from core.models import User, TechnicalUser
 from django.http.response import HttpResponseBase
+from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from rest_framework import serializers
 
 from api_fhir_r4.configurations import GeneralConfiguration
-from rest_framework import serializers
 from api_fhir_r4.converters import BaseFHIRConverter, OperationOutcomeConverter, ReferenceConverterMixin
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from core.models import User, TechnicalUser
+
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseFHIRSerializer(serializers.Serializer):
     fhirConverter = BaseFHIRConverter()
 
     def __init__(self, *args, **kwargs):
+        self._reference_type = kwargs.pop('reference_type', ReferenceConverterMixin.UUID_REFERENCE_TYPE)
         super().__init__(*args, **kwargs)
-        self._reference_type = kwargs.get('reference_type', ReferenceConverterMixin.UUID_REFERENCE_TYPE)
 
     def to_representation(self, obj):
-        if isinstance(obj, HttpResponseBase):
-            return OperationOutcomeConverter.to_fhir_obj(obj).dict()
-        elif isinstance(obj, FHIRAbstractModel):
-            return obj.dict()
-        return self.fhirConverter.to_fhir_obj(obj, self.reference_type).dict()
+        try:
+            if isinstance(obj, HttpResponseBase):
+                return OperationOutcomeConverter.to_fhir_obj(obj).dict()
+            elif isinstance(obj, FHIRAbstractModel):
+                return obj.dict()
+            return self.fhirConverter.to_fhir_obj(obj, self.reference_type).dict()
+        except Exception as e:
+            from django.conf import settings
+            if settings.DEBUG:
+                self._print_debug_log(e)
+            raise e
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()
@@ -65,21 +76,35 @@ class BaseFHIRSerializer(serializers.Serializer):
         interactive_user = core_user.i_user
         return interactive_user.id if interactive_user else technical_user.id_for_audit
 
+    def _print_debug_log(self, e):
+        import traceback
+        debug_log = "FHIR Mapping for Serializer {self} has failed with exception {e}. Traceback: \n" \
+                    + str(traceback.format_stack())
+        logger.debug(debug_log)
+
 
 from api_fhir_r4.serializers.patientSerializer import PatientSerializer
 from api_fhir_r4.serializers.groupSerializer import GroupSerializer
-from api_fhir_r4.serializers.organisationSerializer import OrganisationSerializer
+from api_fhir_r4.serializers.policyHolderOrganisationSerializer import PolicyHolderOrganisationSerializer
 from api_fhir_r4.serializers.contractSerializer import ContractSerializer
 from api_fhir_r4.serializers.locationSerializer import LocationSerializer
 from api_fhir_r4.serializers.locationSiteSerializer import LocationSiteSerializer
-from api_fhir_r4.serializers.practitionerRoleSerializer import PractitionerRoleSerializer
-from api_fhir_r4.serializers.practitionerSerializer import PractitionerSerializer
-from api_fhir_r4.serializers.claimSerializer import ClaimSerializer
+from api_fhir_r4.serializers.claimAdminPractitionerRoleSerializer import ClaimAdminPractitionerRoleSerializer
+from api_fhir_r4.serializers.claimAdminPractitionerSerializer import ClaimAdminPractitionerSerializer
 from api_fhir_r4.serializers.coverageEligibilityRequestSerializer import CoverageEligibilityRequestSerializer
-from api_fhir_r4.serializers.policyCoverageEligibilityRequestSerializer import PolicyCoverageEligibilityRequestSerializer
+# from api_fhir_r4.serializers.policyCoverageEligibilityRequestSerializer import PolicyCoverageEligibilityRequestSerializer
 from api_fhir_r4.serializers.claimResponseSerializer import ClaimResponseSerializer
 from api_fhir_r4.serializers.communicationRequestSerializer import CommunicationRequestSerializer
 from api_fhir_r4.serializers.medicationSerializer import MedicationSerializer
-from api_fhir_r4.serializers.conditionSerializer import ConditionSerializer
 from api_fhir_r4.serializers.activityDefinitionSerializer import ActivityDefinitionSerializer
-from api_fhir_r4.serializers.healthcareServiceSerializer import HealthcareServiceSerializer
+from api_fhir_r4.serializers.insurancePlanSerializer import InsurancePlanSerializer
+from api_fhir_r4.serializers.codeSystemSerializer import CodeSystemSerializer
+from api_fhir_r4.serializers.healthFacilityOrganisationSerializer import HealthFacilityOrganisationSerializer
+from api_fhir_r4.serializers.enrolmentOfficerPractitionerSerializer import EnrolmentOfficerPractitionerSerializer
+from api_fhir_r4.serializers.enrolmentOfficerPractitionerRoleSerializer import \
+    EnrolmentOfficerPractitionerRoleSerializer
+from api_fhir_r4.serializers.communicationSerializer import CommunicationSerializer
+from api_fhir_r4.serializers.invoiceSerializer import InvoiceSerializer
+from api_fhir_r4.serializers.insuranceOrganisationSerializer import InsuranceOrganizationSerializer
+from api_fhir_r4.serializers.billSerializer import BillSerializer
+from api_fhir_r4.serializers.claimSerializer import ClaimSerializer

@@ -5,15 +5,18 @@ DEFAULT_CFG = {
         "female": "F",
         "other": "O"
     },
+    "base_url": "https://openimis.github.io/openimis_fhir_r4_ig/",
     "default_value_of_patient_head_attribute": False,
     "default_value_of_patient_card_issued_attribute": False,
     "default_value_of_location_offline_attribute": False,
     "default_value_of_location_care_type": "B",
     "default_response_page_size": 10,
+    "claim_rule_engine_validation": True,
     "R4_fhir_identifier_type_config": {
-        "system": "https://hl7.org/fhir/valueset-identifier-type.html",
+        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
         "fhir_code_for_imis_db_uuid_type": "UUID",
         "fhir_code_for_imis_db_id_type": "ACSN",
+        "fhir_code_for_imis_generic_code": "Code",
         "fhir_code_for_imis_chfid_type": "SB",
         "fhir_code_for_imis_passport_type": "PPN",
         "fhir_code_for_imis_facility_id_type": "FI",
@@ -45,6 +48,10 @@ DEFAULT_CFG = {
         "fhir_code_for_ward": "W",
         "fhir_code_for_village": "V"
     },
+    "R4_fhir_location_status_codes": {
+        "fhir_code_for_active": "active",
+        "fhir_code_for_inactive": "inactive",
+    },
     "R4_fhir_hf_service_type": {
         "system": "http://hl7.org/fhir/valueset-service-type.html",
         "fhir_code_for_in_patient": "I",
@@ -57,7 +64,7 @@ DEFAULT_CFG = {
         "fhir_code_for_informational": "informational"
     },
     "R4_fhir_claim_config": {
-        "fhir_claim_information_guarantee_id_code": "guarantee_id",
+        "fhir_claim_information_guarantee_id_code": "guarantee",
         "fhir_claim_information_explanation_code": "explanation",
         "fhir_claim_item_explanation_code": "item_explanation",
         "fhir_claim_item_code": "item",
@@ -74,7 +81,11 @@ DEFAULT_CFG = {
         "fhir_claim_item_rejected_reason_adjudication_code": "rejected_reason",
         "fhir_claim_organization_code": "openIMIS",
         "fhir_claim_attachment_code": "attachment",
-        "fhir_claim_information_category_system": "http://terminology.hl7.org/CodeSystem/claiminformationcategory",
+        "fhir_claim_supporting_info_category_system": 'CodeSystem/claim-supporting-info-category',
+        'fhir_claim_item_reference_extension_system': 'StructureDefinition/claim-item-reference',
+        'fhir_claim_visit_type_system': 'CodeSystem/claim-visit-type',
+        'fhir_claim_item_category_system': 'CodeSystem/claim-item-category',
+        'fhir_claim_diagnosis_system': 'CodeSystem/diagnosis-ICD10-level1',
         "fhir_claim_allowed_mime_types_regex":
             '|'.join(['text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
     },
@@ -102,21 +113,21 @@ DEFAULT_CFG = {
         "fhir_active_policy_status": ("A", 2)
     },
     "R4_fhir_communication_request_config": {
-        "fhir_care_rendered_code": "care_rendered",
-        "fhir_payment_asked_code": "payment_asked",
-        "fhir_drug_prescribed_code": "drug_prescribed",
-        "fhir_drug_received_code": "drug_received",
-        "fhir_asessment_code": "asessment"
+        "fhir_care_rendered_code": "CareRendered",
+        "fhir_payment_asked_code": "PaymentAsked",
+        "fhir_drug_prescribed_code": "DrugPrescribed",
+        "fhir_drug_received_code": "DrugReceived",
+        "fhir_asessment_code": "Asessment"
     },
     "R4_fhir_contract_config": {
-        "fhir_contract_eo_signer_type":"EnrolmentOfficer",
-        "fhir_contract_head_signer_type":"HeadOfFamily",
-        "fhir_contract_insuree_role":"Insuree",
-        "fhir_contract_dependant_role":"Dependant",
-        "fhir_contract_executable_status":"Executable",
-        "fhir_contract_renewed_status":"Renewed",
-        "fhir_contract_policy_status":"Policy",
-        "fhir_contract_Terminated_status":"Terminated"
+        "fhir_contract_eo_signer_type": "EnrolmentOfficer",
+        "fhir_contract_head_signer_type": "HeadOfFamily",
+        "fhir_contract_insuree_role": "Insuree",
+        "fhir_contract_dependant_role": "Dependant",
+        "fhir_contract_executable_status": "Executable",
+        "fhir_contract_renewed_status": "Renewed",
+        "fhir_contract_policy_status": "Policy",
+        "fhir_contract_Terminated_status": "Terminated"
     },
     "R4_fhir_coverage_config": {
         "fhir_family_refereence_code": "FamilyReference",
@@ -131,5 +142,49 @@ DEFAULT_CFG = {
         "fhir_product_code": "Product",
         "fhir_effective_date_code": "EffectiveDate",
         "fhir_enroll_date_code": "EnrollDate"
+    },
+    "R4_fhir_organisation_config": {
+        "fhir_ph_organisation_type": "bus",
+        "fhir_address_municipality_extension_system": "StructureDefinition/address-municipality",
+        "fhir_location_reference_extension_system": "StructureDefinition/address-location-reference",
+        "fhir_ph_organisation_legal_form_extension_system": "StructureDefinition/organization-ph-legal-form",
+        "fhir_ph_organisation_activity_extension_system": "StructureDefinition/organization-ph-activity",
+        "fhir_ph_organisation_legal_form_code_system": "CodeSystem/organization-ph-legal-form",
+        "fhir_ph_organisation_activity_code_system": "CodeSystem/organization-ph-activity",
+        "fhir_ph_organisation_type_system": "http://terminology.hl7.org/CodeSystem/organization-type",
+        "fhir_ph_organisation_type_contactentity_type":"http://terminology.hl7.org/CodeSystem/contactentity-type"
+    },
+    "R4_fhir_insurance_organisation_config": {
+        "resource_type": 'insurance_organisation',
+        "id": 'openIMIS-Implementation',
+        "name": 'openIMIS Implementation',
+        "code": 'openIMIS',
+        "type": 'ins',
+        "email": 'implementation@openimis.org',
+        "phone": '0908060703',
+        "fax": '0908060730',
+        "contact_name": "Manuel D. Medina",
+        "municipality": "Jamu",
+        "city": "Jamula",
+        "district": "Rapta",
+        "state": "Ultha",
+        "line": "1 Pasay"
+    },
+    "R4_fhir_invoice_config": {
+        "fhir_invoice_type_system": "CodeSystem/invoice-type",
+        "fhir_invoice_charge_item_system": "CodeSystem/invoice-charge-item",
+        "fhir_bill_type_system": "CodeSystem/bill-type",
+        "fhir_bill_charge_item_system": "CodeSystem/bill-charge-item"
+    },
+    "R4_fhir_subscription_config": {
+        "fhir_sub_search_perms": ['158001'],
+        "fhir_sub_create_perms": ['158002'],
+        "fhir_sub_update_perms": ['158003'],
+        "fhir_sub_delete_perms": ['158004'],
+        "fhir_sub_channel_rest_hook": "rest-hook",
+        "fhir_sub_status_off": "off",
+        "fhir_sub_status_active": "active",
+        "get_fhir_sub_criteria_key_resource": "resource",
+        "get_fhir_sub_criteria_key_resource_type": "resource_type"
     }
 }

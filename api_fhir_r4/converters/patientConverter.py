@@ -1,21 +1,24 @@
-import os
+import json
 import urllib
 from urllib.parse import urlparse
 
-from django.utils.translation import gettext
-from insuree.models import Insuree, Gender, Education, Profession, Family,InsureePhoto, Relation
-from location.models import Location
+from django.utils.translation import gettext as _
+from fhir.resources.address import Address
+
+from insuree.models import Insuree, Gender, Education, Profession, Family, \
+    InsureePhoto, Relation, IdentificationType
+from location.models import Location, HealthFacility
 from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration, R4MaritalConfig
 from api_fhir_r4.converters import BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin
-from api_fhir_r4.converters.healthcareServiceConverter import HealthcareServiceConverter
+from api_fhir_r4.converters.groupConverter import GroupConverter
 from api_fhir_r4.converters.locationConverter import LocationConverter
+from api_fhir_r4.mapping.patientMapping import RelationshipMapping, EducationLevelMapping, \
+    PatientProfessionMapping, MaritalStatusMapping, PatientCategoryMapping
 from api_fhir_r4.models.imisModelEnums import ImisMaritalStatus
-from fhir.resources.patient import Patient, PatientLink
+from fhir.resources.patient import Patient, PatientContact
 from fhir.resources.extension import Extension
 from fhir.resources.attachment import Attachment
-from fhir.resources.coding import Coding
-from fhir.resources.reference import Reference
-from fhir.resources.identifier import Identifier
+from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 
 
@@ -31,12 +34,11 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         cls.build_fhir_gender(fhir_patient, imis_insuree)
         cls.build_fhir_marital_status(fhir_patient, imis_insuree)
         cls.build_fhir_telecom(fhir_patient, imis_insuree)
-        cls.build_fhir_addresses(fhir_patient, imis_insuree)
+        cls.build_fhir_addresses(fhir_patient, imis_insuree, reference_type)
         cls.build_fhir_extentions(fhir_patient, imis_insuree, reference_type)
-        cls.build_poverty_status(fhir_patient, imis_insuree)
-        cls.build_fhir_related_person(fhir_patient, imis_insuree, reference_type)
+        cls.build_fhir_contact(fhir_patient, imis_insuree)
         cls.build_fhir_photo(fhir_patient, imis_insuree)
-        cls.build_fhir_general_practitioner(fhir_patient, imis_insuree)
+        cls.build_fhir_general_practitioner(fhir_patient, imis_insuree, reference_type)
         return fhir_patient
 
     @classmethod
@@ -51,16 +53,23 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         cls.build_imis_marital(imis_insuree, fhir_patient)
         cls.build_imis_contacts(imis_insuree, fhir_patient)
         cls.build_imis_addresses(imis_insuree, fhir_patient)
-        cls.build_imis_related_person(imis_insuree, errors)
         cls.build_imis_photo(imis_insuree, fhir_patient, errors)
         cls.build_imis_extentions(imis_insuree, fhir_patient, errors)
-        cls.build_imis_family(imis_insuree,fhir_patient,errors)
-        cls.build_imis_relationship(imis_insuree,fhir_patient)
+        cls.build_imis_family(imis_insuree, fhir_patient, errors)
+        cls.build_imis_relationship(imis_insuree, fhir_patient)
+        cls.build_imis_general_practitioner(imis_insuree, fhir_patient)
         return imis_insuree
 
     @classmethod
+    def build_fhir_pk(cls, fhir_patient, resource, reference_type: str = None):
+        if reference_type == ReferenceConverterMixin.CODE_REFERENCE_TYPE:
+            fhir_patient.id = resource.chf_id
+        else:
+            super().build_fhir_pk(fhir_patient, resource, reference_type)
+
+    @classmethod
     def get_fhir_code_identifier_type(cls):
-        return R4IdentifierConfig.get_fhir_chfid_type_code()
+        return R4IdentifierConfig.get_fhir_generic_type_code()
 
     @classmethod
     def get_reference_obj_uuid(cls, imis_patient: Insuree):
@@ -74,34 +83,48 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     def get_reference_obj_code(cls, imis_patient: Insuree):
         return imis_patient.chf_id
 
+    @classmethod
     def build_imis_extentions(cls, imis_insuree, fhir_patient, errors):
+        cls._validate_fhir_extension_is_exist(fhir_patient)
         for extension in fhir_patient.extension:
-            if extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/isHead":
+            if extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-is-head":
                 imis_insuree.head = extension.valueBoolean
-            elif extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960495619/locationCode":
-                value = cls.get_location_reference(extension.valueReference.reference)
-                if value:
-                    try:
-                        imis_insuree.current_village = Location.objects.get(uuid=value)
-                    except:
-                        imis_insuree.current_village = None
-                        
-            elif extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960331788/educationCode":
+
+            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-education-level":
                 try:
-                    imis_insuree.education = Education.objects.get(id=extension.valueCoding.code)
+                    imis_insuree.education = Education.objects.get(id=extension.valueCodeableConcept.coding[0].code)
                 except:
                     imis_insuree.education = None
-            elif extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960135203/professionCode":
+
+            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-profession":
                 try:
-                    imis_insuree.profession = Profession.objects.get(id=extension.valueCoding.code)
+                    imis_insuree.profession = Profession.objects.get(id=extension.valueCodeableConcept.coding[0].code)
                 except:
                     imis_insuree.profession = None
+
+            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-card-issued":
+                try:
+                    imis_insuree.card_issued = extension.valueBoolean
+                except:
+                    imis_insuree.card_issued = False
+
+            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-identification":
+                try:
+                    for ext in extension.extension:
+                        if ext.url == "number":
+                            imis_insuree.passport = ext.valueString
+                        if ext.url == "type":
+                            imis_insuree.type_of_id = IdentificationType.objects.get(code=ext.valueCodeableConcept.coding[0].code)
+                except:
+                    imis_insuree.passport = None
+                    imis_insuree.type_of_id = None
             else:
                 pass
+        cls._validate_imis_is_head(imis_insuree)
     
     @classmethod
-    def get_location_reference(cls,location):
-      return location.rsplit('/',1)[1]
+    def get_location_reference(cls, location):
+        return location.rsplit('Location/', 1)[1]
 
     @classmethod
     def get_fhir_resource_type(cls):
@@ -115,6 +138,8 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     @classmethod
     def createDefaultInsuree(cls, audit_user_id):
         imis_insuree = Insuree()
+        # temporary set uuid as None - this will be generated in service create insuree from that module
+        imis_insuree.uuid = None
         imis_insuree.head = GeneralConfiguration.get_default_value_of_patient_head_attribute()
         imis_insuree.card_issued = GeneralConfiguration.get_default_value_of_patient_card_issued_attribute()
         imis_insuree.validity_from = TimeUtils.now()
@@ -131,18 +156,19 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
     @classmethod
     def build_imis_names(cls, imis_insuree, fhir_patient, errors):
+        cls._validate_fhir_patient_human_name(fhir_patient)
         names = fhir_patient.name
-        if not cls.valid_condition(names is None, gettext('Missing patient `name` attribute'), errors):
-            imis_insuree.last_name, imis_insuree.other_names = cls.build_imis_last_and_other_name(names)
-            cls.valid_condition(imis_insuree.last_name is None, gettext('Missing patient family name'), errors)
-            cls.valid_condition(imis_insuree.other_names is None, gettext('Missing patient given name'), errors)
+        imis_insuree.last_name, imis_insuree.other_names = cls.build_imis_last_and_other_name(names)
+        cls._validate_imis_insuree_human_name(imis_insuree)
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_patient, imis_insuree):
         identifiers = []
+        cls._validate_imis_identifier_code(imis_insuree)
         cls.build_all_identifiers(identifiers, imis_insuree)
         cls.build_fhir_passport_identifier(identifiers, imis_insuree)
         fhir_patient.identifier = identifiers
+        cls._validate_fhir_identifier_is_exist(fhir_patient)
 
     @classmethod
     def build_fhir_code_identifier(cls, identifiers, imis_object: Insuree):
@@ -154,26 +180,29 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     def __build_chfid_identifier(cls, chfid):
         return cls.build_fhir_identifier(chfid,
                                          R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                         R4IdentifierConfig.get_fhir_chfid_type_code())
+                                         R4IdentifierConfig.get_fhir_generic_type_code())
 
     @classmethod
     def build_imis_identifiers(cls, imis_insuree, fhir_patient):
-        value = cls.get_fhir_identifier_by_code(fhir_patient.identifier,
-                                                R4IdentifierConfig.get_fhir_chfid_type_code())
-        if value:
-            imis_insuree.chf_id = value
-        value = cls.get_fhir_identifier_by_code(fhir_patient.identifier,
-                                                R4IdentifierConfig.get_fhir_passport_type_code())
-        if value:
-            imis_insuree.passport = value
+        insuree_ids = fhir_patient.identifier
+
+        if chf_id := cls.get_fhir_identifier_by_code(insuree_ids, R4IdentifierConfig.get_fhir_generic_type_code()):
+            imis_insuree.chf_id = chf_id
+        else:
+            raise FHIRException("Patient code not provided.")
+
+        if passport := cls.get_fhir_identifier_by_code(insuree_ids, R4IdentifierConfig.get_fhir_passport_type_code()):
+            imis_insuree.passport = passport
 
     @classmethod
     def build_fhir_chfid_identifier(cls, identifiers, imis_insuree):
-        if imis_insuree.chf_id:
-            identifier = cls.build_fhir_identifier(imis_insuree.chf_id,
-                                                   R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                                   R4IdentifierConfig.get_fhir_chfid_type_code())
-            identifiers.append(identifier)
+        cls._validate_imis_identifier_code(imis_insuree)
+        identifier = cls.build_fhir_identifier(
+            imis_insuree.chf_id,
+            R4IdentifierConfig.get_fhir_identifier_type_system(),
+            R4IdentifierConfig.get_fhir_generic_type_code()
+        )
+        identifiers.append(identifier)
 
     @classmethod
     def build_fhir_passport_identifier(cls, identifiers, imis_insuree):
@@ -195,26 +224,15 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
             fhir_patient.birthDate = str(imis_insuree.dob.isoformat())
         
     @classmethod
-    def build_imis_family(cls, imis_insuree, fhir_patient,errors):
-        if fhir_patient.link:
-            chf_id= cls.build_imis_link(imis_insuree,fhir_patient.link)
-            if chf_id =='':
-                chf_id =None
-            if not cls.valid_condition(chf_id is None, gettext('Missing patient `related person` attribute'), errors):
-                if imis_insuree.head:
-                    for extension in  fhir_patient.extension:
-                        if extension.url == "https://openimis.atlassian.net/wiki/spaces/OP/pages/960495619/locationCode":
-                            value=cls.get_location_reference(extension.valueReference.reference)
-                            if value:
-                                try:
-                                    imis_insuree.current_village = Location.objects.get(uuid=value)
-                                except:
-                                    imis_insuree.current_village = None
-                else:
-                    try:
-                        imis_insuree.family = Family.objects.get(head_insuree__chf_id=chf_id)
-                    except Exception as e:
-                        raise e
+    def build_imis_family(cls, imis_insuree, fhir_patient, errors):
+        # Get UUID from patient group reference related extension
+        family = cls.__get_family_from_fhir_patient_extension(fhir_patient)
+        if family:
+            imis_insuree.family = family
+
+        if family and imis_insuree.head:
+            raise FHIRException("Patient assigned to existing family can't be head")
+
     @classmethod
     def build_imis_link(cls, imis_insuree,fhir_link):
         patient = fhir_link[0].other.reference
@@ -223,18 +241,24 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     
     @classmethod
     def build_imis_relationship(cls, imis_insuree,fhir_patient):
-        if fhir_patient.link:
-            relationship = fhir_patient.link[0].type
-            try:
-                relation=Relation.objects.get(relation=relationship)
-                imis_insuree.relationship = relation
-            except:
-                pass
+        if fhir_patient.contact:
+            for contact in fhir_patient.contact:
+                if contact.relationship:
+                    relationship_name = None
+                    for relationship in contact.relationship:
+                        for coding in relationship.coding:
+                            if "CodeSystem/patient-contact-relationship" in coding.system:
+                                relationship_name = coding.display
+                    try:
+                        relation = Relation.objects.get(relation=relationship_name)
+                        imis_insuree.relationship = relation
+                    except:
+                        pass
     
     @classmethod
     def build_imis_birth_date(cls, imis_insuree, fhir_patient, errors):
         birth_date = fhir_patient.birthDate
-        if not cls.valid_condition(birth_date is None, gettext('Missing patient `birthDate` attribute'), errors):
+        if not cls.valid_condition(birth_date is None, _('Missing patient `birthDate` attribute'), errors):
             imis_insuree.dob = TimeUtils.str_to_date(birth_date)
 
     @classmethod
@@ -253,41 +277,19 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     @classmethod
     def build_imis_gender(cls, imis_insuree, fhir_patient):
         gender = fhir_patient.gender
-    
         if gender is not None:
-            imis_gender_code = None
-            if gender == GeneralConfiguration.get_male_gender_code():
-                imis_gender_code = "M"
-            elif gender == GeneralConfiguration.get_female_gender_code():
-                imis_gender_code = "F"
-            elif gender == GeneralConfiguration.get_other_gender_code():
-                imis_gender_code = "O"
-            if imis_gender_code is not None:
-                imis_insuree.gender = Gender.objects.get(pk=imis_gender_code)
+            imis_gender = PatientCategoryMapping.imis_gender_mapping.get(gender)
+            imis_insuree.gender = imis_gender
 
     @classmethod
     def build_fhir_marital_status(cls, fhir_patient, imis_insuree):
         if imis_insuree.marital:
-            if imis_insuree.marital == ImisMaritalStatus.MARRIED.value:
-                fhir_patient.maritalStatus = \
-                    cls.build_codeable_concept(R4MaritalConfig.get_fhir_married_code(),
-                                               R4MaritalConfig.get_fhir_marital_status_system(), text="Married")
-            elif imis_insuree.marital == ImisMaritalStatus.SINGLE.value:
-                fhir_patient.maritalStatus = \
-                    cls.build_codeable_concept(R4MaritalConfig.get_fhir_never_married_code(),
-                                               R4MaritalConfig.get_fhir_marital_status_system(), text="Single")
-            elif imis_insuree.marital == ImisMaritalStatus.DIVORCED.value:
-                fhir_patient.maritalStatus = \
-                    cls.build_codeable_concept(R4MaritalConfig.get_fhir_divorced_code(),
-                                               R4MaritalConfig.get_fhir_marital_status_system(), text="Divorced")
-            elif imis_insuree.marital == ImisMaritalStatus.WIDOWED.value:
-                fhir_patient.maritalStatus = \
-                    cls.build_codeable_concept(R4MaritalConfig.get_fhir_widowed_code(),
-                                               R4MaritalConfig.get_fhir_marital_status_system(), text="Widowed")
-            elif imis_insuree.marital == ImisMaritalStatus.NOT_SPECIFIED.value:
-                fhir_patient.maritalStatus = \
-                    cls.build_codeable_concept(R4MaritalConfig.get_fhir_unknown_marital_status_code(),
-                                               R4MaritalConfig.get_fhir_marital_status_system(), text="Not specific")
+            display = MaritalStatusMapping.marital_status[imis_insuree.marital]
+            fhir_patient.maritalStatus = \
+                cls.build_codeable_concept(code=imis_insuree.marital,
+                                           system=R4MaritalConfig.get_fhir_marital_status_system())
+            if len(fhir_patient.maritalStatus.coding) == 1:
+                fhir_patient.maritalStatus.coding[0].display = display
 
     @classmethod
     def build_imis_marital(cls, imis_insuree, fhir_patient):
@@ -316,64 +318,50 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         imis_insuree.phone, imis_insuree.email = cls.build_imis_phone_num_and_email(fhir_patient.telecom)
 
     @classmethod
-    def build_fhir_addresses(cls, fhir_patient, imis_insuree):
+    def build_fhir_addresses(cls, fhir_patient, imis_insuree, reference_type):
         addresses = []
-        # family slice - required
-        if imis_insuree.family is not None:
-            imis_family = imis_insuree.family
-            family_address = cls.build_fhir_address(imis_family.address, "home", "physical")
-            if imis_family.location:
-                family_address.state = imis_family.location.parent.parent.parent.name
-                family_address.district = imis_family.location.parent.parent.name
+        if imis_insuree.family and imis_insuree.family.location:
+            family_address = cls._build_insuree_family_address(imis_insuree.family, reference_type)
+            addresses.append(family_address)
 
-                # municipality extension
-                extension = Extension.construct()
-                extension.url = "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/municipality"
-                extension.valueString = imis_family.location.parent.name
-                family_address.extension = [extension]
+        if imis_insuree.current_village:
+            # TODO: With current IG definition requiring location reference extension
+            #  it's impossible to add current_address without current_village.
+            insuree_address = cls._build_insuree_address(imis_insuree, reference_type)
+            addresses.append(insuree_address)
 
-                family_address.city = imis_family.location.name
-                family_address.postalCode = imis_family.location.code
-
-            if family_address is not None:
-                if type(addresses) is not list:
-                    addresses = [family_address]
-                else:
-                    addresses.append(family_address)
-
-        # insuree slice
-        if imis_insuree.current_address is not None:
-            current_address = cls.build_fhir_address(imis_insuree.current_address, "temp", "physical")
-            if imis_insuree.current_village:
-                current_address.state = imis_insuree.current_village.parent.parent.parent.name
-                current_address.district = imis_insuree.current_village.parent.parent.name
-
-                # municipality extension
-                extension = Extension.construct()
-                extension.url = "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/municipality"
-                extension.valueString = imis_insuree.current_village.parent.name
-                current_address.extension = [extension]
-
-                current_address.city = imis_insuree.current_village.name
-                current_address.postalCode = imis_insuree.current_village.code
-
-            if current_address is not None:
-                if type(addresses) is not list:
-                    addresses = [current_address]
-                else:
-                    addresses.append(current_address)
-                    
         fhir_patient.address = addresses
+        cls._validate_fhir_address_details(fhir_patient.address)
 
     @classmethod
     def build_imis_addresses(cls, imis_insuree, fhir_patient):
-        addresses = fhir_patient.address
-        if addresses:
-            for address in addresses:
-                if address.type == "physical":
-                    imis_insuree.current_address = address.text
-                elif address.type == "both":
-                    imis_insuree.geolocation = address.text
+        cls._build_imis_current_patient_address(imis_insuree, fhir_patient)
+        cls._build_or_validate_family_address(imis_insuree, fhir_patient)
+
+    @classmethod
+    def _build_imis_current_patient_address(cls, imis_insuree, fhir_patient):
+        cls._validate_fhir_address_details(fhir_patient.address)
+        if insuree_address := cls.__get_insuree_current_address_from_fhir_patinet(fhir_patient):
+            imis_insuree.current_village = cls.__get_location_from_address(insuree_address)
+            if insuree_address.text:
+                imis_insuree.current_address = insuree_address.text
+
+    @classmethod
+    def _build_or_validate_family_address(cls, imis_insuree, fhir_patient):
+        if not (fhir_family_address := cls.__get_family_address_from_fhir_patient(fhir_patient)):
+            return
+
+        if not (family := cls.__get_family_from_fhir_patient_extension(fhir_patient)):
+            family_location = cls.__get_location_from_address(fhir_family_address)
+            # Additional attribute for purpose of creating new family
+            imis_insuree.family_location = family_location
+            imis_insuree.family_address = fhir_family_address.text
+
+        # Temporary disabled, this type of check shouldn't be part of converter.
+        # if family and family.location and (family.location.uuid != family_location.uuid):
+        #     raise FHIRException(
+        #         f"Patient assigned to family {family} but provided family location {family_location} "
+        #         f"does not match family location {family.location}")
 
     @classmethod
     def build_fhir_extentions(cls, fhir_patient, imis_insuree, reference_type):
@@ -382,49 +370,51 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         def build_extension(fhir_patient, imis_insuree, value):
             extension = Extension.construct()
             if value == "head":
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/isHead"
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-is-head"
                 extension.valueBoolean = imis_insuree.head
-                
-            elif value == "family.uuid":
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/group"
-                reference = Reference.construct()
-                identifier = Identifier.construct()
-                identifier.use = 'usual'
-                identifier.type = PatientConverter._family_reference_identifier_type(reference_type)
-                identifier.value = PatientConverter\
-                    ._family_reference_identifier_value(imis_insuree.family, reference_type)
-                reference.identifier = identifier
-                reference.reference = F"Group/{identifier.value}"
-                reference.type = 'Group'
-                extension.valueReference = reference
-                
-            elif value == "validity_from":
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960331779/registrationDate"
-                if imis_insuree.validity_from is not None:
-                    extension.valueDateTime = imis_insuree.validity_from.isoformat()
-
-            elif value == "family.location.code":
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960495619/locationCode"
-                if hasattr(imis_insuree, "family") and imis_insuree.family is not None:
-                    if imis_insuree.family.location is not None:
-                        extension.valueReference = LocationConverter\
-                            .build_fhir_resource_reference(imis_insuree.family.location, reference_type=reference_type)
 
             elif value == "education.education":
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960331788/educationCode"
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-education-level"
                 if hasattr(imis_insuree, "education") and imis_insuree.education is not None:
-                    extension.valueCoding = Coding.construct()
-                    if imis_insuree.education is not None:
-                        extension.valueCoding.code = str(imis_insuree.education.id)
-                        extension.valueCoding.display = imis_insuree.education.education
+                    display = EducationLevelMapping.education_level[str(imis_insuree.education.id)]
+                    system = "CodeSystem/patient-education-level"
+                    extension.valueCodeableConcept = cls.build_codeable_concept(code=str(imis_insuree.education.id), system=system)
+                    if len(extension.valueCodeableConcept.coding) == 1:
+                        extension.valueCodeableConcept.coding[0].display = display
+
+            elif value == "patient.card.issue":
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-card-issued"
+                extension.valueBoolean = imis_insuree.card_issued
+
+            elif value == "patient.group.reference":
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-group-reference"
+                extension.valueReference = GroupConverter\
+                    .build_fhir_resource_reference(imis_insuree.family, 'Group', reference_type=reference_type)
+
+            elif value == "patient.identification":
+                nested_extension = Extension.construct()
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-identification"
+                if hasattr(imis_insuree, "type_of_id") and imis_insuree.type_of_id:
+                    if hasattr(imis_insuree, "passport") and imis_insuree.passport:
+                        # add number extension
+                        nested_extension.url = "number"
+                        nested_extension.valueString = imis_insuree.passport
+                        extension.extension = [nested_extension]
+                        # add identifier extension
+                        nested_extension = Extension.construct()
+                        nested_extension.url = "type"
+                        system = "CodeSystem/patient-identification-type"
+                        nested_extension.valueCodeableConcept = cls.build_codeable_concept(code=imis_insuree.type_of_id.code, system=system)
+                        extension.extension.append(nested_extension)
 
             else:
-                extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/960135203/professionCode"
+                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-profession"
                 if hasattr(imis_insuree, "profession") and imis_insuree.profession is not None:
-                    extension.valueCoding = Coding.construct()
-                    if imis_insuree.profession is not None:
-                        extension.valueCoding.code = str(imis_insuree.profession.id)
-                        extension.valueCoding.display = imis_insuree.profession.profession
+                    display = PatientProfessionMapping.patient_profession[str(imis_insuree.profession.id)]
+                    system = "CodeSystem/patient-profession"
+                    extension.valueCodeableConcept = cls.build_codeable_concept(code=str(imis_insuree.profession.id), system=system)
+                    if len(extension.valueCodeableConcept.coding) == 1:
+                        extension.valueCodeableConcept.coding[0].display = display
 
             if type(fhir_patient.extension) is not list:
                 fhir_patient.extension = [extension]
@@ -434,68 +424,49 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
         if imis_insuree.head is not None:
             build_extension(fhir_patient, imis_insuree, "head")
-        if imis_insuree.validity_from is not None:
-            build_extension(fhir_patient, imis_insuree, "validity_from")
-        if hasattr(imis_insuree, "family") and imis_insuree.family is not None and \
-                imis_insuree.family.location is not None:
-            build_extension(fhir_patient, imis_insuree, "family.location.code")
-            build_extension(fhir_patient, imis_insuree, "family.uuid")
         if imis_insuree.education is not None:
             build_extension(fhir_patient, imis_insuree, "education.education")
         if imis_insuree.profession is not None:
             build_extension(fhir_patient, imis_insuree, "profession.profession")
+        if imis_insuree.card_issued is not None:
+            build_extension(fhir_patient, imis_insuree, "patient.card.issue")
+        if imis_insuree.family is not None:
+            build_extension(fhir_patient, imis_insuree, "patient.group.reference")
+        if imis_insuree.type_of_id is not None and imis_insuree.passport is not None:
+            build_extension(fhir_patient, imis_insuree, "patient.identification")
 
     @classmethod
-    def build_poverty_status(cls, fhir_patient, imis_insuree):
-        poverty_status = cls.build_poverty_status_extension(imis_insuree)
-        if poverty_status.valueBoolean is not None:
-            if type(fhir_patient.extension) is not list:
-                fhir_patient.extension = [poverty_status]
+    def build_fhir_contact(cls, fhir_patient, imis_insuree):
+        fhir_contact = PatientContact.construct()
+        if imis_insuree.relationship is not None and imis_insuree.family is not None \
+                and imis_insuree.family.head_insuree is not None:
+            system = "CodeSystem/patient-contact-relationship"
+            # map to the fhir value from imis one
+            display = RelationshipMapping.relationship[str(imis_insuree.relationship.id)]
+            fhir_contact.relationship = [cls.build_codeable_concept(code=imis_insuree.relationship.id, system=system)]
+            fhir_contact.relationship[0].coding[0].display = display
+            fhir_contact.name = cls.build_fhir_names_for_person(imis_insuree)
+
+            if type(fhir_patient.contact) is not list:
+                fhir_patient.contact = [fhir_contact]
             else:
-                fhir_patient.extension.append(poverty_status)
-
-    @classmethod
-    def build_poverty_status_extension(cls, imis_insuree):
-        extension = Extension.construct()
-        extension.url = "https://openimis.atlassian.net/wiki/spaces/OP/pages/1556643849/povertyStatus"
-        if hasattr(imis_insuree, "family") and imis_insuree.family is not None:
-            if imis_insuree.family.poverty is not None:
-                extension.valueBoolean = imis_insuree.family.poverty
-        return extension
-
-    @classmethod
-    def build_fhir_related_person(cls, fhir_patient, imis_insuree, reference_type):
-        fhir_link = PatientLink.construct()
-        if imis_insuree.relationship and imis_insuree.family and imis_insuree.family.head_insuree:
-            fhir_link.type = imis_insuree.relationship.relation
-            fhir_link.other = PatientConverter.build_fhir_resource_reference(imis_insuree.family.head_insuree, reference_type=reference_type)
-            if type(fhir_patient.link) is not list:
-                fhir_patient.link = [fhir_link]
-            else:
-                fhir_patient.link.append(fhir_link)
-
-    @classmethod
-    def build_imis_related_person(cls, imis_insuree, errors):
-        fhir_link = PatientLink.construct()
-        relation = fhir_link.type
-        # TODO - fix this head
-        #head = fhir_link.other
-        # if not cls.valid_condition(head is None, gettext('Missing patient `head` attribute'), errors):
-        #     imis_insuree.family.head_insuree = head
-        # if not cls.valid_condition(relation is None, gettext('Missing patient `relation` attribute'), errors):
-        #     imis_insuree.relationship.relation = relation
+                fhir_patient.contact.append(fhir_contact)
 
     @classmethod
     def build_fhir_photo(cls, fhir_patient, imis_insuree):
         if imis_insuree.photo and imis_insuree.photo.folder and imis_insuree.photo.filename:
             # HOST is taken from global variable used in the docker initialization
-            abs_url = os.getenv('NEW_OPENIMIS_HOST', 'localhost')
+            # If URL root is not explicitly given in the settings 'localhost' is used
+            # (if value is empty validation exception is raised).
+            abs_url = GeneralConfiguration.get_host_domain().split('http://')[1] or 'localhost'
             domain = abs_url
             photo_uri = cls.__build_photo_uri(imis_insuree)
             photo = Attachment.construct()
             parsed = urllib.parse.urlunparse(('http', domain, photo_uri, None, None, None))
             photo.url = parsed
             photo.creation = imis_insuree.photo.date.isoformat()
+            photo.contentType = imis_insuree.photo.filename[imis_insuree.photo.filename.rfind('.') + 1:]
+            photo.title = imis_insuree.photo.filename
             if type(fhir_patient.photo) is not list:
                 fhir_patient.photo = [photo]
             else:
@@ -503,38 +474,47 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
     @classmethod
     def build_imis_photo(cls, imis_insuree, fhir_patient, errors):
-        url = fhir_patient.photo[0].url
-        url = url.split("\\", 2)
-        folder = url[0]
-        filename = url[1]
-        creation = fhir_patient.photo[0].creation
-        if not cls.valid_condition(creation is None, gettext('Missing patient `photo url` attribute'), errors):
-            pass
-        if not cls.valid_condition(folder is None, gettext('Missing patient `photo folder` attribute'), errors):
-            # imis_insuree.photo.folder = folder
-            pass
-        if not cls.valid_condition(filename is None, gettext('Missing patient `photo filename` attribute'), errors):
-            # imis_insuree.photo.filename = filename
-            pass
-        obj, created = \
-            InsureePhoto.objects.get_or_create(
-                chf_id=imis_insuree.chf_id,
-                defaults={
-                    "date": TimeUtils.str_to_date(creation),
-                    "folder": folder,
-                    "filename": filename,
-                    "audit_user_id": -1,
-                    "officer_id": 3
-                }
-            )
-        imis_insuree.photo_id = obj.id
+        if fhir_patient.photo and len(fhir_patient.photo) > 0:
+            cls._validate_fhir_photo(fhir_patient)
+            if fhir_patient.photo[0].data:
+                photo = fhir_patient.photo[0].data
+                date = fhir_patient.photo[0].creation
+                obj, created = \
+                    InsureePhoto.objects.get_or_create(
+                        chf_id=imis_insuree.chf_id,
+                        defaults={
+                            "photo": photo,
+                            "date": date,
+                            "audit_user_id": -1,
+                            "officer_id": 3
+                        }
+                    )
+                imis_insuree.photo_id = obj.id
 
     @classmethod
-    def build_fhir_general_practitioner(cls, fhir_patient, imis_insuree):
+    def build_fhir_general_practitioner(cls, fhir_patient, imis_insuree, reference_type):
         if imis_insuree.health_facility:
-            fhir_patient.generalPractitioner = [
-                HealthcareServiceConverter.build_fhir_resource_reference(imis_insuree.health_facility, 'Practitioner')
-            ]
+            hf = cls.build_fhir_resource_reference(
+                imis_insuree.health_facility,
+                'Organization',
+                reference_type=reference_type
+            )
+            fhir_patient.generalPractitioner = [hf]
+
+    @classmethod
+    def build_imis_general_practitioner(cls, imis_insuree, fhir_patient):
+        if not fhir_patient.generalPractitioner:
+            return
+        if len(fhir_patient.generalPractitioner) != 1:
+            # TODO: Check with IG definition. Currently its 0..* but it's not possible to bind more than one HF
+            raise FHIRException(_("Patient can provide at most one general practitioner."))
+
+        hf_uuid = cls.get_resource_id_from_reference(fhir_patient.generalPractitioner[0])
+        try:
+            health_facility = HealthFacility.objects.get(uuid=hf_uuid)
+            imis_insuree.health_facility = health_facility
+        except HealthFacility.DoesNotExist:
+            raise FHIRException(F"Invalid location reference, {hf_uuid} doesn't match any HealthFacility.")
 
     @classmethod
     def _family_reference_identifier_type(cls, reference_type):
@@ -564,3 +544,258 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
         photo_full_path = F"{photo_folder}/{imis_insuree.photo.filename}"
         path = f'/photo/{photo_full_path}'
         return path
+
+    @classmethod
+    def _validate_fhir_identifier_is_exist(cls, fhir_patient):
+        if not fhir_patient.identifier or len(fhir_patient.identifier) == 0:
+            raise FHIRException(
+                _('FHIR Patient entity without identifier')
+            )
+
+    # fhir validations
+    @classmethod
+    def _validate_fhir_extension_is_exist(cls, fhir_patient):
+        if not fhir_patient.extension or len(fhir_patient.extension) == 0:
+            raise FHIRException(
+                _('At least one extension with is_head is required')
+            )
+
+    @classmethod
+    def _validate_imis_is_head(cls, imis_insuree):
+        if imis_insuree.head is None:
+            raise FHIRException(
+                _('Missing is-head in IMIS object')
+            )
+
+    @classmethod
+    def _validate_fhir_address(cls, fhir_family):
+        if not fhir_family.address or len(fhir_family.address) == 0:
+            raise FHIRException(
+                _('Address must be supported')
+            )
+
+    @classmethod
+    def _validate_fhir_address_details(cls, addresses):
+        addr_errors = {}
+        for idx, address in enumerate(addresses):
+            errors = []
+            # Get last part of each extension url
+            if not address.extension:
+                raise FHIRException("Missing extensions for Address")
+
+            ext_types = [ext.url.rsplit('/')[-1] for ext in address.extension]
+            if 'address-location-reference' not in ext_types:
+                errors.append("FHIR Patient address without address-location-reference extension.")
+            if 'address-municipality' not in ext_types:
+                errors.append("FHIR Patient address without address-municipality reference.")
+            if len(ext_types) != 2:
+                errors.append("Patient's address should provide exactly 2 extensions")
+            if not address.city:
+                errors.append("Address 'city' field required")
+            if not address.district:
+                errors.append("Address 'district' field required")
+            if not address.state:
+                errors.append("Address 'state' field required")
+
+            if errors:
+                addr_errors[idx] = errors
+
+        if addr_errors:
+            raise FHIRException(json.dumps(addr_errors))
+
+    @classmethod
+    def _validate_fhir_photo(cls, fhir_patient):
+        if not fhir_patient.photo or len(fhir_patient.photo) == 0:
+            raise FHIRException(
+                _('FHIR Patient without photo data.')
+            )
+        else:
+            photo = fhir_patient.photo[0]
+            if not photo.title or not photo.creation or not photo.contentType:
+                raise FHIRException(
+                    _('FHIR Patient misses one of required fields:  contentType, title, creation')
+                )
+
+    # imis validations
+    @classmethod
+    def _validate_imis_identifier_code(cls, imis_insuree):
+        if not imis_insuree.chf_id:
+            raise FHIRException(
+                _('Insuree %(insuree_uuid)s without code') % {'insuree_uuid': imis_insuree.uuid}
+            )
+
+    @classmethod
+    def _validate_fhir_family_home_slice(cls, fhir_patient):
+        is_home_use = False
+        for address in fhir_patient.address:
+            if address.use == "home":
+                is_home_use = True
+        if is_home_use == False:
+            raise FHIRException(
+                _('Patient without family address')
+            )
+
+    @classmethod
+    def _validate_fhir_patient_human_name(cls, fhir_patient):
+        if not fhir_patient.name:
+            raise FHIRException(
+                _('Missing fhir patient attribute: name')
+            )
+        for name in fhir_patient.name:
+            if not name.family or not name.given:
+                raise FHIRException(
+                    _('Missing obligatory fields for fhir patient name: family or given')
+                )
+
+    @classmethod
+    def _validate_imis_insuree_human_name(cls, imis_insuree):
+        if not imis_insuree.last_name or not imis_insuree.other_names:
+            raise FHIRException(
+                _('Missing patient family name or given name')
+            )
+
+    @classmethod
+    def __add_insuree_current_address(cls, imis_insuree, address):
+        imis_insuree.current_address = address.text
+
+    @classmethod
+    def __add_insuree_location(cls, imis_insuree, address):
+        # Physical address can also provide information regarding current address
+        if address.text:
+            imis_insuree.current_address = address.text
+
+        for ext in address.extension:
+            if "StructureDefinition/address-location-reference" in ext.url:
+                location_uuid = LocationConverter.get_resource_id_from_reference(ext.valueReference)
+                try:
+                    location = Location.objects.get(uuid=location_uuid)
+                    imis_insuree.current_village = location
+                except Location.DoesNotExist as e:
+                    raise FHIRException(f"Invalid location reference, {location_uuid} doesn't match any location.")
+
+    @classmethod
+    def __add_insuree_geolocation(cls, imis_insuree, address):
+        imis_insuree.geolocation = address.text
+
+    @classmethod
+    def _build_insuree_family_address(cls, imis_insuree_family: Family, reference_type):
+        return cls.__build_address_of_use(
+            address_location=imis_insuree_family.location,
+            use='home',
+            location_text=imis_insuree_family.address,
+            reference_type=reference_type
+        )
+
+    @classmethod
+    def _build_insuree_address(cls, imis_insuree, reference_type):
+        return cls.__build_address_of_use(
+            address_location=imis_insuree.current_village,
+            use='temp',
+            location_text=imis_insuree.current_address,
+            reference_type=reference_type
+        )
+
+    @classmethod
+    def __build_address_of_use(cls, address_location: Location, use: str, location_text: str, reference_type):
+        base_address = cls.__build_base_physical_address(address_location, reference_type)
+        base_address.use = use
+        if location_text:
+            base_address.text = location_text
+        return base_address
+
+    @classmethod
+    def __build_base_physical_address(cls, imis_village_location, reference_type) -> Address:
+        return Address(**{
+            "type": "physical",
+            "state": cls.__state_name_from_physical_location(imis_village_location),
+            "district": cls.__district_name_from_physical_location(imis_village_location),
+            "city": cls.__village_name_from_physical_location(imis_village_location),
+            "extension": [
+                cls.__build_municipality_extension(imis_village_location),
+                cls.__build_location_reference_extension(imis_village_location, reference_type)
+            ]
+        })
+
+    @classmethod
+    def __build_municipality_extension(cls, insuree_family_location):
+        extension = Extension.construct()
+        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-municipality"
+        extension.valueString = cls.__municipality_from_family_location(insuree_family_location)
+        return extension
+
+    @classmethod
+    def __state_name_from_physical_location(cls, insuree_family_location):
+        return insuree_family_location.parent.parent.parent.name
+
+    @classmethod
+    def __district_name_from_physical_location(cls, insuree_family_location):
+        return insuree_family_location.parent.parent.name
+
+    @classmethod
+    def __municipality_from_family_location(cls, insuree_family_location):
+        return insuree_family_location.parent.name
+
+    @classmethod
+    def __village_name_from_physical_location(cls, insuree_family_location):
+        return insuree_family_location.name
+
+    @classmethod
+    def __build_location_reference_extension(cls, insuree_family_location, reference_type):
+        extension = Extension.construct()
+        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
+        extension.valueReference = LocationConverter \
+            .build_fhir_resource_reference(insuree_family_location, 'Location', reference_type=reference_type)
+        return extension
+
+    @classmethod
+    def __build_imis_family_address(cls, fhir_patient):
+        family_address = cls.__get_family_address_from_fhir_patient(fhir_patient)
+        return cls.__get_location_from_address(family_address) if family_address else None
+
+    @classmethod
+    def __get_location_from_address(cls, fhir_patient_address):
+        try:
+            location_reference = next((
+                ext for ext in fhir_patient_address.extension if 'address-location-reference' in ext.url
+            ))
+            location_uuid = LocationConverter.get_resource_id_from_reference(location_reference.valueReference)
+            return Location.objects.get(uuid=location_uuid)
+        except Location.DoesNotExist as e:
+            raise FHIRException(f"Invalid location reference, {location_uuid} doesn't match any location.")
+
+    @classmethod
+    def __get_family_address_from_fhir_patient(cls, fhir_patient) -> Address:
+        # Family address is of use home and type physical
+        return cls.__get_address_by_properties(fhir_patient, 'home', 'physical')
+
+    @classmethod
+    def __get_insuree_current_address_from_fhir_patinet(cls, fhir_patient) -> Address:
+        # Family address is of use temp and type physical
+        return cls.__get_address_by_properties(fhir_patient, 'temp', 'physical')
+
+    @classmethod
+    def __get_address_by_properties(cls, fhir_patient, use, type_):
+        matching = [
+            addr for addr in fhir_patient.address if addr.use == use and addr.type == type_
+        ]
+        if len(matching) > 1:
+            raise FHIRException(F"More than one address with use {use} and type {type_} provided")
+
+        return matching[0] if matching else None
+
+    @classmethod
+    def __get_family_from_fhir_patient_extension(cls, fhir_patient):
+        if not (family_uuid := cls.__get_family_uuid_from_fhir_patient(fhir_patient)):
+            return None
+
+        try:
+            return Family.objects.select_related('location').get(uuid=family_uuid)
+        except Family.DoesNotExist as e:
+            raise FHIRException(F"Invalid location reference, {e} doesn't match any location.")
+
+    @classmethod
+    def __get_family_uuid_from_fhir_patient(cls, fhir_patient):
+        return next((
+            GroupConverter.get_resource_id_from_reference(ext.valueReference)
+            for ext in fhir_patient.extension if "/StructureDefinition/patient-group-reference" in ext.url
+        ), None)

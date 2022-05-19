@@ -1,0 +1,13 @@
+{
+  "status": "active",
+  "end": "2020-01-01T00:00:00+00:00",
+  "reason": "Patient",
+  "criteria": "Patient?chfid__startswith=0",
+  "channel": {
+    "type": "rest-hook",
+    "endpoint": "https://test.com/test",
+    "header": [
+      "TestKey1=TestValue1&TestKey2=TestValue2"
+    ]
+  }
+}

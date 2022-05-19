@@ -1,123 +1,205 @@
 {
-  "resourceType": "Claim",
-  "billablePeriod": {
-    "end": "2019-06-12T00:00:00",
-    "start": "2019-06-01T00:00:00"
-  },
-  "created": "2019-06-12T00:00:00",
-  "diagnosis": [
-    {
-      "diagnosisCodeableConcept": {
-        "coding": [
-          {
-            "code": "ICD_CD"
-          }
-        ]
-      },
-      "sequence": 1,
-      "type": [
+    "resourceType": "Claim",
+    "identifier": [
         {
-          "text": "icd_0"
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "Code"
+                    }
+                ]
+            },
+            "value": "T00001"
         }
-      ]
-    }
-  ],
-  "enterer": {
-    "reference": "Practitioner/254f6268-964b-4d8d-aa26-20081f22235e"
-  },
-  "facility": {
-    "reference": "Location/6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
-  },
-  "id": "315c3b16-62eb-11ea-8e75-df3492b349f6",
-  "identifier": [
-    {
-      "type": {
+    ],
+    "status": "active",
+    "type": {
         "coding": [
-          {
-            "code": "MR",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
+            {
+                "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem-claim-visit-type.html",
+                "code": "O",
+                "display": "Other"
+            }
         ]
-      },
-      "use": "usual",
-      "value": "code"
+    },
+    "use": "claim",
+    "patient": {
+        "reference": "Patient/76aca309-f8cf-4890-8f2e-b416d78de00b",
+        "type": "Patient",
+        "identifier": {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "UUID"
+                    }
+                ]
+            },
+            "value": "76aca309-f8cf-4890-8f2e-b416d78de00b"
+        }
+    },
+    "billablePeriod": {
+        "start": "2021-02-03",
+        "end": "2021-02-03"
+    },
+    "created": "2021-02-03",
+    "enterer": {
+        "reference": "Practitioner/044c33d1-dbf3-4d6a-9924-3797b461e535",
+        "type": "Practitioner",
+        "identifier": {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "UUID"
+                    }
+                ]
+            },
+            "value": "044c33d1-dbf3-4d6a-9924-3797b461e535"
+        }
+    },
+    "provider": {
+        "reference": "Organization/6d0eea8c-62eb-11ea-94d6-c36229a16c2f",
+        "type": "Organization",
+        "identifier": {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "UUID"
+                    }
+                ]
+            },
+            "value": "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
+        },
+        "display": "12345678"
+    },
+    "priority": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/processpriority",
+                "code": "normal",
+                "display": "Normal"
+            }
+        ]
+    },
+    "supportingInfo": [
+        {
+            "sequence": 1,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-supporting-info-category",
+                        "code": "guarantee"
+                    }
+                ]
+            },
+            "valueString": "1234"
+        },
+        {
+            "sequence": 2,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-supporting-info-category",
+                        "code": "explanation"
+                    }
+                ]
+            },
+            "valueString": "example explanation"
+        }
+    ],
+    "diagnosis": [
+        {
+            "sequence": 1,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/diagnosis-ICD10-level1",
+                        "code": "T_CD",
+                        "display": "Test diagnosis"
+                    }
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "extension": [
+                {
+                    "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+                    "valueReference": {
+                        "reference": "Medication/e2bc1546-390b-4d41-8571-632ecf7a0936",
+                        "type": "Medication",
+                        "identifier": {
+                            "type": {
+                                "coding": [
+                                    {
+                                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                        "code": "UUID"
+                                    }
+                                ]
+                            },
+                            "value": "e2bc1546-390b-4d41-8571-632ecf7a0936"
+                        }
+                    }
+                }
+            ],
+            "sequence": 1,
+            "category": {
+                "text": "item"
+            },
+            "productOrService": {
+                "text": "iCode"
+            },
+            "quantity": {
+                "value": 10.0
+            },
+            "unitPrice": {
+                "value": 10.0,
+                "currency": "$"
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+                    "valueReference": {
+                        "reference": "ActivityDefinition/a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6",
+                        "type": "ActivityDefinition",
+                        "identifier": {
+                            "type": {
+                                "coding": [
+                                    {
+                                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                        "code": "UUID"
+                                    }
+                                ]
+                            },
+                            "value": "a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6"
+                        }
+                    }
+                }
+            ],
+            "sequence": 2,
+            "category": {
+                "text": "service"
+            },
+            "productOrService": {
+                "text": "sCode"
+            },
+            "quantity": {
+                "value": 1.0
+            },
+            "unitPrice": {
+                "value": 21000.0,
+                "currency": "$"
+            }
+        }
+    ],
+    "total": {
+        "value": 21100.0,
+        "currency": "$"
     }
-  ],
-  "information": [
-    {
-      "category": {
-        "text": "guarantee_id"
-      },
-      "sequence": 1,
-      "valueString": "guarantee_id"
-    },
-    {
-      "category": {
-        "text": "explanation"
-      },
-      "sequence": 2,
-      "valueString": "explanation"
-    },
-    {
-      "category": {
-        "text": "item_explanation"
-      },
-      "sequence": 3,
-      "valueString": "item_explanation"
-    },
-    {
-      "category": {
-        "text": "item_explanation"
-      },
-      "sequence": 4,
-      "valueString": "service_explanation"
-    }
-  ],
-  "item": [
-    {
-      "category": {
-        "text": "item"
-      },
-      "informationLinkId": [
-        3
-      ],
-      "quantity": {
-        "value": 4
-      },
-      "sequence": 1,
-      "service": {
-        "text": "iCode"
-      },
-      "unitPrice": {
-        "value": 21.1
-      }
-    },
-    {
-      "category": {
-        "text": "service"
-      },
-      "informationLinkId": [
-        4
-      ],
-      "quantity": {
-        "value": 3
-      },
-      "sequence": 2,
-      "service": {
-        "text": "sCode"
-      },
-      "unitPrice": {
-        "value": 16.1
-      }
-    }
-  ],
-  "patient": {
-    "reference": "Patient/0a60f36c-62eb-11ea-bb93-93ec0339a3dd"
-  },
-  "total": {
-    "value": 42
-  },
-  "type": {
-    "text": "E"
-  }
 }

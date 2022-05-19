@@ -1,3 +1,6 @@
+# TODO uncomment if someone need this converter with connection to openHIM
+
+"""
 from policy.services import ByInsureeRequest
 
 from api_fhir_r4.configurations import R4CoverageEligibilityConfiguration as Config
@@ -7,8 +10,8 @@ from fhir.resources.coverageeligibilityresponse import CoverageEligibilityRespon
     CoverageEligibilityResponseInsuranceItem, CoverageEligibilityResponseInsurance, CoverageEligibilityResponseInsuranceItemBenefit
 from api_fhir_r4.models import CoverageEligibilityRequestV2 as FHIREligibilityRequest
 from api_fhir_r4.utils import TimeUtils
-
-
+"""
+"""
 class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
@@ -100,3 +103,4 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
             uuid = PatientConverter.get_resource_id_from_reference(
                 patient_reference)
         return uuid
+"""

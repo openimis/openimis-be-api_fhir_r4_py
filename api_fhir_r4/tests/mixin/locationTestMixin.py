@@ -1,76 +1,69 @@
-from location.models import HealthFacility
+from location.models import Location
 
 from api_fhir_r4.configurations import R4IdentifierConfig, R4LocationConfig
 from api_fhir_r4.converters import LocationConverter
-from api_fhir_r4.models import ContactPointSystem, AddressType, AddressUse, ContactPointUse, Location
+from fhir.resources.location import Location as FHIRLocation
 from api_fhir_r4.tests import GenericTestMixin
 
 
 class LocationTestMixin(GenericTestMixin):
 
-    _TEST_ID = 1
-    _TEST_UUID = "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
-    _TEST_HF_CODE = "12345678"
-    _TEST_HF_NAME = "TEST_NAME"
-    _TEST_HF_LEVEL = "H"
-    _TEST_HF_LEGAL_FORM = "G"
-    _TEST_ADDRESS = "TEST_ADDRESS"
-    _TEST_PHONE = "133-996-476"
-    _TEST_FAX = "1-408-999 8888"
-    _TEST_EMAIL = "TEST@TEST.com"
-    _TEST_LOCATION_ID = 1
-    _TEST_LOCATION_UUID = "75250515-40d7-4c77-bafe-a2c65ffc5a72"
+    _TEST_CODE = "RTDTMTVT"
+    _TEST_NAME = "TEST_NAME"
+    _TEST_LOCATION_TYPE = "V"
+    _TEST_MUNICIPALITY_UUID = "a82f54bf-d983-4963-a279-490312a96344"
 
     def create_test_imis_instance(self):
-        hf = HealthFacility()
-        hf.id = self._TEST_ID
-        hf.uuid = self._TEST_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location_id = self._TEST_LOCATION_ID
-        return hf
+        # create level location
+        imis_location_region = Location()
+        imis_location_region.code = "RT"
+        imis_location_region.name = self._TEST_NAME
+        imis_location_region.type = "R"
+        imis_location_region.save()
+
+        imis_location_district = Location()
+        imis_location_district.code = "RTDT"
+        imis_location_district.name = self._TEST_NAME
+        imis_location_district.type = "D"
+        imis_location_district.parent = imis_location_region
+        imis_location_district.save()
+
+        imis_location_municipality = Location()
+        imis_location_municipality.code = "RTDTMT"
+        imis_location_municipality.name = self._TEST_NAME
+        imis_location_municipality.type = "M"
+        imis_location_municipality.parent = imis_location_district
+        imis_location_municipality.uuid = self._TEST_MUNICIPALITY_UUID
+        imis_location_municipality.save()
+
+        imis_location = Location()
+        imis_location.code = self._TEST_CODE
+        imis_location.name = self._TEST_NAME
+        imis_location.type = self._TEST_LOCATION_TYPE
+        imis_location.parent = imis_location_municipality
+        return imis_location
 
     def verify_imis_instance(self, imis_obj):
-        self.assertEqual(self._TEST_HF_CODE, imis_obj.code)
-        self.assertEqual(self._TEST_HF_NAME, imis_obj.name)
-        self.assertEqual(self._TEST_HF_LEVEL, imis_obj.level)
-        # self.assertEqual(self._TEST_HF_LEGAL_FORM, imis_obj.legal_form)
-        self.assertEqual(self._TEST_ADDRESS, imis_obj.address)
-        self.assertEqual(self._TEST_PHONE, imis_obj.phone)
-        self.assertEqual(self._TEST_FAX, imis_obj.fax)
-        self.assertEqual(self._TEST_EMAIL, imis_obj.email)
+        self.assertEqual(self._TEST_CODE, imis_obj.code)
+        self.assertEqual(self._TEST_NAME, imis_obj.name)
+        self.assertEqual(self._TEST_LOCATION_TYPE, imis_obj.type)
 
     def create_test_fhir_instance(self):
-        location = Location()
-        identifier = LocationConverter.build_fhir_identifier(self._TEST_HF_CODE,
+        fhir_location = FHIRLocation.construct()
+        identifier = LocationConverter.build_fhir_identifier(self._TEST_CODE,
                                                              R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                                             R4IdentifierConfig.get_fhir_facility_id_type())
-        location.identifier = [identifier]
-        location.name = self._TEST_HF_NAME
-        location.type = LocationConverter.build_codeable_concept(
-            R4LocationConfig.get_fhir_code_for_hospital(),
-            R4LocationConfig.get_fhir_location_site_type_system())
-        location.address = LocationConverter.build_fhir_address(self._TEST_ADDRESS, AddressUse.HOME.value,
-                                                                AddressType.PHYSICAL.value)
-        telecom = []
-        phone = LocationConverter.build_fhir_contact_point(self._TEST_PHONE, ContactPointSystem.PHONE.value,
-                                                           ContactPointUse.HOME.value)
-        telecom.append(phone)
-        fax = LocationConverter.build_fhir_contact_point(self._TEST_FAX, ContactPointSystem.FAX.value,
-                                                         ContactPointUse.HOME.value)
-        telecom.append(fax)
-        email = LocationConverter.build_fhir_contact_point(self._TEST_EMAIL, ContactPointSystem.EMAIL.value,
-                                                           ContactPointUse.HOME.value)
-        telecom.append(email)
-        location.telecom = telecom
+                                                             R4IdentifierConfig.get_fhir_location_code_type())
+        fhir_location.identifier = [identifier]
 
-        return location
+        fhir_location.name = self._TEST_NAME
+
+        system_definition = LocationConverter.PHYSICAL_TYPES.get(self._TEST_LOCATION_TYPE)
+        fhir_location.physicalType = LocationConverter.build_codeable_concept(**system_definition)
+
+        fhir_location.mode = 'instance'
+        fhir_location.status = R4LocationConfig.get_fhir_code_for_active()
+
+        return fhir_location
 
     def verify_fhir_instance(self, fhir_obj):
         for identifier in fhir_obj.identifier:
@@ -78,16 +71,9 @@ class LocationTestMixin(GenericTestMixin):
             if code == R4IdentifierConfig.get_fhir_uuid_type_code():
                 self.assertEqual(fhir_obj.id, identifier.value)
             elif code == R4IdentifierConfig.get_fhir_facility_id_type():
-                self.assertEqual(self._TEST_HF_CODE, identifier.value)
-        self.assertEqual(self._TEST_HF_NAME, fhir_obj.name)
-        type_code = LocationConverter.get_first_coding_from_codeable_concept(fhir_obj.type).code
-        self.assertEqual(R4LocationConfig.get_fhir_code_for_hospital(), type_code)
-        self.assertEqual(self._TEST_ADDRESS, fhir_obj.address.text)
-        self.assertEqual(3, len(fhir_obj.telecom))
-        for telecom in fhir_obj.telecom:
-            if telecom.system == ContactPointSystem.PHONE.value:
-                self.assertEqual(self._TEST_PHONE, telecom.value)
-            elif telecom.system == ContactPointSystem.EMAIL.value:
-                self.assertEqual(self._TEST_EMAIL, telecom.value)
-            elif telecom.system == ContactPointSystem.FAX.value:
-                self.assertEqual(self._TEST_FAX, telecom.value)
+                self.assertEqual(self._TEST_CODE, identifier.value)
+        self.assertEqual(self._TEST_NAME, fhir_obj.name)
+        physical_type_code = LocationConverter.get_first_coding_from_codeable_concept(fhir_obj.physicalType).code
+        self.assertEqual(self._TEST_LOCATION_TYPE, physical_type_code)
+        self.assertEqual(R4LocationConfig.get_fhir_code_for_active(), fhir_obj.status)
+        self.assertEqual('instance', fhir_obj.mode)

@@ -1,7 +1,7 @@
 from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter, OperationOutcomeConverter
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from api_fhir_r4.models import IssueSeverity, CodeableConcept
+from fhir.resources.codeableconcept import CodeableConcept
 from api_fhir_r4.tests import GenericTestMixin
 
 
@@ -20,11 +20,11 @@ class OperationOutcomeTestMixin(GenericTestMixin):
         return OperationOutcomeConverter.to_fhir_obj(exc)
 
     def verify_fhir_instance(self, fhir_obj):
-            issues = fhir_obj.issue
-            self.assertEqual(1, len(issues))
-            first_issue = issues[0]
-            self.assertEqual(first_issue.code, R4IssueTypeConfig.get_fhir_code_for_exception())
-            self.assertEqual(first_issue.severity, IssueSeverity.ERROR.value)
-            details = first_issue.details
-            self.assertTrue(isinstance(details, CodeableConcept))
-            self.assertEqual(details.text, "The request cannot be processed due to the following issues:\nError message")
+        issues = fhir_obj.issue
+        self.assertEqual(1, len(issues))
+        first_issue = issues[0]
+        self.assertEqual(first_issue.code, R4IssueTypeConfig.get_fhir_code_for_exception())
+        self.assertEqual(first_issue.severity, "error")
+        details = first_issue.details
+        self.assertTrue(isinstance(details, CodeableConcept))
+        self.assertEqual(details.text, "The request cannot be processed due to the following issues:\nError message")

@@ -2,7 +2,11 @@ from abc import ABC
 from typing import Union
 
 from django.db.models import Model
+from fhir.resources.extension import Extension
+from fhir.resources.money import Money
+from fhir.resources.quantity import Quantity
 
+import core
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from fhir.resources.codeableconcept import CodeableConcept
@@ -66,19 +70,34 @@ class BaseFHIRConverter(ABC):
         return cls.build_codeable_concept(None, None, text)
 
     @classmethod
-    def build_codeable_concept(cls, code, system=None, text=None):
+    def build_codeable_concept(cls, code, system=None, text=None, display=None):
         codeable_concept = CodeableConcept.construct()
         if code or system:
             coding = Coding.construct()
+
             if GeneralConfiguration.show_system():
                 coding.system = system
-            if not isinstance(code, str):
-                code = str(code)
-            coding.code = code
+
+            coding.code = str(code)
+
+            if display:
+                coding.display = str(display)
             codeable_concept.coding = [coding]
 
         if text:
             codeable_concept.text = text
+        return codeable_concept
+
+    @classmethod
+    def build_codeable_concept_from_coding(cls, coding, text=None):
+        codeable_concept = CodeableConcept.construct()
+
+        if coding:
+            codeable_concept.coding = [coding]
+
+        if text:
+            codeable_concept.text = str(text)
+
         return codeable_concept
 
     @classmethod
@@ -91,10 +110,11 @@ class BaseFHIRConverter(ABC):
         return result
 
     @classmethod
-    def build_all_identifiers(cls, identifiers, imis_object):
+    def build_all_identifiers(cls, identifiers, imis_object, reference_type=None):
         cls.build_fhir_uuid_identifier(identifiers, imis_object)
         cls.build_fhir_code_identifier(identifiers, imis_object)
-        cls.build_fhir_id_identifier(identifiers, imis_object)
+        if reference_type == ReferenceConverterMixin.DB_ID_REFERENCE_TYPE:
+            cls.build_fhir_id_identifier(identifiers, imis_object)
         return identifiers
 
     @classmethod
@@ -133,7 +153,6 @@ class BaseFHIRConverter(ABC):
     @classmethod
     def build_fhir_identifier(cls, value, type_system, type_code):
         identifier = Identifier.construct()
-        identifier.use = "usual"
         type = cls.build_codeable_concept(type_code, type_system)
         identifier.type = type
         # OE0-18 - change into string type always
@@ -151,51 +170,116 @@ class BaseFHIRConverter(ABC):
         return value
 
     @classmethod
-    def build_fhir_contact_point(cls, value, contact_point_system, contact_point_use):
+    def get_fhir_extension_by_url(cls, extensions, url):
+        return next(iter([extension for extension in extensions if extension.url == url]), None)
+
+    @classmethod
+    def get_code_from_extension_codeable_concept(cls, extension):
+        return extension.valueCodeableConcept.coding[0].code
+
+    @classmethod
+    def get_use_context_by_code(cls, use_context, code):
+        return next(iter([entry for entry in use_context if entry.code.code == code]), None)
+
+    @classmethod
+    def build_fhir_contact_point(cls, value, system=None, use=None):
         contact_point = ContactPoint.construct()
-        if GeneralConfiguration.show_system():
-            contact_point.system = contact_point_system
-        contact_point.use = contact_point_use
+        if system and GeneralConfiguration.show_system():
+            contact_point.system = system.value
+
+        if use:
+            contact_point.use = use.value
+
         contact_point.value = value
         return contact_point
 
     @classmethod
+    def get_contract_points_by_system_code(cls, telecom, system=None):
+        return [contact.value for contact in telecom if contact.system == system]
+
+    @classmethod
     def build_fhir_address(cls, value, use, type):
         current_address = Address.construct()
-        current_address.text = value
+        if value:
+            current_address.text = value
         current_address.use = use
         current_address.type = type
         return current_address
 
     @classmethod
-    def build_fhir_reference(cls, identifier, display, type, reference):
-        reference = Reference.construct()
-        reference.identifier = identifier
-        reference.display = display
-        reference.type = type
-        reference.reference = reference
-        return reference
+    def build_fhir_reference(cls, identifier, display, ref_type, reference):
+        fhir_reference = Reference.construct()
+        fhir_reference.identifier = identifier
+        fhir_reference.display = display
+        fhir_reference.type = ref_type
+        fhir_reference.reference = reference
+        return fhir_reference
+
+    @classmethod
+    def build_fhir_mapped_coding(cls, mapping) -> Coding:
+        coding = Coding.construct()
+
+        if GeneralConfiguration.show_system():
+            coding.system = mapping["system"]
+        coding.code = mapping["code"]
+        coding.display = mapping["display"]
+
+        return coding
+
+    @classmethod
+    def build_fhir_reference_extension(cls, reference: Reference, url):
+        extension = Extension.construct()
+        extension.url = url
+        extension.valueReference = reference
+        return extension
+
+    @classmethod
+    def build_fhir_codeable_concept_extension(cls, codeable_concept: CodeableConcept, url):
+        extension = Extension.construct()
+        extension.url = url
+        extension.valueCodeableConcept = codeable_concept
+        return extension
+
+    @classmethod
+    def build_fhir_money(cls, value, currency=None):
+        money = Money.construct()
+        money.value = value
+        if currency:
+            money.currency = currency
+        elif hasattr(core, 'currency'):
+            money.currency = core.currency
+        return money
+
+    @classmethod
+    def build_fhir_quantity(cls, value):
+        quantity = Quantity.construct()
+        quantity.value = value
+        return quantity
 
 
-from api_fhir_r4.converters.groupConverterMixin import GroupConverterMixin
 from api_fhir_r4.converters.personConverterMixin import PersonConverterMixin
 from api_fhir_r4.converters.referenceConverterMixin import ReferenceConverterMixin
+from api_fhir_r4.converters.medicationConverter import MedicationConverter
+from api_fhir_r4.converters.activityDefinitionConverter import ActivityDefinitionConverter
 from api_fhir_r4.converters.contractConverter import ContractConverter
 from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.converters.groupConverter import GroupConverter
-from api_fhir_r4.converters.organisationConverter import OrganisationConverter
+from api_fhir_r4.converters.policyHolderOrganisationConverter import PolicyHolderOrganisationConverter
 from api_fhir_r4.converters.locationConverter import LocationConverter
 from api_fhir_r4.converters.locationSiteConverter import LocationSiteConverter
 from api_fhir_r4.converters.operationOutcomeConverter import OperationOutcomeConverter
-from api_fhir_r4.converters.practitionerConverter import PractitionerConverter
-from api_fhir_r4.converters.practitionerRoleConverter import PractitionerRoleConverter
+from api_fhir_r4.converters.claimAdminPractitionerConverter import ClaimAdminPractitionerConverter
+from api_fhir_r4.converters.claimAdminPractitionerRoleConverter import ClaimAdminPractitionerRoleConverter
 from api_fhir_r4.converters.coverageEligibilityRequestConverter import CoverageEligibilityRequestConverter
-from api_fhir_r4.converters.policyCoverageEligibilityRequestConverter import PolicyCoverageEligibilityRequestConverter
+# from api_fhir_r4.converters.policyCoverageEligibilityRequestConverter import PolicyCoverageEligibilityRequestConverter
 from api_fhir_r4.converters.communicationRequestConverter import CommunicationRequestConverter
 from api_fhir_r4.converters.claimResponseConverter import ClaimResponseConverter
 from api_fhir_r4.converters.claimConverter import ClaimConverter
-from api_fhir_r4.converters.medicationConverter import MedicationConverter
-from api_fhir_r4.converters.conditionConverter import ConditionConverter
-from api_fhir_r4.converters.activityDefinitionConverter import ActivityDefinitionConverter
-from api_fhir_r4.converters.healthcareServiceConverter import HealthcareServiceConverter
-from api_fhir_r4.converters.containedResourceConverter import ContainedResourceConverter
+from api_fhir_r4.converters.insurancePlanConverter import InsurancePlanConverter
+from api_fhir_r4.converters.codeSystemConverter import CodeSystemConverter
+from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFacilityOrganisationConverter
+from api_fhir_r4.converters.insuranceOrganisationConverter import InsuranceOrganisationConverter
+from api_fhir_r4.converters.enrolmentOfficerPractitionerConverter import EnrolmentOfficerPractitionerConverter
+from api_fhir_r4.converters.enrolmentOfficerPractitionerRoleConverter import EnrolmentOfficerPractitionerRoleConverter
+from api_fhir_r4.converters.communicationConverter import CommunicationConverter
+from api_fhir_r4.converters.invoiceConverter import InvoiceConverter, BillInvoiceConverter

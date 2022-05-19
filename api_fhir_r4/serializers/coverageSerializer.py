@@ -1,6 +1,6 @@
 from api_fhir_r4.converters.coverageConverter import CoverageConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
-from api_fhir_r4.models import Coverage, CoverageClass
+from api_fhir_r4.models import CoverageV2, CoverageClassV2
 from rest_framework import serializers
 from policy.models import Policy
 import copy

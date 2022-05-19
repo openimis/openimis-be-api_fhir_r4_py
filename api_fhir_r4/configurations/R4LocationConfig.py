@@ -8,11 +8,12 @@ class R4LocationConfig(LocationConfiguration):
         cls.get_config().R4_fhir_location_type = cfg['R4_fhir_location_site_type']
         cls.get_config().R4_fhir_location_physical_type = cfg['R4_fhir_location_physical_type']
         cls.get_config().R4_fhir_hf_service_type = cfg['R4_fhir_hf_service_type']
+        cls.get_config().R4_fhir_location_status_codes = cfg['R4_fhir_location_status_codes']
 
     @classmethod
     def get_fhir_location_site_type_system(cls):
-        return cls.get_config_attribute("R4_fhir_location_type").get('system',
-                                                "http://hl7.org/fhir/v3/ServiceDeliveryLocationRoleType/vs.html")
+        return cls.get_config_attribute("R4_fhir_location_type")\
+            .get('system', "http://hl7.org/fhir/v3/ServiceDeliveryLocationRoleType/vs.html")
 
     @classmethod
     def get_fhir_code_for_hospital(cls):
@@ -28,7 +29,8 @@ class R4LocationConfig(LocationConfiguration):
 
     @classmethod
     def get_fhir_location_area_type_system(cls):
-        return cls.get_config_attribute("R4_fhir_location_type").get('system',"https://openimis.atlassian.net/wiki/spaces/OP/pages/1389297887/FHIR+r4+-+Location")
+        return cls.get_config_attribute("R4_fhir_location_type")\
+            .get('system', "https://openimis.atlassian.net/wiki/spaces/OP/pages/1389297887/FHIR+r4+-+Location")
 
     @classmethod
     def get_fhir_code_for_region(cls):
@@ -48,8 +50,8 @@ class R4LocationConfig(LocationConfiguration):
 
     @classmethod
     def get_fhir_location_physical_type_system(cls):
-        return cls.get_config_attribute("R4_fhir_location_physical_type").get('system',
-                                                "http://terminology.hl7.org/CodeSystem/location-physical-type.html")
+        return cls.get_config_attribute("R4_fhir_location_physical_type")\
+            .get('system', "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/location-type")
 
     @classmethod
     def get_fhir_code_for_site(cls):
@@ -63,8 +65,8 @@ class R4LocationConfig(LocationConfiguration):
 
     @classmethod
     def get_fhir_hf_service_type_system(cls):
-        return cls.get_config_attribute("R4_fhir_hf_service_type").get('system',
-                                                                   "http://hl7.org/fhir/valueset-service-type.html")
+        return cls.get_config_attribute("R4_fhir_hf_service_type")\
+            .get('system', "http://hl7.org/fhir/valueset-service-type.html")
 
     @classmethod
     def get_fhir_code_for_in_patient(cls):
@@ -77,3 +79,11 @@ class R4LocationConfig(LocationConfiguration):
     @classmethod
     def get_fhir_code_for_both(cls):
         return cls.get_config_attribute("R4_fhir_hf_service_type").get('fhir_code_for_both', "B")
+
+    @classmethod
+    def get_fhir_code_for_active(cls):
+        return cls.get_config_attribute("R4_fhir_location_status_codes").get('fhir_code_for_active', 'active')
+
+    @classmethod
+    def get_fhir_code_for_inactive(cls):
+        return cls.get_config_attribute("R4_fhir_location_status_codes").get('fhir_code_for_inactive', 'inactive')

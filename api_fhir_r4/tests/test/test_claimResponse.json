@@ -1,142 +1,194 @@
 {
-  "resourceType": "ClaimResponse",
-  "communicationRequest": [
-    {
-      "reference": "CommunicationRequest/6ed1dec4-1dbd-4da2-840d-8383e45419a6"
-    }
-  ],
-  "error": [
-    {
-      "code": {
-        "coding": [
-          {
-            "code": "1"
-          }
-        ]
+   "resourceType":"ClaimResponse",
+   "identifier":[
+      {
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"ae580700-0277-4c98-adab-d98c0f7e681b"
+      },
+      {
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"Code"
+               }
+            ]
+         },
+         "value":"codeTest"
       }
-    }
-  ],
-  "id": "ae580700-0277-4c98-adab-d98c0f7e681b",
-  "identifier": [
-    {
-      "type": {
-        "coding": [
-          {
-            "code": "ACSN",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
-        ]
+   ],
+   "status":"active",
+   "type":{
+      "coding":[
+         {
+            "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-visit-type",
+            "code":"O",
+            "display":"Other"
+         }
+      ]
+   },
+   "use":"claim",
+   "patient":{
+      "reference":"Patient/76aca309-f8cf-4890-8f2e-b416d78de00b",
+      "type":"Patient",
+      "identifier":{
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"76aca309-f8cf-4890-8f2e-b416d78de00b"
+      }
+   },
+   "created":"2021-09-27",
+   "insurer":{
+      "reference":"openIMIS"
+   },
+   "requestor":{
+      "reference":"Practitioner/044c33d1-dbf3-4d6a-9924-3797b461e535",
+      "type":"Practitioner",
+      "identifier":{
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"044c33d1-dbf3-4d6a-9924-3797b461e535"
+      }
+   },
+   "outcome":"queued",
+   "item":[
+      {
+         "extension":[
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+               "valueReference":{
+                  "reference":"Medication/e2bc1546-390b-4d41-8571-632ecf7a0936",
+                  "type":"Medication",
+                  "identifier":{
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                              "code":"UUID"
+                           }
+                        ]
+                     },
+                     "value":"e2bc1546-390b-4d41-8571-632ecf7a0936"
+                  },
+                  "display":"iCode"
+               }
+            }
+         ],
+         "itemSequence":1,
+         "adjudication":[
+            {
+               "category":{
+                  "coding":[
+                     {
+                        "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-status",
+                        "code":"2",
+                        "display":"entered"
+                     }
+                  ]
+               },
+               "reason":{
+                  "coding":[
+                     {
+                        "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-rejection-reasons",
+                        "code":"0",
+                        "display":"ACCEPTED"
+                     }
+                  ]
+               },
+               "amount":{
+                  "value":10.0,
+                  "currency":"$"
+               },
+               "value":20.0
+            }
+         ]
       },
-      "use": "usual",
-      "value": "ae580700-0277-4c98-adab-d98c0f7e681b"
-    },
-    {
-      "type": {
-        "coding": [
-          {
-            "code": "MR",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
-        ]
-      },
-      "use": "usual",
-      "value": "code"
-    }
-  ],
-  "item": [
-    {
-      "adjudication": [
-        {
-          "amount": {
-            "value": 2
-          },
-          "category": {
-            "text": "general"
-          },
-          "reason": {
-            "coding": [
-              {
-                "code": "1",
-                "system": "passed"
-              }
+      {
+         "extension":[
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+               "valueReference":{
+                  "reference":"ActivityDefinition/a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6",
+                  "type":"ActivityDefinition",
+                  "identifier":{
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                              "code":"UUID"
+                           }
+                        ]
+                     },
+                     "value":"a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6"
+                  },
+                  "display":"sCode"
+               }
+            }
+         ],
+         "itemSequence":2,
+         "adjudication":[
+            {
+               "category":{
+                  "coding":[
+                     {
+                        "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-status",
+                        "code":"2",
+                        "display":"entered"
+                     }
+                  ]
+               },
+               "reason":{
+                  "coding":[
+                     {
+                        "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-rejection-reasons",
+                        "code":"0",
+                        "display":"ACCEPTED"
+                     }
+                  ]
+               },
+               "amount":{
+                  "value":800.0,
+                  "currency":"$"
+               },
+               "value":1.0
+            }
+         ]
+      }
+   ],
+   "total":[
+      {
+         "category":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-status",
+                  "code":"2",
+                  "display":"entered"
+               }
             ]
-          },
-          "value": 4
-        },
-        {
-          "category": {
-            "text": "rejected_reason"
-          },
-          "reason": {
-            "coding": [
-              {
-                "code": "1"
-              }
-            ]
-          }
-        }
-      ],
-      "noteNumber": [
-        1
-      ],
-      "itemSequence": 1
-    },
-    {
-      "adjudication": [
-        {
-          "amount": {
-            "value": 4
-          },
-          "category": {
-            "text": "general"
-          },
-          "reason": {
-            "coding": [
-              {
-                "code": "2",
-                "system": "rejected"
-              }
-            ]
-          },
-          "value": 3
-        },
-        {
-          "category": {
-            "text": "rejected_reason"
-          },
-          "reason": {
-            "coding": [
-              {
-                "code": "3"
-              }
-            ]
-          }
-        }
-      ],
-      "noteNumber": [
-        2
-      ],
-      "itemSequence": 2
-    }
-  ],
-  "outcome": "rejected",
-  "payment": {
-    "adjustmentReason": {
-      "text": "adjustment"
-    },
-    "date": "2010-11-16T00:00:00"
-  },
-  "processNote": [
-    {
-      "number": 1,
-      "text": "item justification"
-    },
-    {
-      "number": 2,
-      "text": "service justification"
-    }
-  ],
-  "totalBenefit": {
-    "value": 214.25
-  }
+         },
+         "amount":{
+            "value":1000.0,
+            "currency":"$"
+         }
+      }
+   ]
 }

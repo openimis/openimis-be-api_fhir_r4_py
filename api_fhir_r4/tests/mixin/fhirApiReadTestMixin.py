@@ -10,9 +10,11 @@ class FhirApiReadTestMixin(object):
     def login(self):
         raise NotImplementedError()
 
-    def test_get_should_return_empty_list(self):
+    def test_get_bad_authorization(self):
+        response = self.client.get(self.base_url, data=None, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_should_return_200(self):
         self.login()
         response = self.client.get(self.base_url, data=None, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        bundle = self.get_bundle_from_json_response(response)
-        self.assertEqual(bundle.total, 0)

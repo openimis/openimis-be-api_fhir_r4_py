@@ -1,9 +1,11 @@
 import inspect
+import logging
 
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from fhir.resources.reference import Reference
 
-from api_fhir_r4.configurations import R4IdentifierConfig
+
+logger = logging.getLogger(__name__)
 
 
 class ReferenceConverterMixin(object):
@@ -40,7 +42,7 @@ class ReferenceConverterMixin(object):
 
         reference.type = resource_type
         reference.identifier = cls.build_reference_identifier(obj, reference_type)
-        reference.reference = resource_type + '/' + resource_id
+        reference.reference = f'{resource_type}/{resource_id}'
 
         if display:
             reference.display = display
@@ -55,7 +57,9 @@ class ReferenceConverterMixin(object):
             if isinstance(reference, str) and '/' in reference:
                 path, resource_id = reference.rsplit('/', 1)
         if resource_id is None:
-            raise FHIRRequestProcessException(['Could not fetch id from reference: {}'])
+            raise FHIRRequestProcessException(
+                [F'Could not fetch id from reference `{reference}`. Invalid reference format']
+            )
         return resource_id
 
     @classmethod
@@ -100,4 +104,8 @@ class ReferenceConverterMixin(object):
         else:
             raise NotImplementedError(f"Unhandled reference type {reference_type}")
 
+        if len(identifiers) == 0:
+            logger.error(
+                f"Failed to build reference of type {reference_type} for resource of type {type(cls)}."
+            )
         return identifiers[0]

@@ -2,11 +2,12 @@ import json
 import os
 
 from core.models import User
+from fhir.resources import construct_fhir_element
 from rest_framework import status
 
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter
-from api_fhir_r4.models import FHIRBaseObject, Bundle
+from fhir.resources.bundle import Bundle
 from api_fhir_r4.utils import DbManagerUtils
 
 
@@ -14,20 +15,21 @@ class GenericFhirAPITestMixin(object):
 
     @property
     def base_url(self):
-        raise NotImplementedError()
+        return None
 
     @property
     def _test_json_path(self):
-        raise NotImplementedError()
+        return None
 
     _TEST_SUPERUSER_NAME = 'admin'
-    _TEST_SUPERUSER_PASS = 'Admin123'
+    _TEST_SUPERUSER_PASS = 'adminadmin'#'Admin123'
     _test_request_data = None
 
     def setUp(self):
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        json_representation = open(dir_path + self._test_json_path).read()
-        self._test_request_data = json.loads(json_representation)
+        if self._test_json_path:
+            dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            json_representation = open(dir_path + self._test_json_path).read()
+            self._test_request_data = json.loads(json_representation)
 
     def login(self):
         user = DbManagerUtils.get_object_or_none(User, username=self._TEST_SUPERUSER_NAME)
@@ -40,22 +42,25 @@ class GenericFhirAPITestMixin(object):
         return DbManagerUtils.get_object_or_none(User, username=self._TEST_SUPERUSER_NAME)
 
     def get_bundle_from_json_response(self, response):
-        bundle = FHIRBaseObject.loads(response.content, 'json')
+        response_json = response.json()
+        bundle = construct_fhir_element(response_json['resourceType'], response_json)
         self.assertTrue(isinstance(bundle, Bundle))
         return bundle
 
     def get_id_for_created_resource(self, response):
         result = None
-        fhir_obj = FHIRBaseObject.loads(response.content, 'json')
+        response_json = response.json()
+        fhir_obj = construct_fhir_element(response_json['resourceType'], response_json)
         if hasattr(fhir_obj, 'identifier'):
             result = BaseFHIRConverter.get_fhir_identifier_by_code(fhir_obj.identifier,
                                                                    R4IdentifierConfig.get_fhir_uuid_type_code())
         return result
 
     def get_fhir_obj_from_json_response(self, response):
-        fhir_obj = FHIRBaseObject.loads(response.content, 'json')
+        response_json = response.json()
+        fhir_obj = construct_fhir_element(response_json['resourceType'], response_json)
         return fhir_obj
 
     def test_get_should_required_login(self):
         response = self.client.get(self.base_url, data=None, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

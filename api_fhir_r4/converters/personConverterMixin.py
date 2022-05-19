@@ -4,6 +4,8 @@ from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from fhir.resources.humanname import HumanName
 
+from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUse
+
 
 class PersonConverterMixin(object):
 
@@ -35,10 +37,10 @@ class PersonConverterMixin(object):
     def build_fhir_telecom_for_person(cls, phone=None, email=None):
         telecom = []
         if phone:
-            phone = BaseFHIRConverter.build_fhir_contact_point(phone, "phone", "home")
+            phone = BaseFHIRConverter.build_fhir_contact_point(phone, ContactPointSystem.PHONE, ContactPointUse.HOME)
             telecom.append(phone)
         if email:
-            email = BaseFHIRConverter.build_fhir_contact_point(email, "email", "home")
+            email = BaseFHIRConverter.build_fhir_contact_point(email, ContactPointSystem.EMAIL, ContactPointUse.HOME)
             telecom.append(email)
         return telecom
 
@@ -48,8 +50,8 @@ class PersonConverterMixin(object):
         email = None
         if telecom is not None:
             for contact_point in telecom:
-                if contact_point.system == "phone":
+                if contact_point.system == ContactPointSystem.PHONE.value:
                     phone = contact_point.value
-                elif contact_point.system == "email":
+                elif contact_point.system == ContactPointSystem.EMAIL.value:
                     email = contact_point.value
         return phone, email

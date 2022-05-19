@@ -5,6 +5,7 @@ from fhir.resources.bundle import Bundle, BundleEntry, BundleLink
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django.core.cache import caches
+from django.db.models.query import QuerySet
 
 
 class FhirBundleResultsSetPagination(PageNumberPagination):
@@ -32,7 +33,6 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
         previous_link = self.get_previous_link()
         if previous_link:
             self.build_bundle_link(bundle, "previous", previous_link)
-
 
     def build_bundle_link(self, bundle, relation, url):
         self_link = {}
@@ -77,10 +77,11 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
         return o._replace(query=None).geturl()
 
     def paginate_queryset(self, queryset, *args, **kwargs):
-        if hasattr(queryset, 'count'):
+        if isinstance(queryset, QuerySet) and hasattr(queryset, 'count'):
             queryset = CachedCountQueryset(queryset)
         return super().paginate_queryset(queryset, *args, **kwargs)
- 
+
+
 def CachedCountQueryset(queryset, timeout=60*60, cache_name='default'):
     """
         Return copy of queryset with queryset.count() wrapped to cache result for `timeout` seconds.

@@ -1,0 +1,82 @@
+{
+   "type":"Person",
+   "actual":"True",
+   "resourceType":"Group",
+   "extension":[
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/group-address",
+         "valueAddress":{
+            "extension":[
+               {
+                  "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-municipality",
+                  "valueString":"Test"
+               },
+               {
+                  "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
+                  "valueReference":{
+                     "reference":"Location/637f05cf-d8e8-4135-8250-7f01f01936bc"
+                  }
+               }
+            ],
+            "use":"home",
+            "type":"physical",
+            "text":"Test Street 7th TownCity",
+            "city":"TEST_NAME",
+            "district":"Test",
+            "state":"Test"
+         }
+      },
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/group-poverty-status",
+         "valueBoolean":false
+      },
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/group-type",
+         "valueCodeableConcept":{
+            "coding":[
+               {
+                  "system":"CodeSystem/group-type",
+                  "code":"H",
+                  "display":"Household"
+               }
+            ]
+         }
+      }
+   ],
+   "identifier":[
+      {
+         "use":"usual",
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"Code"
+               }
+            ]
+         },
+         "value":"TestChfId1"
+      }
+   ],
+   "name":"TEST_LAST_NAME",
+   "quantity":1,
+   "member":[
+      {
+            "entity": {
+                "reference": "Patient/01916024-20a9-45ba-a295-019ab0830000",
+                "type": "Patient",
+                "identifier": {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                "code": "UUID"
+                            }
+                        ]
+                    },
+                    "value": "01916024-20a9-45ba-a295-019ab0830000"
+                },
+                "display": "TestChfId1"
+            }
+        }
+   ]
+}

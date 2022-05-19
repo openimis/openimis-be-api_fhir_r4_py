@@ -1,9 +1,13 @@
+from api_fhir_r4.configurations import R4SubscriptionConfig
+from core.apps import CoreConfig
 from claim.apps import ClaimConfig
 from insuree.apps import InsureeConfig
 from location.apps import LocationConfig
 from policy.apps import PolicyConfig
 from policyholder.apps import PolicyholderConfig
+from product.apps import ProductConfig
 from medical.apps import MedicalConfig
+from invoice.apps import InvoiceConfig
 from rest_framework import exceptions
 from rest_framework.permissions import DjangoModelPermissions
 
@@ -46,11 +50,19 @@ class FHIRApiCommunicationRequestPermissions(FHIRApiPermissions):
 
 
 class FHIRApiPractitionerPermissions(FHIRApiPermissions):
-    permissions_get = ClaimConfig.gql_query_claim_admins_perms
-    permissions_post = ClaimConfig.gql_query_claim_admins_perms
-    permissions_put = ClaimConfig.gql_query_claim_admins_perms
-    permissions_patch = ClaimConfig.gql_query_claim_admins_perms
-    permissions_delete = ClaimConfig.gql_query_claim_admins_perms
+    permissions_get = CoreConfig.gql_query_claim_administrator_perms
+    permissions_post = CoreConfig.gql_mutation_create_claim_administrator_perms
+    permissions_put = CoreConfig.gql_mutation_update_claim_administrator_perms
+    permissions_patch = CoreConfig.gql_mutation_update_claim_administrator_perms
+    permissions_delete = CoreConfig.gql_mutation_delete_claim_administrator_perms
+
+
+class FHIRApiPractitionerOfficerPermissions(FHIRApiPermissions):
+    permissions_get = CoreConfig.gql_query_enrolment_officers_perms
+    permissions_post = CoreConfig.gql_mutation_create_enrolment_officers_perms
+    permissions_put = CoreConfig.gql_mutation_update_enrolment_officers_perms
+    permissions_patch = CoreConfig.gql_mutation_update_enrolment_officers_perms
+    permissions_delete = CoreConfig.gql_mutation_delete_enrolment_officers_perms
 
 
 class FHIRApiCoverageEligibilityRequestPermissions(FHIRApiPermissions):
@@ -75,6 +87,14 @@ class FHIRApiHFPermissions(FHIRApiPermissions):
     permissions_put = LocationConfig.gql_mutation_create_health_facilities_perms
     permissions_patch = LocationConfig.gql_mutation_create_health_facilities_perms
     permissions_delete = LocationConfig.gql_mutation_delete_health_facilities_perms
+
+
+class FHIRApiInsuranceOrganizationPermissions(FHIRApiPermissions):
+    permissions_get = LocationConfig.gql_query_health_facilities_perms
+    permissions_post = []
+    permissions_put = []
+    permissions_patch = []
+    permissions_delete = []
 
 
 class FHIRApiInsureePermissions(FHIRApiPermissions):
@@ -131,3 +151,35 @@ class FHIRApiOrganizationPermissions(FHIRApiPermissions):
     permissions_put = PolicyholderConfig.gql_mutation_update_policyholder_perms
     permissions_patch = PolicyholderConfig.gql_mutation_update_policyholder_perms
     permissions_delete = PolicyholderConfig.gql_mutation_delete_policyholder_perms
+
+
+class FHIRApiProductPermissions(FHIRApiPermissions):
+    permissions_get = ProductConfig.gql_query_products_perms
+    permissions_post = ProductConfig.gql_mutation_products_add_perms
+    permissions_put = ProductConfig.gql_mutation_products_edit_perms
+    permissions_patch = ProductConfig.gql_mutation_products_edit_perms
+    permissions_delete = ProductConfig.gql_mutation_products_delete_perms
+
+
+class FHIRApiInvoicePermissions(FHIRApiPermissions):
+    permissions_get = InvoiceConfig.gql_invoice_search_perms
+    permissions_post = InvoiceConfig.gql_invoice_create_perms
+    permissions_put = InvoiceConfig.gql_invoice_update_perms
+    permissions_patch = InvoiceConfig.gql_invoice_update_perms
+    permissions_delete = InvoiceConfig.gql_invoice_delete_perms
+
+
+class FHIRApiBillPermissions(FHIRApiPermissions):
+    permissions_get = InvoiceConfig.gql_bill_search_perms
+    permissions_post = InvoiceConfig.gql_bill_create_perms
+    permissions_put = InvoiceConfig.gql_bill_update_perms
+    permissions_patch = InvoiceConfig.gql_bill_update_perms
+    permissions_delete = InvoiceConfig.gql_bill_delete_perms
+
+
+class FHIRApiSubscriptionPermissions(FHIRApiPermissions):
+    permissions_get = R4SubscriptionConfig.get_fhir_sub_search_perms()
+    permissions_post = R4SubscriptionConfig.get_fhir_sub_create_perms()
+    permissions_put = R4SubscriptionConfig.get_fhir_sub_update_perms()
+    permissions_patch = R4SubscriptionConfig.get_fhir_sub_update_perms()
+    permissions_delete = R4SubscriptionConfig.get_fhir_sub_delete_perms()

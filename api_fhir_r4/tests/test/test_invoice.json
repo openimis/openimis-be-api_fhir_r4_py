@@ -1,0 +1,103 @@
+{
+  "resourceType": "Invoice",
+  "id": "233a684a-00b0-4493-b733-1c5d400740c9",
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+            "code": "UUID"
+          }
+        ]
+      },
+      "value": "233a684a-00b0-4493-b733-1c5d400740c9"
+    },
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+            "code": "Code"
+          }
+        ]
+      },
+      "value": "TEST-CODE"
+    }
+  ],
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/invoice-type",
+        "code": "contribution",
+        "display": "Contribution"
+      }
+    ]
+  },
+  "recipient": {
+    "reference": "Group/43C47D1E-5110-4880-8C53-6871E71BDDE8",
+    "type": "Group",
+    "identifier": {
+      "type": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+            "code": "UUID"
+          }
+        ]
+      },
+      "value": "43C47D1E-5110-4880-8C53-6871E71BDDE8"
+    }
+  },
+  "date": "2021-01-01",
+  "lineItem": [
+    {
+      "chargeItemCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/invoice-charge-item",
+            "code": "policy",
+            "display": "Policy"
+          }
+        ]
+      },
+      "priceComponent": [
+        {
+          "extension": [
+            {
+              "url": "https://openimis.github.io/openimis_fhir_r4_ig//StructureDefinition/unit-price",
+              "valueMoney": {
+                "value": 10000.0,
+                "currency": "USD"
+              }
+            }
+          ],
+          "type": "base",
+          "code": {
+            "coding": [
+              {
+                "system": "Code",
+                "code": "Code",
+                "display": "BCUL0001"
+              }
+            ]
+          },
+          "factor": 1.0,
+          "amount": {
+            "value": 10000.0,
+            "currency": "USD"
+          }
+        }
+      ]
+    }
+  ],
+  "totalNet": {
+    "value": 10000.0,
+    "currency": "USD"
+  },
+  "totalGross": {
+    "value": 10000.0,
+    "currency": "USD"
+  }
+}

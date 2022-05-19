@@ -1,89 +1,47 @@
-from claim import ClaimSubmitService, ClaimSubmit, ClaimConfig
+from claim.services import ClaimSubmitService, ClaimSubmit, ClaimConfig
 from claim.gql_mutations import create_attachments
-from claim.models import Claim
+from claim.models import Claim, ClaimAdmin, ClaimItem, ClaimService
 from typing import List, Union
 
-from api_fhir_r4.converters.containedResourceConverter import ContainedResourceConverter
-from api_fhir_r4.mixins import ContainedContentSerializerMixin
-from api_fhir_r4.models import Claim as FHIRClaim
+from api_fhir_r4.containedResources.claimContainedResources import ClaimContainedResources
+from api_fhir_r4.containedResources.serializerMixin import ContainedContentSerializerMixin
+from api_fhir_r4.models import ClaimV2 as FHIRClaim
 from django.http import HttpResponseForbidden
 from django.http.response import HttpResponseBase
 from django.shortcuts import get_object_or_404
 
-from api_fhir_r4.configurations import R4ClaimConfig
-from api_fhir_r4.converters import ClaimResponseConverter, OperationOutcomeConverter, PatientConverter, \
-    ConditionConverter, MedicationConverter, HealthcareServiceConverter, PractitionerConverter, \
-    ActivityDefinitionConverter, ReferenceConverterMixin as r
+from api_fhir_r4.configurations import R4ClaimConfig, GeneralConfiguration
+from api_fhir_r4.converters import ClaimResponseConverter, OperationOutcomeConverter, ReferenceConverterMixin as r
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.fhirabstractmodel import FHIRAbstractModel
 from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
-class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
+class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
+
     fhirConverter = ClaimConverter()
 
-    contained_resources = [
-        ContainedResourceConverter('insuree', PatientConverter),
-        ContainedResourceConverter('icd', ConditionConverter),
-        *[ContainedResourceConverter('icd_{}'.format(n), ConditionConverter) for n in range(1, 5)],
-        ContainedResourceConverter('health_facility', HealthcareServiceConverter),
-        ContainedResourceConverter('admin', PractitionerConverter),
-        ContainedResourceConverter('items', MedicationConverter,
-                                   lambda model, field: [
-                                       item.item
-                                       for item in model.__getattribute__(field).filter(validity_to=None).all()
-                                   ]),
-        ContainedResourceConverter('services', ActivityDefinitionConverter,
-                                   lambda model, field: [
-                                       service.service
-                                       for service in model.__getattribute__(field).filter(validity_to=None).all()
-                                   ]),
-    ]
+    contained_resources = ClaimContainedResources
 
     def fhir_object_reference_fields(self, fhir_obj: FHIRClaim) -> List[FHIRAbstractModel]:
         return [
             fhir_obj.patient,
-            *[diagnosis.diagnosisReference for diagnosis in fhir_obj.diagnosis],
-            fhir_obj.facility,
+            fhir_obj.provider,
             fhir_obj.enterer,
             *[item.extension[0].valueReference for item in fhir_obj.item]
         ]
 
     def create(self, validated_data):
-        claim_submit = ClaimSubmit(date=validated_data.get('date_claimed'),
-                                   code=validated_data.get('code'),
-                                   icd_code=validated_data.get('icd_code'),
-                                   icd_code_1=validated_data.get('icd1_code'),
-                                   icd_code_2=validated_data.get('icd2_code'),
-                                   icd_code_3=validated_data.get('icd3_code'),
-                                   icd_code_4=validated_data.get('icd4_code'),
-                                   total=validated_data.get('claimed'),
-                                   start_date=validated_data.get('date_from'),
-                                   end_date=validated_data.get('date_to'),
-                                   insuree_chf_id=validated_data.get('insuree_chf_code'),
-                                   health_facility_code=validated_data.get('health_facility_code'),
-                                   claim_admin_code=validated_data.get('claim_admin_code'),
-                                   visit_type=validated_data.get('visit_type'),
-                                   guarantee_no=validated_data.get('guarantee_id'),
-                                   item_submits=validated_data.get('submit_items'),
-                                   service_submits=validated_data.get('submit_services'),
-                                   comment=validated_data.get('explanation'),
-                                   )
-        request = self.context.get("request")
-        if request.user and request.user.has_perms(ClaimConfig.gql_mutation_create_claims_perms):
-            ClaimSubmitService(request.user).submit(claim_submit)
-            self.create_claim_attachments(validated_data.get('code'),
-                                          attachments=validated_data.get('claim_attachments', []))
-            return self.create_claim_response(validated_data.get('code'))
-        else:
-            return HttpResponseForbidden()
+        from_contained = self._create_or_update_contained(self.initial_data)
+        claim = self._create_claim_from_validated_data(validated_data, from_contained)
+        return self.create_claim_response(claim.code)
 
     def create_claim_response(self, claim_code):
-        claim = get_object_or_404(Claim, code=claim_code)
+        claim = get_object_or_404(Claim, code=claim_code, validity_to=None)
         return ClaimResponseConverter.to_fhir_obj(claim)
 
     def create_claim_attachments(self, claim_code, attachments):
-        claim = get_object_or_404(Claim, code=claim_code)
+        claim = get_object_or_404(Claim, code=claim_code, validity_to=None)
         create_attachments(claim.id, attachments)
 
     def to_representation(self, obj):
@@ -119,9 +77,115 @@ class ClaimSerializer(BaseFHIRSerializer, ContainedContentSerializerMixin):
                                                    r.DB_ID_REFERENCE_TYPE]):
         if reference_type != self._reference_type:
             self._reference_type = reference_type
-            for contained in self.contained_resources:
-                contained.reference_type = reference_type
+            self.__set_contained_resource_reference_types(reference_type)
 
     def __get_attachments(self, fhir_obj):
         attachment_category = R4ClaimConfig.get_fhir_claim_attachment_code()
         return [a.valueAttachment for a in fhir_obj.supportingInfo if a.category.text == attachment_category]
+
+    def __set_contained_resource_reference_types(self, reference_type):
+        self._contained_definitions.update_reference_type(reference_type)
+
+    def __claim_provisions_to_dict(self, list_of_provisions, contained_items):
+        # Claim Entering service is expecting to receive items and services in form of
+        # dict and then uses process_items_relations or process_services_relations to create actual items.
+        out = []
+        for x in list_of_provisions:
+            dict_ = x.__dict__
+            dict_.pop('_state', None)
+            if isinstance(x, ClaimItem):
+                dict_['item_id'] = \
+                    self.__get_contained_medical_provision(contained_items, dict_) or dict_['item_id']
+            elif isinstance(x, ClaimService):
+                dict_['service_id'] = \
+                    self.__get_contained_medical_provision(contained_items, dict_) or dict_['service_id']
+            else:
+                raise AttributeError(F"Medical provision {x} is not ClaimItem nor ClaimService")
+
+            dict_.pop('code')
+            out.append(dict_)
+        return out
+
+    def __get_contained_or_default_hf_id(self, contained_dict, validated_data):
+        contained_value = self.__id_from_contained(
+            contained_dict['health_facility__Organization'],
+            lambda x: x.code == validated_data['health_facility_code'])
+        return contained_value or validated_data['health_facility_id']
+
+    def __get_contained_or_default_insuree(self, contained_dict, validated_data):
+        contained_value = self.__id_from_contained(
+            contained_dict['insuree__Patient'],
+            lambda x: x.chf_id == validated_data['insuree_chf_code'])
+        return contained_value or validated_data['insuree_id']
+
+    def __get_contained_or_default_claim_admin(self, contained_dict, validated_data):
+        contained_value = self.__id_from_contained(
+            contained_dict['admin__Practitioner'],
+            lambda x: x.code == validated_data['claim_admin_code'])
+        return contained_value or validated_data['admin_id']
+
+    def __get_contained_medical_provision(self, contained_items: list, item):
+        contained_value = self.__id_from_contained(contained_items, lambda x: x.code == item['code'])
+        return contained_value
+
+    def __id_from_contained(self, contained_collection, lookup_func):
+        matching = [x.id for x in contained_collection if lookup_func(x)]
+        return matching[0] if len(matching) != 0 else None
+
+    def _create_claim_from_validated_data(self, validated_data, contained):
+        truncated_data = self._claim_input_from_validated_claim_data(validated_data, contained)
+        user = self.context.get("request").user
+        if not user or not user.has_perms(
+                ClaimConfig.gql_mutation_create_claims_perms
+                + ClaimConfig.gql_mutation_submit_claims_perms
+        ):
+            return HttpResponseForbidden()
+
+        rule_engine_validation = GeneralConfiguration.get_claim_rule_engine_validation()
+        claim = ClaimSubmitService(user) \
+            .enter_and_submit(truncated_data, rule_engine_validation=rule_engine_validation)
+
+        attachments = validated_data.get('claim_attachments', [])
+        self.create_claim_attachments(claim.code, attachments)
+        return claim
+
+    def _claim_input_from_validated_claim_data(self, validated_data, contained):
+        essential_claim_fields = [
+            'date_claimed', 'date_from', 'date_to',
+            'icd_id', 'icd_1_id', 'icd_2_id', 'icd_3_id', 'icd_4_id',
+            'code',
+            'claimed',
+            'explanation',
+            'adjustment',
+            'category',
+            'visit_type',
+            'guarantee_id',
+
+            'insuree_id',
+            'health_facility_id',
+            'admin_id',
+
+            'items',
+            'services',
+
+            'json_ext'
+        ]
+        truncated_data = {k: v for k, v in validated_data.items() if k in essential_claim_fields}
+        truncated_data.pop('_state', None)
+
+        # Items and services passed in converter through additional attributes
+        truncated_data['items'] = self.__claim_provisions_to_dict(
+            validated_data['submit_items'],
+            contained['items__Medication'])
+
+        truncated_data['services'] = self.__claim_provisions_to_dict(
+            validated_data['submit_services'],
+            contained['services__ActivityDefinition'])
+
+        # If those resources are created through contained id is not available until _create_or_update_contained is
+        # called. This ensures references are ok. Codes are assigned in converter as additional variables.
+        # .get() is used as those values are mandatory in claim and have to be unique.
+        truncated_data['health_facility_id'] = self.__get_contained_or_default_hf_id(contained, validated_data)
+        truncated_data['insuree_id'] = self.__get_contained_or_default_insuree(contained, validated_data)
+        truncated_data['admin_id'] = self.__get_contained_or_default_claim_admin(contained, validated_data)
+        return truncated_data

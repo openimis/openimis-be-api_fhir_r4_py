@@ -1,161 +1,296 @@
 {
-  "resourceType": "CoverageEligibilityResponse",
-  "insurance": [
-    {
-      "benefitBalance": [
-        {
-          "category": {
-            "text": "total_admissions"
-          },
-          "financial": [
+   "resourceType":"CoverageEligibilityResponse",
+   "status":"active",
+   "purpose":[
+      "benefits"
+   ],
+   "patient":{
+      "reference":"Patient/chfid"
+   },
+   "created":"2021-09-29",
+   "request":{
+      "reference":"CoverageEligibilityRequest/D30F70DF-D10B-43D4-9578-5137C118AD84"
+   },
+   "outcome":"complete",
+   "insurer":{
+      "reference":"openIMIS"
+   },
+   "insurance":[
+      {
+         "coverage":{
+            "reference":"Coverage/policy"
+         },
+         "item":[
             {
-              "allowedUnsignedInt": 1
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "total_visits"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_admissions"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":1
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 3
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "total_consultations"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_visits"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":3
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 23
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "total_surgeries"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_consultations"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":23
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 5
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "total_deliveries"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_surgeries"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":5
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 2
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "total_antenatal"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_deliveries"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":2
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 11
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "consultation_amount"
-          },
-          "financial": [
+               "category":{
+                  "text":"total_antenatal"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":11
+                  }
+               ]
+            },
             {
-              "allowedMoney": {
-                "value": 123.21
-              }
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "surgery_amount"
-          },
-          "financial": [
+               "category":{
+                  "text":"consultation_amount"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedMoney":{
+                        "value":123.21
+                     }
+                  }
+               ]
+            },
             {
-              "allowedMoney": {
-                "value": 12.11
-              }
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "delivery_amount"
-          },
-          "financial": [
+               "category":{
+                  "text":"surgery_amount"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedMoney":{
+                        "value":12.11
+                     }
+                  }
+               ]
+            },
             {
-              "allowedMoney": {
-                "value": 26.0
-              }
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "hospitalization_amount"
-          },
-          "financial": [
+               "category":{
+                  "text":"delivery_amount"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedMoney":{
+                        "value":26.0
+                     }
+                  }
+               ]
+            },
             {
-              "allowedMoney": {
-                "value": 42.0
-              }
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "antenatal_amount"
-          },
-          "financial": [
+               "category":{
+                  "text":"hospitalization_amount"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedMoney":{
+                        "value":42.0
+                     }
+                  }
+               ]
+            },
             {
-              "allowedMoney": {
-                "value": 59.14
-              }
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "service_left"
-          },
-          "financial": [
+               "category":{
+                  "text":"antenatal_amount"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedMoney":{
+                        "value":59.14
+                     }
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 12
-            }
-          ]
-        },
-        {
-          "category": {
-            "text": "item_left"
-          },
-          "financial": [
+               "category":{
+                  "text":"service_left"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":12
+                  }
+               ]
+            },
             {
-              "allowedUnsignedInt": 1
+               "category":{
+                  "text":"item_left"
+               },
+               "benefit":[
+                  {
+                     "type":{
+                        "coding":[
+                           {
+                              "system":"https://www.hl7.org/fhir/valueset-benefit-type.html",
+                              "code":"benefit",
+                              "display":"Benefit"
+                           }
+                        ]
+                     },
+                     "allowedUnsignedInt":1
+                  }
+               ]
+            },
+            {
+               "category":{
+                  "text":"is_service_ok"
+               },
+               "excluded":false
+            },
+            {
+               "category":{
+                  "text":"is_item_ok"
+               },
+               "excluded":true
             }
-          ]
-        },
-        {
-          "category": {
-            "text": "is_service_ok"
-          },
-          "excluded": false
-        },
-        {
-          "category": {
-            "text": "is_item_ok"
-          },
-          "excluded": true
-        }
-      ]
-    }
-  ]
+         ]
+      }
+   ]
 }

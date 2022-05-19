@@ -1,48 +1,56 @@
 {
-  "resourceType": "Location",
-  "address": {
-    "text": "TEST_ADDRESS",
-    "type": "physical",
-    "use": "home"
-  },
-  "identifier": [
-    {
-      "type": {
-        "coding": [
-          {
-            "code": "FI",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
-        ]
-      },
-      "use": "usual",
-      "value": "12345678"
-    }
-  ],
-  "name": "TEST_NAME",
-  "telecom": [
-    {
-      "system": "phone",
-      "use": "home",
-      "value": "133-996-476"
-    },
-    {
-      "system": "fax",
-      "use": "home",
-      "value": "1-408-999 8888"
-    },
-    {
-      "system": "email",
-      "use": "home",
-      "value": "TEST@TEST.com"
-    }
-  ],
-  "type": {
-    "coding": [
+   "resourceType":"Location",
+   "id":"fae47c99-a684-4b6c-9106-51ab7cbde0b2",
+   "identifier":[
       {
-        "code": "HOSP",
-        "system": "http://hl7.org/fhir/v3/ServiceDeliveryLocationRoleType/vs.html"
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"fae47c99-a684-4b6c-9106-51ab7cbde0b2"
+      },
+      {
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"Code"
+               }
+            ]
+         },
+         "value":"RTDTMTVT"
       }
-    ]
-  }
+   ],
+   "status":"active",
+   "name":"TEST_NAME",
+   "mode":"instance",
+   "physicalType":{
+      "coding":[
+         {
+            "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/location-type",
+            "code":"V",
+            "display":"City/Village"
+         }
+      ]
+   },
+   "partOf":{
+      "reference":"Location/a82f54bf-d983-4963-a279-490312a96344",
+      "type":"Location",
+      "identifier":{
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"a82f54bf-d983-4963-a279-490312a96344"
+      },
+      "display":"RTDTMT"
+   }
 }

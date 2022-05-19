@@ -1,22 +1,57 @@
 {
-  "resourceType": "CoverageEligibilityRequest",
-  "benefitCategory": {
-    "coding": [
+   "resourceType":"CoverageEligibilityRequest",
+   "identifier":[
       {
-        "code": "service"
+         "type":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                  "code":"UUID"
+               }
+            ]
+         },
+         "value":"D30F70DF-D10B-43D4-9578-5137C118AD84"
       }
-    ],
-    "text": "serviceCode"
-  },
-  "benefitSubCategory": {
-    "coding": [
+   ],
+   "patient":{
+      "reference":"Patient/chfid"
+   },
+   "status":"active",
+   "purpose":[
+      "benefits"
+   ],
+   "created":"2021-09-29",
+   "insurer":{
+      "reference":"openIMIS"
+   },
+   "item":[
       {
-        "code": "item"
+         "category":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-item-category",
+                  "code":"service",
+                  "display":"Service"
+               }
+            ]
+         },
+         "productOrService":{
+            "text":"STEST"
+         }
+      },
+      {
+         "category":{
+            "coding":[
+               {
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-item-category",
+                  "code":"item",
+                  "display":"Item"
+               }
+            ]
+         },
+         "productOrService":{
+            "text":"ITEST"
+         }
       }
-    ],
-    "text": "itemCode"
-  },
-  "patient": {
-    "reference": "Patient/chfid"
-  }
+   ]
 }

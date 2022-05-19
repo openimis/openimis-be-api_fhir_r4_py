@@ -1,0 +1,157 @@
+{
+    "resourceType": "ActivityDefinition",
+    "id": "1234-1234-1234",
+    "extension": [
+        {
+            "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/unit-price",
+            "valueMoney": {
+                "value": 1.0,
+                "currency": "$"
+            }
+        },
+        {
+            "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/activity-definition-level",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/ValueSet/activity-definition-level",
+                        "code": "D",
+                        "display": "Day of stay"
+                    }
+                ],
+                "text": "Day of stay"
+            }
+        }
+    ],
+    "identifier": [
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "UUID"
+                    }
+                ]
+            },
+            "value": "1234-1234-1234"
+        },
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "Code"
+                    }
+                ]
+            },
+            "value": "TEST"
+        }
+    ],
+    "name": "TEST",
+    "title": "Test Service",
+    "status": "active",
+    "date": "2020-01-01T18:50:00",
+    "useContext": [
+        {
+            "code": {
+                "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                "code": "gender",
+                "display": "Gender"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://hl7.org/fhir/administrative-gender",
+                        "code": "female",
+                        "display": "Female"
+                    },
+                    {
+                        "system": "http://hl7.org/fhir/administrative-gender",
+                        "code": "male",
+                        "display": "Male"
+                    }
+                ],
+                "text": "Male or Female"
+            }
+        },
+        {
+            "code": {
+                "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                "code": "age",
+                "display": "Age Range"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/usage-context-age-type",
+                        "code": "adult",
+                        "display": "Adult"
+                    },
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/usage-context-age-type",
+                        "code": "child",
+                        "display": "Child"
+                    }
+                ],
+                "text": "Adult or Child"
+            }
+        },
+        {
+            "code": {
+                "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                "code": "workflow",
+                "display": "Workflow Setting"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/activity-definition-usage-context-workflow-type",
+                        "code": "A",
+                        "display": "Antenatal"
+                    }
+                ],
+                "text": "Surgery"
+            }
+        },
+        {
+            "code": {
+                "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                "code": "venue",
+                "display": "Clinical Venue"
+            },
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/2.1.0/CodeSystem-v3-ActCode.html",
+                        "code": "AMB",
+                        "display": "ambulatory"
+                    },
+                    {
+                        "system": "http://terminology.hl7.org/2.1.0/CodeSystem-v3-ActCode.html",
+                        "code": "IMP",
+                        "display": "IMP"
+                    }
+                ],
+                "text": "ambulatory or IMP"
+            }
+        }
+    ],
+    "topic": [
+        {
+            "coding": [
+                {
+                    "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/activity-definition-service-type.html",
+                    "code": "C",
+                    "display": "Curative"
+                }
+            ]
+        }
+    ],
+    "timingTiming": {
+        "repeat": {
+            "frequency": 1,
+            "period": 1.0,
+            "periodUnit": "d"
+        }
+    }
+}

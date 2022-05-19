@@ -1,22 +1,45 @@
 from rest_framework.test import APITestCase
 
-from api_fhir_r4.models import Location
-from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiReadTestMixin, FhirApiCreateTestMixin, \
-    FhirApiUpdateTestMixin, FhirApiDeleteTestMixin
+from location.models import Location
+from fhir.resources.location import Location as FHIRLocation
+from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiCreateTestMixin
+from api_fhir_r4.configurations import GeneralConfiguration
 
 
-class LocationAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, FhirApiCreateTestMixin, FhirApiUpdateTestMixin,
-                       FhirApiDeleteTestMixin, APITestCase):
+class LocationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin,
+                       APITestCase):
 
-    base_url = '/api_fhir_r4/Location/'
+    base_url = GeneralConfiguration.get_base_url()+'Location/'
     _test_json_path = "/test/test_location.json"
+    _TEST_MUNICIPALITY_UUID = "a82f54bf-d983-4963-a279-490312a96344"
     _TEST_EXPECTED_NAME = "UPDATED_NAME"
 
     def setUp(self):
         super(LocationAPITests, self).setUp()
+        # create level location
+        imis_location_region = Location()
+        imis_location_region.code = "RT"
+        imis_location_region.name = "Test"
+        imis_location_region.type = "R"
+        imis_location_region.save()
+
+        imis_location_district = Location()
+        imis_location_district.code = "RTDT"
+        imis_location_district.name = "Test"
+        imis_location_district.type = "D"
+        imis_location_district.parent = imis_location_region
+        imis_location_district.save()
+
+        imis_location_municipality = Location()
+        imis_location_municipality.code = "RTDTMT"
+        imis_location_municipality.name = "Test"
+        imis_location_municipality.type = "M"
+        imis_location_municipality.parent = imis_location_district
+        imis_location_municipality.uuid = self._TEST_MUNICIPALITY_UUID
+        imis_location_municipality.save()
 
     def verify_updated_obj(self, updated_obj):
-        self.assertTrue(isinstance(updated_obj, Location))
+        self.assertTrue(isinstance(updated_obj, FHIRLocation))
         self.assertEqual(self._TEST_EXPECTED_NAME, updated_obj.name)
 
     def update_resource(self, data):

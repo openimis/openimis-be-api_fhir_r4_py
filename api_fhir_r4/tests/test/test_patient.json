@@ -1,72 +1,146 @@
 {
-  "resourceType": "Patient",
-  "address": [
-    {
-      "text": "TEST_ADDRESS",
-      "type": "physical",
-      "use": "home"
-    },
-    {
-      "text": "TEST_GEOLOCATION",
-      "type": "both",
-      "use": "home"
-    }
-  ],
-  "birthDate": "1990-03-24T00:00:00",
-  "gender": "male",
-  "identifier": [
-    {
-      "type": {
-        "coding": [
-          {
-            "code": "SB",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
-        ]
-      },
-      "use": "usual",
-      "value": "TEST_CHF_ID"
-    },
-    {
-      "type": {
-        "coding": [
-          {
-            "code": "PPN",
-            "system": "https://hl7.org/fhir/valueset-identifier-type.html"
-          }
-        ]
-      },
-      "use": "usual",
-      "value": "TEST_PASSPORT"
-    }
-  ],
-  "maritalStatus": {
-    "coding": [
+   "resourceType":"Patient",
+   "address":[
       {
-        "code": "D",
-        "system": "http://hl7.org/fhir/valueset-marital-status.html"
+         "extension":[
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-municipality",
+               "valueString":"Test"
+            },
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
+               "valueReference":{
+                  "reference":"Location/69a55f2d-ee34-4193-be0e-2b6a361797bd"
+               }
+            }
+         ],
+         "use":"home",
+         "type":"physical",
+         "text":"Jetset zone 85",
+         "city":"TEST_NAME",
+         "district":"Test",
+         "state":"Test"
+      },
+      {
+         "extension":[
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-municipality",
+               "valueString":"Test"
+            },
+            {
+               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
+               "valueReference":{
+                  "reference":"Location/69a55f2d-ee34-4193-be0e-2b6a361797bd"
+               }
+            }
+         ],
+         "use":"temp",
+         "type":"physical",
+         "text":"Jetset zone 85",
+         "city":"TEST_NAME",
+         "district":"Test",
+         "state":"Test"
       }
-    ]
-  },
-  "name": [
-    {
-      "family": "TEST_LAST_NAME",
-      "given": [
-        "TEST_OTHER_NAME"
-      ],
-      "use": "usual"
-    }
-  ],
-  "telecom": [
-    {
-      "system": "phone",
-      "use": "home",
-      "value": "813-996-476"
-    },
-    {
-      "system": "email",
-      "use": "home",
-      "value": "TEST@TEST.com"
-    }
-  ]
+   ],
+   "extension":[
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/patient-group-reference",
+         "valueReference":{
+            "reference":"Group/8e33033a-9f60-43ad-be3e-3bfeb992aae5"
+         }
+      },
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/patient-is-head",
+         "valueBoolean":false
+      },
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/patient-profession",
+         "valueCodeableConcept":{
+            "coding":[
+               {
+                  "system":"CodeSystem/patient-profession",
+                  "code":"4",
+                  "display":"Others"
+               }
+            ]
+         }
+      },
+      {
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/patient-card-issued",
+         "valueBoolean":false
+      },
+      {
+         "extension":[
+            {
+               "url":"number",
+               "valueString":"PassportB1"
+            },
+            {
+               "url":"type",
+               "valueCodeableConcept":{
+                  "coding":[
+                     {
+                        "system":"CodeSystem/patient-identification-type",
+                        "code":"P"
+                     }
+                  ]
+               }
+            }
+         ],
+         "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/patient-identification"
+      }
+   ],
+   "birthDate":"1990-03-24",
+   "gender":"male",
+   "identifier":[
+      {
+         "type":{
+            "coding":[
+               {
+                  "code":"Code",
+                  "system":"https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers"
+               }
+            ]
+         },
+         "use":"usual",
+         "value":"827192671"
+      }
+   ],
+   "maritalStatus":{
+      "coding":[
+         {
+            "code":"D",
+            "system":"http://hl7.org/fhir/valueset-marital-status.html"
+         }
+      ]
+   },
+   "name":[
+      {
+         "family":"TEST_LAST_NAME",
+         "given":[
+            "TEST_OTHER_NAME"
+         ],
+         "use":"usual"
+      }
+   ],
+   "telecom":[
+      {
+         "system":"phone",
+         "use":"home",
+         "value":"813-996-476"
+      },
+      {
+         "system":"email",
+         "use":"home",
+         "value":"TEST@TEST.com"
+      }
+   ],
+   "photo":[
+      {
+         "contentType":"png",
+         "title":"photo_test",
+         "creation":"2021-03-27",
+         "data":"TESTTEST"
+      }
+   ]
 }

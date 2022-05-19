@@ -15,14 +15,10 @@ class LocationSerializer(BaseFHIRSerializer):
         return Location.objects.create(**copied_data)
 
     def update(self, instance, validated_data):
-        # TODO legalForm isn't covered because that value is missing in the model
-        # TODO LocationId isn't covered because that value is missing in the model
-        # TODO offline isn't covered in the current version of API
-        # TODO care_type isn't covered in the current version of API
         instance.code = validated_data.get('code', instance.code)
         instance.name = validated_data.get('name', instance.name)
         instance.type = validated_data.get('type', instance.type)
-        instance.partOf = validated_data.get('partOf', instance.partOf)
+        instance.parent_id = validated_data.get('parent_id', instance.parent_id)
         instance.audit_user_id = self.get_audit_user_id()
         instance.save()
         return instance

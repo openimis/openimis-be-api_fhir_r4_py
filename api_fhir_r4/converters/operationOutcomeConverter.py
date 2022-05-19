@@ -1,15 +1,16 @@
-from claim import ClaimSubmitError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from claim.services import ClaimSubmitError
 from django.db import IntegrityError
 from django.http import Http404
 from django.http.response import HttpResponse
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ErrorDetail, NotAuthenticated, AuthenticationFailed
 
 from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.models import OperationOutcomeV2
 from fhir.resources.operationoutcome import OperationOutcomeIssue
-from pydantic.error_wrappers import ValidationError
+from pydantic.error_wrappers import ValidationError as PydanticValidationError
 
 
 class OperationOutcomeConverter(BaseFHIRConverter):
@@ -38,13 +39,17 @@ class OperationOutcomeConverter(BaseFHIRConverter):
         elif isinstance(obj, ClaimSubmitError):
             result = cls.build_for_fhir_claim_submit_error(obj)
         elif isinstance(obj, Http404):
-            result = cls.build_for_404()
+            result = cls.build_for_404(obj)
         elif isinstance(obj, APIException):
             result = cls.build_for_key_api_exception(obj)
         elif isinstance(obj, KeyError):
             result = cls.build_for_key_error(obj)
         elif isinstance(obj, IntegrityError):
             result = cls.build_for_IntegrityError(obj)
+        elif isinstance(obj, PydanticValidationError):
+            result = cls.build_for_PydanticValidationError(obj)
+        elif isinstance(obj, DjangoValidationError):
+            result = cls.build_for_ValidationError(obj)
         else:
             result = cls.build_for_generic_error(obj)
         return result
@@ -57,10 +62,25 @@ class OperationOutcomeConverter(BaseFHIRConverter):
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
-    def build_for_404(cls):
+    def build_for_PydanticValidationError(cls, obj):
+        severity = "error"
+        code = R4IssueTypeConfig.get_fhir_code_for_exception()
+        details_text = str(obj)
+        return cls.build_outcome(severity, code, details_text)
+
+    @classmethod
+    def build_for_ValidationError(cls, obj):
+        severity = "error"
+        code = R4IssueTypeConfig.get_fhir_code_for_exception()
+        details_text = str(obj.messages)
+        return cls.build_outcome(severity, code, details_text)
+
+    @classmethod
+    def build_for_404(cls, obj):
         severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_not_found()
-        return cls.build_outcome(severity, code)
+        details_text = str(obj) or None  # If error message is passed to 404 exception
+        return cls.build_outcome(severity, code, details_text)
 
     @classmethod
     def build_for_400_bad_request(cls, details_text=None):
@@ -114,7 +134,7 @@ class OperationOutcomeConverter(BaseFHIRConverter):
         issue_data["severity"] = severity
         issue_data["code"] = code
         if details_text:
-            #if type(details_text) is str:
+            # if type(details_text) is str:
             issue_data["details"] = cls.build_simple_codeable_concept(text=details_text)
         issue = OperationOutcomeIssue(**issue_data)
         if type(outcome.issue) is not list:

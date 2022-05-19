@@ -62,6 +62,14 @@ class R4CoverageConfig(CoverageConfiguration):
         return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_status_idle_code', "Idle")
 
     @classmethod
+    def get_status_cancelled_code(cls):
+        return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_status_cancelled_code', "cancelled")
+
+    @classmethod
+    def get_status_draft_code(cls):
+        return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_status_draft_code', "draft")
+
+    @classmethod
     def get_status_active_code(cls):
         return cls.get_config_attribute("R4_fhir_claim_config").get('fhir_status_active_code', "active")
 

@@ -1,3 +1,6 @@
+# TODO uncomment if someone need this serializer with connection to openHIM
+
+"""
 import logging
 import os
 import requests
@@ -7,7 +10,9 @@ from rest_framework import status
 from policy.services import ByInsureeRequest, ByInsureeService, ByInsureeResponse
 from api_fhir_r4.converters import PolicyCoverageEligibilityRequestConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
+"""
 
+"""
 class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
     fhirConverter = PolicyCoverageEligibilityRequestConverter()
@@ -51,4 +56,4 @@ class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
             by_insuree_request= by_insuree_request,
             items= items
         )
-   
+"""
