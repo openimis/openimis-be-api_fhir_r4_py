@@ -4,18 +4,22 @@ from fhir.resources.paymentnotice import PaymentNotice
 from .errors import (
     ERROR_BAD_STATUS,
     ERROR_BAD_PAYMENT_STATUS,
-    ERROR_BAD_TYPE_REQUEST
+    ERROR_BAD_TYPE_REQUEST,
+    ERROR_NO_INVOICE_SAVED_IN_DB
 )
 from api_fhir_r4.converters import (
     BaseFHIRConverter,
     ReferenceConverterMixin
 )
+from api_fhir_r4.paymentNotice.client import ReconciliationClient
 from api_fhir_r4.paymentNotice.mapping import (
     PaymentNoticeStatusMapping,
     PaymentNoticePaymentDetailStatusMapping,
     PaymentNoticePaymentStatusMapping
 )
 from invoice.models import (
+    Bill,
+    Invoice,
     PaymentInvoice,
     DetailPaymentInvoice
 )
@@ -92,17 +96,62 @@ class PaymentNoticeToImisConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_payment_detail_invoice(cls, imis_payment_detail, fhir_payment_notice, errors):
+        if fhir_payment_notice.request:
+            cls._build_imis_payment_detail_invoice_from_request(imis_payment_detail, fhir_payment_notice, errors)
+        else:
+            cls._build_imis_payment_detail_invoice_from_reconciliation(imis_payment_detail, fhir_payment_notice, errors)
+
+    @classmethod
+    def _build_imis_payment_detail_invoice_from_request(cls, imis_payment_detail, fhir_payment_notice, errors):
         subject_id = cls.get_id_from_reference(fhir_payment_notice.request)
         subject_type = fhir_payment_notice.request.type.lower()
         if subject_type in SUBJECT_TYPE:
-            imis_payment_detail.subject_type = cls._convert_content_type(subject_type)
-            imis_payment_detail.subject_id = subject_id
+            cls._build_imis_subject_by_type(imis_payment_detail, subject_type, subject_id)
         else:
             errors.append(ERROR_BAD_TYPE_REQUEST)
 
     @classmethod
+    def _build_imis_payment_detail_invoice_from_reconciliation(cls, imis_payment_detail, fhir_payment_notice, errors):
+        # fetch invoice/bill from external source based on PaymentReconciliation
+        # TODO for that moment only one invoice/bill could be saved. Make
+        #  possibility to save 1 DetailPaymentInvoice per Detail
+        reconciliation_id = cls.get_id_from_reference(fhir_payment_notice.payment)
+        recon_client = ReconciliationClient()
+        result = recon_client.get_reconciliation(reconciliation_id)
+        if result.reconciliation_success:
+            payment_reconciliation = result.payment_reconciliation
+            fhir_reconciliation_details = payment_reconciliation.detail
+            for reconciliation_detail in fhir_reconciliation_details:
+                cls._get_invoice_payment_reconciliation_detail(imis_payment_detail, reconciliation_detail)
+                if imis_payment_detail.subject:
+                    errors.append(ERROR_NO_INVOICE_SAVED_IN_DB)
+        else:
+            errors.append(result.reason_of_failure)
+
+    @classmethod
     def _convert_content_type(cls, subject_type):
         return ContentType.objects.get(model=subject_type)
+
+    @classmethod
+    def _get_invoice_payment_reconciliation_detail(cls, imis_payment_detail, reconciliation_detail):
+        invoice_uuid = cls.get_id_from_reference(reconciliation_detail.request)
+        invoices = Invoice.objects.filter(id=invoice_uuid)
+        bills = Bill.objects.filter(id=invoice_uuid)
+        if invoices.count() > 0:
+            invoice = invoices.objects.first()
+            cls._build_imis_subject_object(imis_payment_detail, invoice)
+        if bills.count() > 0:
+            bill = bills.objects.first()
+            cls._build_imis_subject_object(imis_payment_detail, bill)
+
+    @classmethod
+    def _build_imis_subject_by_type(cls, imis_payment_detail, subject_type, subject_id):
+        imis_payment_detail.subject_type = cls._convert_content_type(subject_type)
+        imis_payment_detail.subject_id = subject_id
+
+    @classmethod
+    def _build_imis_subject_object(cls, imis_payment_detail, subject):
+        imis_payment_detail.subject = subject
 
     @classmethod
     def build_imis_payment_amount(cls, imis_payment, imis_payment_detail, fhir_payment_notice):

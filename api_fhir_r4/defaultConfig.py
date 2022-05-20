@@ -195,4 +195,8 @@ DEFAULT_CFG = {
         "fhir_payment_notice_payment_status_paid": "paid",
         "fhir_payment_notice_payment_status_cleared": "cleared"
     },
+    "R4_fhir_payment_reconciliation_config": {
+        "get_fhir_payment_reconciliation_url": "localhost/api/api_fhir_r4/",
+        "get_fhir_payment_reconciliation_token": "bearer token",
+    }
 }
