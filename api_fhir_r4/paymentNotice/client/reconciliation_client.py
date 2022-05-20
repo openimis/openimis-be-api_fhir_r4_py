@@ -45,5 +45,5 @@ class ReconciliationClient:
             raise ValidationError('You pointed to the same URL as this API call')
         return {
             'headers': {**self._base_headers},
-            'url': f'{R4PaymentReconciliationConfig.get_fhir_payment_reconciliation_url()}{reference}',
+            'url': url,
         }
