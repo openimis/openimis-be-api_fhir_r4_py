@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import F
 from django.utils.translation import gettext as _
 from django_cryptography.fields import encrypt
-from jsonfallback.fields import FallbackJSONField
 
 from core.datetimes import ad_datetime
 from core.fields import DateTimeField
@@ -23,7 +22,7 @@ class Subscription(HistoryBusinessModel):
     channel = models.SmallIntegerField(db_column='Channel', null=False, choices=SubscriptionChannel.choices)
     endpoint = models.CharField(db_column='Endpoint', max_length=255, null=False)
     headers = encrypt(models.TextField(db_column='Headers', null=True))
-    criteria = FallbackJSONField(db_column='Criteria', null=True)
+    criteria = models.JSONField(db_column='Criteria', null=True)
     expiring = models.DateTimeField(db_column='Expiring', null=False)
 
     class Meta:

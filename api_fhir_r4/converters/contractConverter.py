@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.patientConverter import PatientConverter
+from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.mapping.contractMapping import PayTypeMapping, ContractStatus, \
     ContractState
 from fhir.resources.contract import Contract, ContractTermAssetValuedItem, \
@@ -44,7 +45,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
         return fhir_contract
 
     @classmethod
-    def to_imis_obj(cls,fhir_contract, audit_user_id):
+    def to_imis_obj(cls, fhir_contract, audit_user_id):
         errors = []
         fhir_contract = Contract(**fhir_contract)
         imis_policy = Policy()
@@ -347,21 +348,30 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_subject(cls, fhir_contract, imis_policy, errors):
-        if fhir_contract.subject:
-            for subject in  fhir_contract.subject:
-                if subject.reference is not None:
-                    reference = subject.reference.split("Group/", 2)
-                    try:
-                        imis_policy.family = Family.objects.filter(uuid=reference[1]).first()
-                    except:
-                        cls.valid_condition(True, _('Missing  `Family head provided does not exist` attribute'), errors)
+        from api_fhir_r4.converters.groupConverter import GroupConverter
+        if cls.valid_condition(not bool(fhir_contract.subject), _('Missing  `subject` attribute'), errors):
+            return
+
+        ref = fhir_contract.subject[0]
+        reference_type = cls.get_resource_type_from_reference(ref)
+        if reference_type == 'Group':
+            family = GroupConverter.get_imis_obj_by_fhir_reference(ref)
+            if family is None:
+                raise FHIRException(
+                    F"Invalid group reference `{ref}`, no family matching "
+                    F"provided resource_id."
+                )
+        elif reference_type == 'Patient':
+            patient = PatientConverter.get_imis_obj_by_fhir_reference(ref)
+            family = cls._get_or_build_insuree_family(patient)
         else:
-            cls.valid_condition(not fhir_contract.subject, _('Missing  `subject` attribute'), errors)
+            raise FHIRException("Contract subject reference is neither `Group` nor `Patient`")
+        imis_policy.family = family
 
     @classmethod
     def build_imis_signer(cls, fhir_contract, imis_policy, errors):
         if fhir_contract.signer:
-            for signer in  fhir_contract.signer:
+            for signer in fhir_contract.signer:
                 if signer.type:
                     if signer.type.text and signer.party.reference is not None:
                         if signer.type.text == 'HeadOfFamily':
@@ -385,10 +395,10 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
             cls.valid_condition(not fhir_contract.signer, _('Missing  `signer` attribute'),errors)
 
     @classmethod
-    def build_imis_insurees(cls,fhir_contract,imis_policy,errors):
+    def build_imis_insurees(cls, fhir_contract, imis_policy, errors):
         if fhir_contract.term:
             insurees =[]
-            for term in  fhir_contract.term:
+            for term in fhir_contract.term:
                 if term.asset:
                     for asset in term.asset:
                         if asset.typeReference:
@@ -503,3 +513,19 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if len(coding) > 0:
             code = coding[0]
             imis_contribution.pay_type = code.code
+
+    @classmethod
+    def _get_or_build_insuree_family(cls, insuree: Insuree):
+        if insuree.family:
+            if insuree.family.head_insuree != insuree:
+                raise FHIRException(
+                    "Patient subject reference is not head of the existing family.")
+            return insuree.family
+        else:
+            insuree.head = True
+            return Family(
+                location=insuree.current_village,
+                head_insuree=insuree,
+                address=insuree.current_address
+            )
+

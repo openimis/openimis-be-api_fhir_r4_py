@@ -1,45 +1,52 @@
-from policy.services import EligibilityRequest
-from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageEligibilityConfiguration as Config
-from api_fhir_r4.converters import BaseFHIRConverter, PatientConverter, ReferenceConverterMixin
+from django.db import connection
+from fhir.resources.coverageeligibilityresponse import (
+    CoverageEligibilityResponse as FHIRCoverageEligibilityResponse,
+    CoverageEligibilityResponseInsuranceItem,
+    CoverageEligibilityResponseInsurance,
+    CoverageEligibilityResponseInsuranceItemBenefit
+)
 from fhir.resources.money import Money
-from fhir.resources.reference import Reference
 from fhir.resources.period import Period
-from fhir.resources.coverageeligibilityresponse import CoverageEligibilityResponse as FHIRCoverageEligibilityResponse, \
-    CoverageEligibilityResponseInsuranceItem, \
-    CoverageEligibilityResponseInsurance, CoverageEligibilityResponseInsuranceItemBenefit
+
+from api_fhir_r4.configurations import (
+    GeneralConfiguration,
+    R4CoverageEligibilityConfiguration as Config
+)
+from api_fhir_r4.converters import (
+    BaseFHIRConverter,
+    PatientConverter,
+    ReferenceConverterMixin
+)
+from api_fhir_r4.defaultConfig import DEFAULT_CFG
 from api_fhir_r4.models import CoverageEligibilityRequestV2 as FHIRCoverageEligibilityRequest
 from api_fhir_r4.utils import TimeUtils
-from insuree.models import InsureePolicy
-from product.models import Product
-from policy.services import EligibilityResponse
-from django.db import connection
-from claim.models import Claim, ClaimService, ClaimItem
-from medical.models import Item, Service
+from claim.models import (
+    ClaimService,
+    ClaimItem
+)
+from insuree.models import (
+    Insuree,
+    InsureePolicy
+)
+from medical.models import (
+    Item,
+    Service
+)
+from policy.models import Policy
+from policy.services import (
+    EligibilityRequest,
+    EligibilityResponse
+)
+from product.models import Product, ProductService, ProductItem
 
 
 class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
-    def to_fhir_obj(cls, coverage_eligibility_response, coverage_eligibility_request, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
-        fhir_eligibility_response = {}
-        fhir_eligibility_response["status"] = 'active'
-        fhir_eligibility_response["outcome"] = 'complete'
-
-        reference_insurer = {}
-        reference_insurer["reference"] = 'openIMIS'
-        fhir_eligibility_response["insurer"] = reference_insurer
-
-        reference_patient = {}
-        reference_patient["reference"] = f'Patient/{coverage_eligibility_request.chf_id}'
-        fhir_eligibility_response['patient'] = reference_patient
-
-        reference_coverage_eligibility_request = {}
-        reference_coverage_eligibility_request["reference"] = f'CoverageEligibilityRequest'
-        fhir_eligibility_response['request'] = reference_coverage_eligibility_request
-
-        fhir_eligibility_response["purpose"] = ["benefits"]
-        fhir_eligibility_response["created"] = TimeUtils.date().isoformat()
-        fhir_response = FHIRCoverageEligibilityResponse(**fhir_eligibility_response)
+    def to_fhir_obj(cls, coverage_eligibility_response, coverage_eligibility_request,
+                    reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        fhir_response = cls.build_fhir_obligatory_fields(coverage_eligibility_request)
+        fhir_response.patient = cls.build_fhir_patient(coverage_eligibility_request.chf_id)
         for item in coverage_eligibility_response.items:
             if item.status in Config.get_fhir_active_policy_status():
                 cls.build_fhir_insurance(fhir_response, item, coverage_eligibility_request)
@@ -51,6 +58,37 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         chf_id = cls.build_imis_chf(fhir_coverage_eligibility_request)
         item_code, service_code = cls.build_imis_item_service(fhir_coverage_eligibility_request)
         return EligibilityRequest(chf_id, service_code, item_code)
+
+    @classmethod
+    def build_fhir_obligatory_fields(cls, coverage_eligibility_request):
+        fhir_eligibility_response = {"status": 'active', "outcome": 'complete'}
+
+        default_insurance_organisation = DEFAULT_CFG['R4_fhir_insurance_organisation_config']
+        resource_id = default_insurance_organisation['id']
+        reference_insurer = {"reference": f'Organization/{resource_id}'}
+        fhir_eligibility_response["insurer"] = reference_insurer
+
+        reference_patient = {"reference": f'Patient/{coverage_eligibility_request.chf_id}'}
+        fhir_eligibility_response['patient'] = reference_patient
+
+        reference_coverage_eligibility_request = {"reference": f'CoverageEligibilityRequest'}
+        fhir_eligibility_response['request'] = reference_coverage_eligibility_request
+
+        fhir_eligibility_response["purpose"] = ["benefits"]
+        fhir_eligibility_response["created"] = TimeUtils.date().isoformat()
+        return FHIRCoverageEligibilityResponse(**fhir_eligibility_response)
+
+    @classmethod
+    def build_fhir_patient(cls, chf_id):
+        insuree = Insuree.objects.filter(chf_id=chf_id, validity_to__isnull=True)
+        if insuree.count() == 1:
+            insuree = insuree.first()
+            reference = PatientConverter.build_fhir_resource_reference(
+                insuree,
+                type='Patient',
+                display=chf_id
+            )
+            return reference
 
     @classmethod
     def build_fhir_insurance(cls, fhir_response, item, request):
@@ -74,28 +112,6 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                                   request.service_code,
                                   request.item_code))
                 res = cur.fetchone()  # retrieve the stored proc @Result table
-                if res is None:
-                    response_eligibility_sp = EligibilityResponse(
-                        eligibility_request=None,
-                        prod_id=None,
-                        total_admissions_left=0,
-                        total_visits_left=0,
-                        total_consultations_left=0,
-                        total_surgeries_left=0,
-                        total_deliveries_left=0,
-                        total_antenatal_left=0,
-                        consultation_amount_left=0.0,
-                        surgery_amount_left=0.0,
-                        delivery_amount_left=0.0,
-                        hospitalization_amount_left=0.0,
-                        antenatal_amount_left=0.0,
-                        min_date_service=None,
-                        min_date_item=None,
-                        service_left=0,
-                        item_left=0,
-                        is_item_ok=False,
-                        is_service_ok=False
-                    )
 
                 (prod_id, total_admissions_left, total_visits_left, total_consultations_left, total_surgeries_left,
                  total_deliveries_left, total_antenatal_left, consultation_amount_left, surgery_amount_left,
@@ -125,7 +141,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                     is_item_ok=is_item_ok is True,
                     is_service_ok=is_service_ok is True
                 )
-        except:
+        except Exception:
             response_eligibility_sp = EligibilityResponse(
                 eligibility_request=None,
                 prod_id=None,
@@ -152,18 +168,16 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         result.item = []
         cls.build_fhir_benefit_item_element(result, response_eligibility_sp)
         # check services and items etc
-        service_claim = ClaimService.objects.filter(
-            claim__insuree__chf_id=request.chf_id,
-            validity_to=None).values('service').distinct()
-        item_claim = ClaimItem.objects.filter(
-            claim__insuree__chf_id=request.chf_id,
-            validity_to=None).values('item').distinct()
-        # build coverag item - service
-        if service_claim.count() > 0:
-            cls.build_fhir_benefit_item_service_element(result, response_eligibility_sp, service_claim)
-        # build coverag item - item
-        if item_claim.count() > 0:
-            cls.build_fhir_benefit_item_item_element(result, response_eligibility_sp, item_claim)
+        prod_service = ProductService.objects\
+            .filter(product=prod_id, validity_to=None, service__code=request.service_code).first()
+        prod_item = ProductItem.objects\
+            .filter(product=prod_id, validity_to=None, item__code=request.item_code).first()
+        # build coverage item - service
+        if prod_service:
+            cls.build_fhir_benefit_item_service_element(result, response_eligibility_sp, prod_service.service)
+        # build coverage item - item
+        if prod_item:
+            cls.build_fhir_benefit_item_item_element(result, response_eligibility_sp, prod_item.item)
         if type(fhir_response.insurance) is not list:
             fhir_response.insurance = [result]
         else:
@@ -171,8 +185,14 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_coverage(cls, insurance, policy_uuid):
-        reference_coverage = Reference.construct()
-        reference_coverage.reference = F"Coverage/{policy_uuid}"
+        # Due to circular dependency import has to be done inside of method
+        from api_fhir_r4.converters import CoverageConverter
+        policy = Policy.objects.filter(uuid=policy_uuid, validity_to__isnull=True).first()
+        reference_coverage = CoverageConverter.build_fhir_resource_reference(
+            policy,
+            type='Coverage',
+            display=policy.uuid
+        )
         insurance.coverage = reference_coverage
 
     @classmethod
@@ -273,7 +293,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         insurance.item.append(item)
 
     @classmethod
-    def build_fhir_benefit_item_item_element(cls, insurance, response, item_claim):
+    def build_fhir_benefit_item_item_element(cls, insurance, response, stored_item):
         item = CoverageEligibilityResponseInsuranceItem.construct()
         system = F"{GeneralConfiguration.get_system_base_url()}CodeSystem/coverage-item-category"
         item.category = cls.build_codeable_concept(
@@ -296,13 +316,13 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                 display="Items left",
                 value=response.service_left
             )
-        code = Item.objects.get(id=item_claim.first()['item'], validity_to=None).code
+        code = stored_item.code
         item.productOrService = cls.build_simple_codeable_concept(code)
         item.excluded = not response.is_service_ok
         insurance.item.append(item)
 
     @classmethod
-    def build_fhir_benefit_item_service_element(cls, insurance, response, service_claim):
+    def build_fhir_benefit_item_service_element(cls, insurance, response, stored_service):
         item = CoverageEligibilityResponseInsuranceItem.construct()
         system = F"{GeneralConfiguration.get_system_base_url()}CodeSystem/coverage-item-category"
         item.category = cls.build_codeable_concept(
@@ -325,7 +345,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                 display="Services left",
                 value=response.item_left
             )
-        code = Service.objects.get(id=service_claim.first()['service'], validity_to=None).code
+        code = stored_service.code
         item.productOrService = cls.build_simple_codeable_concept(code)
         item.excluded = not response.is_item_ok
         insurance.item.append(item)

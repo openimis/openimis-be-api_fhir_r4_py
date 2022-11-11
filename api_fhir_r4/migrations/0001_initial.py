@@ -7,7 +7,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django_cryptography.fields
-import jsonfallback.fields
 import simple_history.models
 
 
@@ -25,7 +24,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(db_column='UUID', default=None, editable=False, primary_key=True, serialize=False)),
                 ('is_deleted', models.BooleanField(db_column='isDeleted', default=False)),
-                ('json_ext', jsonfallback.fields.FallbackJSONField(blank=True, db_column='Json_ext', null=True)),
+                ('json_ext', models.JSONField(blank=True, db_column='Json_ext', null=True)),
                 ('date_created', core.fields.DateTimeField(db_column='DateCreated', null=True)),
                 ('date_updated', core.fields.DateTimeField(db_column='DateUpdated', null=True)),
                 ('version', models.IntegerField(default=1)),
@@ -35,8 +34,8 @@ class Migration(migrations.Migration):
                 ('status', models.SmallIntegerField(choices=[(0, 'inactive'), (1, 'active')], db_column='Status')),
                 ('channel', models.SmallIntegerField(choices=[(0, 'rest-hook')], db_column='Channel')),
                 ('endpoint', models.CharField(db_column='Endpoint', max_length=255)),
-                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', null=True))),
-                ('criteria', jsonfallback.fields.FallbackJSONField(db_column='Criteria', null=True)),
+                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', max_length=255, null=True))),
+                ('criteria', models.JSONField(db_column='Criteria', null=True)),
                 ('expiring', models.DateTimeField(db_column='Expiring')),
                 ('user_created', models.ForeignKey(db_column='UserCreatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='subscription_user_created', to=settings.AUTH_USER_MODEL)),
                 ('user_updated', models.ForeignKey(db_column='UserUpdatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='subscription_user_updated', to=settings.AUTH_USER_MODEL)),
@@ -52,7 +51,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(db_column='UUID', db_index=True, default=None, editable=False)),
                 ('is_deleted', models.BooleanField(db_column='isDeleted', default=False)),
-                ('json_ext', jsonfallback.fields.FallbackJSONField(blank=True, db_column='Json_ext', null=True)),
+                ('json_ext', models.JSONField(blank=True, db_column='Json_ext', null=True)),
                 ('date_created', core.fields.DateTimeField(db_column='DateCreated', null=True)),
                 ('date_updated', core.fields.DateTimeField(db_column='DateUpdated', null=True)),
                 ('version', models.IntegerField(default=1)),
@@ -62,8 +61,8 @@ class Migration(migrations.Migration):
                 ('status', models.SmallIntegerField(choices=[(0, 'inactive'), (1, 'active')], db_column='Status')),
                 ('channel', models.SmallIntegerField(choices=[(0, 'rest-hook')], db_column='Channel')),
                 ('endpoint', models.CharField(db_column='Endpoint', max_length=255)),
-                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', null=True))),
-                ('criteria', jsonfallback.fields.FallbackJSONField(db_column='Criteria', null=True)),
+                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', max_length=255, null=True))),
+                ('criteria', models.JSONField(db_column='Criteria', null=True)),
                 ('expiring', models.DateTimeField(db_column='Expiring')),
                 ('history_id', models.AutoField(primary_key=True, serialize=False)),
                 ('history_date', models.DateTimeField()),

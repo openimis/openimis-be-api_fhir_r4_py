@@ -23,6 +23,8 @@ class ContractSerializer(BaseFHIRSerializer):
 
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
+        #TODO should we implement a way to create a resource with a given uuid
+        del copied_data['uuid']
 
         new_policy = PolicyService(user).update_or_create(copied_data, user)
         # create contributions related to newly created policy

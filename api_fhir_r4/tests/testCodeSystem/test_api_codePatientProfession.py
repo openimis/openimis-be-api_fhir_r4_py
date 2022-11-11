@@ -6,10 +6,10 @@ from insuree.models import Profession
 
 
 class CodeSystemPatientProfessionAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/patient-profession/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/patient-profession/'
 
     def setUp(self):
+        super(CodeSystemPatientProfessionAPITests, self).setUp()
         self._EXPECTED_COUNT = Profession.objects.all().count()
 
     def test_get_bad_authorization(self):

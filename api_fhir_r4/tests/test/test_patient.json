@@ -20,26 +20,6 @@
          "city":"TEST_NAME",
          "district":"Test",
          "state":"Test"
-      },
-      {
-         "extension":[
-            {
-               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-municipality",
-               "valueString":"Test"
-            },
-            {
-               "url":"https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
-               "valueReference":{
-                  "reference":"Location/69a55f2d-ee34-4193-be0e-2b6a361797bd"
-               }
-            }
-         ],
-         "use":"temp",
-         "type":"physical",
-         "text":"Jetset zone 85",
-         "city":"TEST_NAME",
-         "district":"Test",
-         "state":"Test"
       }
    ],
    "extension":[

@@ -5,10 +5,10 @@ from api_fhir_r4.configurations import GeneralConfiguration
 
 
 class CodeSystemOrganizationLevelAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/organization-hf-level/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/organization-hf-level/'
 
     def setUp(self):
+        super(CodeSystemOrganizationLevelAPITests, self).setUp()
         self._EXPECTED_COUNT = 3
 
     def test_get_bad_authorization(self):

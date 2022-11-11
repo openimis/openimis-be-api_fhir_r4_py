@@ -12,7 +12,6 @@ from medical.models import Diagnosis
 
 
 class CommunicationRequestTestMixin(GenericTestMixin):
-
     _TEST_CODE = 'codeTest'
     _TEST_UUID = "7ac646cb-d3cd-4660-baeb-ee34ecf0354e"
     _TEST_STATUS = Claim.STATUS_ENTERED
@@ -67,6 +66,7 @@ class CommunicationRequestTestMixin(GenericTestMixin):
     _TEST_EMAIL = "TEST@TEST.com"
 
     def setUp(self):
+        super(CommunicationRequestTestMixin, self).setUp()
         self._TEST_CLAIM = self.create_test_imis_instance()
         self._TEST_ITEM = self.create_test_claim_item()
         self._TEST_SERVICE = self.create_test_claim_service()

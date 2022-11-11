@@ -64,12 +64,19 @@ class PatientCategoryMapping(object):
         },
     }
 
-    imis_gender_mapping = {
-        # FHIR Gender code to IMIS object
-        'male': Gender.objects.get(pk='M'),
-        'female': Gender.objects.get(pk='F'),
-        'other': Gender.objects.get(pk='O'),
-    }
+    def get_genders():
+        imis_gender_mapping = {
+            # FHIR Gender code to IMIS object
+            'male': Gender.objects.get(pk='M'),
+            'female': Gender.objects.get(pk='F'),
+        }
+
+        o = Gender.objects.filter(pk='O').first()
+        if o:
+            imis_gender_mapping['other'] = o
+        return imis_gender_mapping
+
+    imis_gender_mapping = get_genders()
 
     imis_patient_category_flags = {
         "male": 1,

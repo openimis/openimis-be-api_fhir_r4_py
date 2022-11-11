@@ -8,6 +8,7 @@ class CodeSystemPHOrganizationLegalFormAPITests(GenericFhirAPITestMixin, APITest
     base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/organization-ph-legal-form/'
 
     def setUp(self):
+        super(CodeSystemPHOrganizationLegalFormAPITests, self).setUp()
         self._EXPECTED_COUNT = 5
 
     def test_get_bad_authorization(self):

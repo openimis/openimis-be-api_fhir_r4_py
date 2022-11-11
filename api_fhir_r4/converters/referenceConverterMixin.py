@@ -1,6 +1,8 @@
 import inspect
 import logging
 
+from typing import Tuple
+
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from fhir.resources.reference import Reference
 
@@ -51,16 +53,30 @@ class ReferenceConverterMixin(object):
 
     @classmethod
     def get_resource_id_from_reference(cls, reference):
-        resource_id = None
+        _, resource_id = cls._get_type_and_id_from_reference(reference)
+        return resource_id
+
+    @classmethod
+    def get_resource_type_from_reference(cls, reference):
+        path, _ = cls._get_type_and_id_from_reference(reference)
+        return path
+
+    @classmethod
+    def _get_type_and_id_from_reference(cls, reference: Reference) -> Tuple[str, str]:
+        """
+        Extracts resource type and resource id from FHIR reference.
+        """
+        resource_id, path = None, None
         if reference:
             reference = reference.reference
             if isinstance(reference, str) and '/' in reference:
                 path, resource_id = reference.rsplit('/', 1)
-        if resource_id is None:
+        if path is None or resource_id is None:
             raise FHIRRequestProcessException(
-                [F'Could not fetch id from reference `{reference}`. Invalid reference format']
+                [F'Invalid format of reference `{reference}`. '
+                 F'Should be string with format <ReferenceType>/<ReferenceId>']
             )
-        return resource_id
+        return path, resource_id
 
     @classmethod
     def __get_imis_object_id_as_string(cls, obj, reference_type):

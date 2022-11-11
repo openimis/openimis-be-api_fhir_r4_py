@@ -27,6 +27,7 @@ class SubscriptionServiceTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        super(SubscriptionServiceTest, cls).setUpTestData()
         if not User.objects.filter(username='admin_sub_service').exists():
             User.objects.create_superuser(username='admin_sub_service', password='S\/pe®Pąßw0rd™')
         cls.user = User.objects.filter(username='admin_sub_service').first()

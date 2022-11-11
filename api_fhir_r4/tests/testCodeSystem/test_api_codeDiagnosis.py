@@ -6,10 +6,10 @@ from medical.models import Diagnosis
 
 
 class CodeSystemDiagnosisAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/diagnosis/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/diagnosis/'
 
     def setUp(self):
+        super(CodeSystemDiagnosisAPITests, self).setUp()
         self._EXPECTED_COUNT = Diagnosis.objects.all().count()
 
     def test_get_bad_authorization(self):

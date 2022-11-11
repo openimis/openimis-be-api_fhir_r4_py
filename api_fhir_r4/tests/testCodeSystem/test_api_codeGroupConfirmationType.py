@@ -6,10 +6,10 @@ from insuree.models import ConfirmationType
 
 
 class CodeSystemGroupConfirmationTypeAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/group-confirmation-type/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/group-confirmation-type/'
 
     def setUp(self):
+        super(CodeSystemGroupConfirmationTypeAPITests, self).setUp()
         self._EXPECTED_COUNT = ConfirmationType.objects.all().count()
 
     def test_get_bad_authorization(self):

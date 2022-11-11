@@ -8,7 +8,6 @@ from location.models import HealthFacility
 
 
 class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
-
     _TEST_CLAIM_ADMIN = None
     _TEST_HF = None
     _TEST_ORGANIZATION_REFERENCE = None
@@ -30,6 +29,7 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
     _TEST_EMAIL = "TEST@TEST.com"
 
     def setUp(self):
+        super(ClaimAdminPractitionerRoleTestMixin, self).setUp()
         self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance()
         self._TEST_CLAIM_ADMIN.save()
         self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + self._TEST_CLAIM_ADMIN.uuid
@@ -94,4 +94,4 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
         self.assertEqual(1, len(fhir_obj.code))
         self.assertEqual(1, len(fhir_obj.code[0].coding))
         self.assertEqual("CA", fhir_obj.code[0].coding[0].code)
-        self.assertEqual("Claim Administrator",  fhir_obj.code[0].coding[0].display)
+        self.assertEqual("Claim Administrator", fhir_obj.code[0].coding[0].display)

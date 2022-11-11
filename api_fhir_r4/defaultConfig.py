@@ -186,5 +186,13 @@ DEFAULT_CFG = {
         "fhir_sub_status_active": "active",
         "get_fhir_sub_criteria_key_resource": "resource",
         "get_fhir_sub_criteria_key_resource_type": "resource_type"
-    }
+    },
+    "R4_fhir_payment_notice_config": {
+        "get_fhir_payment_notice_status_active": "active",
+        "get_fhir_payment_notice_status_cancelled": "cancelled",
+        "get_fhir_payment_notice_status_draft": "draft",
+        "get_fhir_payment_notice_status_entered_in_error": "entered-in-error",
+        "fhir_payment_notice_payment_status_paid": "paid",
+        "fhir_payment_notice_payment_status_cleared": "cleared"
+    },
 }

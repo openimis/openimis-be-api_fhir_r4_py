@@ -22,4 +22,5 @@ from api_fhir_r4.tests.mixin.groupTestMixin import GroupTestMixin
 from api_fhir_r4.tests.mixin.enrolmentOfficerPractitionerTestMixin import EnrolmentOfficerPractitionerTestMixin
 from api_fhir_r4.tests.mixin.enrolmentOfficerPractitionerRoleTestMixin import EnrolmentOfficerPractitionerRoleTestMixin
 from api_fhir_r4.tests.mixin.coverageTestMixin import CoverageTestMixin
+from api_fhir_r4.tests.mixin.paymentNoticeTestMixin import PaymentNoticeTestMixin
 from api_fhir_r4.tests.testCodeSystem import *

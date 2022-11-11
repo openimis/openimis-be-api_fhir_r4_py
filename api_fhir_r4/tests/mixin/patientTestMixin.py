@@ -1,10 +1,6 @@
-import os
-import urllib
-from urllib.parse import urlparse
-
 from uuid import UUID
 
-from insuree.models import Family, Gender, Insuree, Profession
+from insuree.models import Gender, Insuree, Profession
 from location.models import Location
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig, R4MaritalConfig
@@ -26,7 +22,6 @@ from insuree.test_helpers import create_test_insuree
 
 
 class PatientTestMixin(GenericTestMixin):
-
     _TEST_LAST_NAME = "TEST_LAST_NAME"
     _TEST_OTHER_NAME = "TEST_OTHER_NAME"
     _TEST_IS_HEAD = False
@@ -56,6 +51,7 @@ class PatientTestMixin(GenericTestMixin):
     _TEST_PHOTO_TITLE = "photo_test"
 
     def setUp(self):
+        super(PatientTestMixin, self).setUp()
         self._TEST_GENDER = Gender()
         self._TEST_GENDER.code = self._TEST_GENDER_CODE
 
@@ -87,7 +83,7 @@ class PatientTestMixin(GenericTestMixin):
         imis_location.type = self._TEST_LOCATION_TYPE
         imis_location.uuid = self._TEST_LOCATION_UUID
         imis_location.parent = imis_location_municipality
-        
+
         return imis_location
 
     def create_test_imis_instance(self):
@@ -223,27 +219,28 @@ class PatientTestMixin(GenericTestMixin):
 
         addresses = [family_address]
 
-        # insuree slice
-        current_address = PatientConverter.build_fhir_address(self._TEST_ADDRESS, "temp", "physical")
-        current_address.state = imis_location.parent.parent.parent.name
-        current_address.district = imis_location.parent.parent.name
-
-        # municipality extension
-        extension = Extension.construct()
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-municipality"
-        extension.valueString = imis_location.parent.name
-        current_address.extension = [extension]
-
-        # address location reference extension
-        extension = Extension.construct()
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
-        reference_location = Reference.construct()
-        reference_location.reference = F"Location/{imis_location.uuid}"
-        extension.valueReference = reference_location
-        current_address.extension.append(extension)
-        current_address.city = imis_location.name
-
-        addresses.append(current_address)
+        # Commented out, as single address extension is required
+        # # insuree slice
+        # current_address = PatientConverter.build_fhir_address(self._TEST_ADDRESS, "temp", "physical")
+        # current_address.state = imis_location.parent.parent.parent.name
+        # current_address.district = imis_location.parent.parent.name
+        #
+        # # municipality extension
+        # extension = Extension.construct()
+        # extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-municipality"
+        # extension.valueString = imis_location.parent.name
+        # current_address.extension = [extension]
+        #
+        # # address location reference extension
+        # extension = Extension.construct()
+        # extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
+        # reference_location = Reference.construct()
+        # reference_location.reference = F"Location/{imis_location.uuid}"
+        # extension.valueReference = reference_location
+        # current_address.extension.append(extension)
+        # current_address.city = imis_location.name
+        #
+        # addresses.append(current_address)
         fhir_patient.address = addresses
 
         # test mocked_photo
@@ -274,7 +271,8 @@ class PatientTestMixin(GenericTestMixin):
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-profession"
         display = PatientProfessionMapping.patient_profession[str(self._TEST_PROFESSION.id)]
         system = "CodeSystem/patient-profession"
-        extension.valueCodeableConcept = PatientConverter.build_codeable_concept(code=str(self._TEST_PROFESSION.id), system=system)
+        extension.valueCodeableConcept = PatientConverter.build_codeable_concept(code=str(self._TEST_PROFESSION.id),
+                                                                                 system=system)
         if len(extension.valueCodeableConcept.coding) == 1:
             extension.valueCodeableConcept.coding[0].display = display
         fhir_patient.extension.append(extension)

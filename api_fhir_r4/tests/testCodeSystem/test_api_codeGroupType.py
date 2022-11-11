@@ -6,10 +6,10 @@ from insuree.models import FamilyType
 
 
 class CodeSystemGroupTypeAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/group-type/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/group-type/'
 
     def setUp(self):
+        super(CodeSystemGroupTypeAPITests, self).setUp()
         self._EXPECTED_COUNT = FamilyType.objects.all().count()
 
     def test_get_bad_authorization(self):

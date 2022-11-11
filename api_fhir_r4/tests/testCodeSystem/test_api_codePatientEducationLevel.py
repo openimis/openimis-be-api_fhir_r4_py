@@ -6,10 +6,10 @@ from insuree.models import Education
 
 
 class CodeSystemPatientEducationLevelAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/patient-education-level/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/patient-education-level/'
 
     def setUp(self):
+        super(CodeSystemPatientEducationLevelAPITests, self).setUp()
         self._EXPECTED_COUNT = Education.objects.all().count()
 
     def test_get_bad_authorization(self):

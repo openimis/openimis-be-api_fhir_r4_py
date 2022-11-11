@@ -177,6 +177,14 @@ class FHIRApiBillPermissions(FHIRApiPermissions):
     permissions_delete = InvoiceConfig.gql_bill_delete_perms
 
 
+class FHIRApiPaymentPermissions(FHIRApiPermissions):
+    permissions_get = InvoiceConfig.gql_invoice_payment_search_perms
+    permissions_post = InvoiceConfig.gql_invoice_payment_create_perms
+    permissions_put = InvoiceConfig.gql_invoice_payment_update_perms
+    permissions_patch = InvoiceConfig.gql_invoice_payment_update_perms
+    permissions_delete = InvoiceConfig.gql_invoice_payment_delete_perms
+
+
 class FHIRApiSubscriptionPermissions(FHIRApiPermissions):
     permissions_get = R4SubscriptionConfig.get_fhir_sub_search_perms()
     permissions_post = R4SubscriptionConfig.get_fhir_sub_create_perms()

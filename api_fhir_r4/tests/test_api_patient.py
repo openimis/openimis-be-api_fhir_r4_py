@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 from unittest import skip
 
 from django.utils.translation import gettext as _
@@ -257,4 +256,3 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
         self.assertIsNotNone(json_response["issue"][0]["details"]["text"])
         # Information regarding field should be part of failure reason
         self.assertIn(field, json_response["issue"][0]["details"]["text"])
-

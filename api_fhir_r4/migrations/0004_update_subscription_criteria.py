@@ -15,9 +15,8 @@ def update_subscription_criteria(apps, schema_editor):
 
     subscription_model = apps.get_model('api_fhir_r4', 'Subscription')
     entries_to_update = subscription_model.objects\
-        .exclude(criteria__jsoncontainskey='resource')\
-        .filter(criteria__jsoncontainskey='resource_type')\
-        .all()
+        .exclude(criteria__has_key='resource')\
+        .filter(criteria__has_key='resource_type')
     for subscription in entries_to_update:
         resource = subscription.criteria.pop('resource_type')
         if resource in resource_type_map:

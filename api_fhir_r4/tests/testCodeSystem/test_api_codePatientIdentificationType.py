@@ -6,10 +6,10 @@ from insuree.models import IdentificationType
 
 
 class CodeSystemPatientIdentificationTypeAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/patient-identification-type/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/patient-identification-type/'
 
     def setUp(self):
+        super(CodeSystemPatientIdentificationTypeAPITests, self).setUp()
         self._EXPECTED_COUNT = IdentificationType.objects.all().count()
 
     def test_get_bad_authorization(self):

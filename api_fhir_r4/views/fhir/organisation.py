@@ -77,9 +77,9 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
     def _io_serializer_validator(cls, context):
         return cls._base_request_validator_dispatcher(
             request=context['request'],
-            get_check=lambda x: cls._get_type_from_query(x) in ('io', None),
-            post_check=lambda x: cls._get_type_from_body(x) == 'io',
-            put_check=lambda x: cls._get_type_from_body(x) in ('io', None),
+            get_check=lambda x: cls._get_type_from_query(x) in ('ins', None),
+            post_check=lambda x: cls._get_type_from_body(x) == 'ins',
+            put_check=lambda x: cls._get_type_from_body(x) in ('ins', None),
         )
 
     @classmethod
@@ -94,6 +94,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
 
     def list(self, request, *args, **kwargs):
         resource_type = request.GET.get("resourceType")
+        type_ = request.GET.get("type")
         identifier = request.GET.get("code")
         if identifier:
             return self.retrieve(request, *args, **{**kwargs, 'identifier': identifier})
@@ -107,7 +108,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
             filtered_querysets[model, serializer] = next_serializer_data
 
         # if insurance organisation queryset is empty - take the default one
-        if resource_type is None or resource_type == 'io':
+        if resource_type is None or resource_type == 'ins':
             if (ModuleConfiguration, InsuranceOrganizationSerializer) in filtered_querysets:
                 if len(filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer]) == 0:
                     filtered_querysets[ModuleConfiguration, InsuranceOrganizationSerializer] = \
@@ -159,8 +160,8 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
         module_config = self._io_queryset()[0]._cfg
         if 'insurer_organisation' in module_config:
             insurer_organisations = module_config['insurer_organisation']
-            for io in insurer_organisations:
-                data.append(io)
+            for ins in insurer_organisations:
+                data.append(ins)
         return data
 
     def _get_insurance_organisations(self):
@@ -170,17 +171,17 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
         module_config = self._io_queryset()[0]._cfg
         if 'insurer_organisation' in module_config:
             insurer_organisations = module_config['insurer_organisation']
-            for io in insurer_organisations:
-                data.append(serializer.to_representation(obj=io))
+            for ins in insurer_organisations:
+                data.append(serializer.to_representation(obj=ins))
         return data
 
     def _get_insurance_organisation(self, identifier):
         """method to get chosen insurance organisation from module fhir config"""
         insurer_organisations = self._get_insurance_organisations()
         if len(insurer_organisations) > 0:
-            for io in insurer_organisations:
-                if identifier == f"{io['id']}":
-                    return io
+            for ins in insurer_organisations:
+                if identifier == f"{ins['id']}":
+                    return ins
 
     def _get_insurance_organisation_default(self, identifier):
         """method to get chosen insurance organisation from default config if no config in db"""
@@ -219,7 +220,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
     @classmethod
     def _get_type_from_query(cls, request):
         try:
-            return request.GET['resourceType'].lower()
+            return request.GET['type'].lower()
         except KeyError:
             return None
 
@@ -249,6 +250,6 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
 
     def __check_default_config_insurance_organisation(self, model_data):
         for md in model_data:
-            if 'resource_type' in md:
-                if md['resource_type'] == 'insurance_organisation':
-                    return [self._get_insurance_organisation_default(identifier=DEFAULT_CFG['R4_fhir_insurance_organisation_config']['id'])]
+            if md.get('resource_type') == 'insurance_organisation':
+                identifier = DEFAULT_CFG['R4_fhir_insurance_organisation_config']['id']
+                return [self._get_insurance_organisation_default(identifier=identifier)]

@@ -6,10 +6,10 @@ from insuree.models import Relation
 
 
 class CodeSystemPatientContactRelationshipAPITests(GenericFhirAPITestMixin, APITestCase):
-
-    base_url = GeneralConfiguration.get_base_url()+'CodeSystem/patient-contact-relationship/'
+    base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/patient-contact-relationship/'
 
     def setUp(self):
+        super(CodeSystemPatientContactRelationshipAPITests, self).setUp()
         self._EXPECTED_COUNT = Relation.objects.all().count()
 
     def test_get_bad_authorization(self):

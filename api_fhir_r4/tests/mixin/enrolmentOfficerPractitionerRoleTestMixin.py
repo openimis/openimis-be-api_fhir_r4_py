@@ -9,7 +9,6 @@ from core.models import Officer
 
 
 class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
-
     _TEST_OFFICER = None
     _TEST_LOCATION = None
     _TEST_SUBSTITUTION_OFFICER = None
@@ -20,6 +19,7 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
     _TEST_LOCATION_UUID = "041890f3-d90b-46ca-8b25-56c3f8d60615"
 
     def setUp(self):
+        super(EnrolmentOfficerPractitionerRoleTestMixin, self).setUp()
         self._TEST_OFFICER = EnrolmentOfficerPractitionerTestMixin().create_test_imis_instance()
         self._TEST_SUBSTITUTION_OFFICER = self.create_test_subsitution_officer()
         self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + self._TEST_OFFICER.uuid
@@ -85,14 +85,16 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
         self.assertIn(self._TEST_LOCATION_REFERENCE, fhir_obj.location[0].reference)
         for identifier in fhir_obj.identifier:
             self.assertTrue(isinstance(identifier, Identifier))
-            code = EnrolmentOfficerPractitionerRoleConverter.get_first_coding_from_codeable_concept(identifier.type).code
+            code = EnrolmentOfficerPractitionerRoleConverter.get_first_coding_from_codeable_concept(
+                identifier.type).code
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
                 self.assertEqual(self._TEST_OFFICER.code, identifier.value)
             elif code == R4IdentifierConfig.get_fhir_uuid_type_code():
                 self.assertEqual(self._TEST_OFFICER.uuid, identifier.value)
         self.assertIn(self._TEST_PRACTITIONER_REFERENCE, fhir_obj.practitioner.reference)
-        self.assertIn(self._TEST_SUBSTITUTION_OFFICER.uuid, fhir_obj.extension[0].valueReference.reference.split('Practitioner/')[1])
+        self.assertIn(self._TEST_SUBSTITUTION_OFFICER.uuid,
+                      fhir_obj.extension[0].valueReference.reference.split('Practitioner/')[1])
         self.assertEqual(1, len(fhir_obj.code))
         self.assertEqual(1, len(fhir_obj.code[0].coding))
         self.assertEqual("EO", fhir_obj.code[0].coding[0].code)
-        self.assertEqual("Enrolment Officer",  fhir_obj.code[0].coding[0].display)
+        self.assertEqual("Enrolment Officer", fhir_obj.code[0].coding[0].display)

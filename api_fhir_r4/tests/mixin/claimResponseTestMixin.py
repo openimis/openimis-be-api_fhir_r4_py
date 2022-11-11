@@ -13,7 +13,6 @@ from claim.test_helpers import create_test_claim_admin
 
 
 class ClaimResponseTestMixin(GenericTestMixin):
-
     _TEST_CODE = 'codeTest'
     _TEST_STATUS = Claim.STATUS_ENTERED
     _TEST_STATUS_DISPLAY = "entered"
@@ -68,6 +67,7 @@ class ClaimResponseTestMixin(GenericTestMixin):
     _TEST_EMAIL = "TEST@TEST.com"
 
     def setUp(self):
+        super(ClaimResponseTestMixin, self).setUp()
         self._TEST_CLAIM = self.create_test_imis_instance()
         self._TEST_ITEM = self.create_test_claim_item()
         self._TEST_SERVICE = self.create_test_claim_service()
@@ -171,7 +171,8 @@ class ClaimResponseTestMixin(GenericTestMixin):
         self.assertEqual(str(self._TEST_SERVICE_STATUS), fhir_obj.item[1].adjudication[0].category.coding[0].code)
         self.assertEqual(self._TEST_SERVICE_QUANTITY, fhir_obj.item[1].adjudication[0].value)
         self.assertEqual(self._TEST_SERVICE_PRICE, fhir_obj.item[1].adjudication[0].amount.value)
-        self.assertEqual(str(self._TEST_SERVICE_REJECTED_REASON), fhir_obj.item[1].adjudication[0].reason.coding[0].code)
+        self.assertEqual(str(self._TEST_SERVICE_REJECTED_REASON),
+                         fhir_obj.item[1].adjudication[0].reason.coding[0].code)
         self.assertEqual(str(self._TEST_STATUS), fhir_obj.total[0].category.coding[0].code)
         self.assertEqual(self._PRICE_ASKED, fhir_obj.total[0].amount.value)
         self.assertEqual(self._TEST_CLAIM_ADMIN_UUID, fhir_obj.requestor.identifier.value)

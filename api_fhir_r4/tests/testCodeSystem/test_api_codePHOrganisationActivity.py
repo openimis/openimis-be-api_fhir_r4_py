@@ -8,6 +8,7 @@ class CodeSystemPHOrganizationLActivityAPITests(GenericFhirAPITestMixin, APITest
     base_url = GeneralConfiguration.get_base_url() + 'CodeSystem/organization-ph-activity/'
 
     def setUp(self):
+        super(CodeSystemPHOrganizationLActivityAPITests, self).setUp()
         self._EXPECTED_COUNT = 5
 
     def test_get_bad_authorization(self):

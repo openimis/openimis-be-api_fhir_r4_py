@@ -1,21 +1,16 @@
-import uuid
-
 from policy.services import EligibilityResponse, EligibilityRequest
 from insuree.test_helpers import create_test_insuree
 from medical.test_helpers import create_test_service, create_test_item
 
-
 from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageEligibilityConfiguration as Config
-from api_fhir_r4.converters import PatientConverter, CoverageEligibilityRequestConverter
+from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.models import CoverageEligibilityRequestV2 as CoverageEligibilityRequest
 from fhir.resources.coverageeligibilityrequest import CoverageEligibilityRequestItem
-from api_fhir_r4.tests import GenericTestMixin, PatientTestMixin
+from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 
 
-
 class CoverageEligibilityRequestTestMixin(GenericTestMixin):
-
     _TEST_ADMIN_USER_ID = 1
     _TEST_ADMIN_USER_UUID = "90b0cee2-73ae-4705-af8d-8fe035209ab2"
     _TEST_SERVICE_CODE = 'STEST'
@@ -38,6 +33,7 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
     _TEST_IS_ITEM_OK = False
 
     def setUp(self):
+        super(CoverageEligibilityRequestTestMixin, self).setUp()
         self._TEST_INSUREE = create_test_insuree()
         self._TEST_INSUREE.chf_id = self._TEST_CHFID
         self._TEST_INSUREE.save()

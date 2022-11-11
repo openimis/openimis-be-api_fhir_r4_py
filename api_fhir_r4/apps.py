@@ -23,7 +23,7 @@ class ApiFhirConfig(AppConfig):
 
     def __configure_module(self, cfg):
         ModuleConfiguration.build_configuration(cfg)
-        logger.info('Module $s configured successfully', MODULE_NAME)
+        logger.info(F'Module {MODULE_NAME} configured successfully')
 
 
 def setup_yaml():

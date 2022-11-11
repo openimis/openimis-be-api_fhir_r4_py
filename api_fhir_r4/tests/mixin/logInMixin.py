@@ -13,7 +13,7 @@ class LogInMixin:
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [1, 5, 9],
+        "roles": [1, 3, 5, 9],
     }
 
     def get_or_create_user_api(self):

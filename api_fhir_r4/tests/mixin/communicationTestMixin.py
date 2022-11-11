@@ -15,7 +15,6 @@ from medical.models import Diagnosis
 
 
 class CommunicationTestMixin(GenericTestMixin):
-
     # feedback expected data
     _TEST_FEE_UUID = "612a1e12-ce44-4632-90a8-129ec714ec59"
     _TEST_CARE_RENDERED = True
@@ -79,6 +78,7 @@ class CommunicationTestMixin(GenericTestMixin):
     _TEST_EMAIL = "TEST@TEST.com"
 
     def setUp(self):
+        super(CommunicationTestMixin, self).setUp()
         self._TEST_CLAIM = self.create_test_claim()
         self._TEST_ITEM = self.create_test_claim_item()
         self._TEST_SERVICE = self.create_test_claim_service()

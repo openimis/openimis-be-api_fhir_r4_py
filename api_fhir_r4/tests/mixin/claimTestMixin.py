@@ -1,6 +1,6 @@
 from claim.models import Claim, ClaimItem, ClaimService
 from insuree.test_helpers import create_test_insuree
-from medical.models import Diagnosis, Item, Service
+from medical.models import Diagnosis
 
 from api_fhir_r4.configurations import R4IdentifierConfig, R4ClaimConfig
 from api_fhir_r4.converters import PatientConverter, HealthFacilityOrganisationConverter, \
@@ -17,7 +17,6 @@ from api_fhir_r4.utils import TimeUtils
 
 
 class ClaimTestMixin(GenericTestMixin):
-
     _TEST_UUID = "315c3b16-62eb-11ea-8e75-df3492b349f6"
     _TEST_CODE = 'T00001'
     _TEST_DATE_FROM = TimeUtils.str_to_date('2021-02-03')
@@ -69,6 +68,7 @@ class ClaimTestMixin(GenericTestMixin):
     _ADMIN_AUDIT_USER_ID = -1
 
     def setUp(self):
+        super(ClaimTestMixin, self).setUp()
         self._TEST_DIAGNOSIS_CODE = Diagnosis()
         self._TEST_DIAGNOSIS_CODE.code = self._TEST_MAIN_ICD_CODE
         self._TEST_DIAGNOSIS_CODE.name = self._TEST_MAIN_ICD_NAME
@@ -183,7 +183,8 @@ class ClaimTestMixin(GenericTestMixin):
         fhir_claim = FHIRClaim(**fhir_claim)
 
         mapping = ClaimVisitTypeMapping.fhir_claim_visit_type_coding[self._TEST_VISIT_TYPE]
-        fhir_claim.type = ClaimConverter.build_codeable_concept_from_coding(ClaimConverter.build_fhir_mapped_coding(mapping))
+        fhir_claim.type = ClaimConverter.build_codeable_concept_from_coding(
+            ClaimConverter.build_fhir_mapped_coding(mapping))
 
         fhir_claim.patient = PatientConverter.build_fhir_resource_reference(self._TEST_INSUREE)
         claim_code = ClaimConverter.build_fhir_identifier(
@@ -219,9 +220,11 @@ class ClaimTestMixin(GenericTestMixin):
 
         fhir_claim.item = []
         type = R4ClaimConfig.get_fhir_claim_item_code()
-        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_ITEM_CODE, type, self._TEST_ITEM, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
+        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_ITEM_CODE, type, self._TEST_ITEM,
+                                       reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
         type = R4ClaimConfig.get_fhir_claim_service_code()
-        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_SERVICE_CODE, type, self._TEST_SERVICE, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
+        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_SERVICE_CODE, type, self._TEST_SERVICE,
+                                       reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
 
         fhir_claim.provider = HealthFacilityOrganisationConverter.build_fhir_resource_reference(
             self._TEST_HF,

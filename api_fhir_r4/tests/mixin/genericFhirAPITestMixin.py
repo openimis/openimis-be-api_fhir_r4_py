@@ -5,7 +5,10 @@ from core.models import User
 from fhir.resources import construct_fhir_element
 from rest_framework import status
 
-from api_fhir_r4.configurations import R4IdentifierConfig
+from api_fhir_r4.configurations import (
+    R4IdentifierConfig,
+    GeneralConfiguration
+)
 from api_fhir_r4.converters import BaseFHIRConverter
 from fhir.resources.bundle import Bundle
 from api_fhir_r4.utils import DbManagerUtils
@@ -30,6 +33,19 @@ class GenericFhirAPITestMixin(object):
             dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
             json_representation = open(dir_path + self._test_json_path).read()
             self._test_request_data = json.loads(json_representation)
+
+    def initialize_auth(self):
+        response = self.client.post(
+            GeneralConfiguration.get_base_url() + 'login/', data=self._test_request_data_credentials, format='json'
+        )
+        response_json = response.json()
+        token = response_json["token"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        headers = {
+            "Content-Type": "application/json",
+            'HTTP_AUTHORIZATION': f"Bearer {token}"
+        }
+        return headers
 
     def login(self):
         user = DbManagerUtils.get_object_or_none(User, username=self._TEST_SUPERUSER_NAME)
