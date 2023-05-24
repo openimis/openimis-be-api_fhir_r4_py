@@ -17,6 +17,7 @@ from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.configurations import GeneralConfiguration
 import core
+import re
 
 
 class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
@@ -96,16 +97,6 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             fhir_medication.form = codeable
 
     @classmethod
-    def split_package_form(cls, form):
-        form = form.lstrip()
-        if " " not in form:
-            return form
-        if " " in form:
-            form = form.split(' ', 1)
-            form = form[1]
-            return form
-
-    @classmethod
     def build_fhir_package_amount(cls, fhir_medication, imis_medication):
         # TODO - Split medical item ItemPackage into ItemForm and ItemAmount => openIMIS side
         if imis_medication.package:
@@ -119,12 +110,10 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def split_package_amount(cls, amount):
         amount = amount.lstrip()
-        if " " not in amount:
-            return None
-        if " " in amount:
-            amount = amount.split(' ', 1)
-            amount = amount[0]
-            return int(amount)
+        try:
+            return int(re.sub("[^0-9]","",amount))
+        except ValueError as exception:
+            return 0
 
     @classmethod
     def build_fhir_medication_extension(cls, fhir_medication, imis_medication):
