@@ -3,9 +3,11 @@ from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin
+from fhir.resources.extension import Extension
 from fhir.resources.practitioner import Practitioner, PractitionerQualification
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
-
+import logging
+logger = logging.getLogger('openIMIS')
 
 class ClaimAdminPractitionerConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):
 
@@ -18,6 +20,7 @@ class ClaimAdminPractitionerConverter(BaseFHIRConverter, PersonConverterMixin, R
         cls.build_fhir_birth_date(fhir_practitioner, imis_claim_admin)
         cls.build_fhir_telecom(fhir_practitioner, imis_claim_admin)
         cls.build_fhir_qualification(fhir_practitioner)
+        cls.build_fhir_extension_organization(fhir_practitioner, imis_claim_admin)
         return fhir_practitioner
 
     @classmethod
@@ -96,6 +99,18 @@ class ClaimAdminPractitionerConverter(BaseFHIRConverter, PersonConverterMixin, R
         names = fhir_practitioner.name
         imis_claim_admin.last_name, imis_claim_admin.other_names = cls.build_imis_last_and_other_name(names)
 
+    @classmethod
+    def build_fhir_extension_organization(cls, fhir_practitioner, imis_claim_admin):
+        if imis_claim_admin.health_facility is not None:
+            organization = cls.build_fhir_resource_reference(imis_claim_admin.health_facility,
+                                                                type='Organization',
+                                                                display=imis_claim_admin.health_facility.code,
+                                                                reference_type=ReferenceConverterMixin.CODE_REFERENCE_TYPE)
+            extension_organization = Extension.construct()
+            extension_organization.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/reference"
+            extension_organization.valueReference = organization
+            fhir_practitioner.extension = [extension_organization]
+            
     @classmethod
     def build_fhir_birth_date(cls, fhir_practitioner, imis_claim_admin):
         if imis_claim_admin.dob is not None:
