@@ -28,7 +28,7 @@ class LoginView(viewsets.ViewSet):
         if 'username' in data and 'password' in data:
             username = data['username']
             password = data['password']
-            users = User.objects.filter(username=username)
+            users = User.objects.filter(username__iexact=username)
             # check if user with such username exists
             if len(list(users)) == 1:
                 # validate provided password from payload
@@ -49,6 +49,8 @@ class LoginView(viewsets.ViewSet):
                         }
                         return Response(data=response, status=200)
             # return unauthorized
+            if len(list(users)) > 1:
+                logger.warning("More than one user with case insensitive username: " + username)
             return Response(status=401)
         else:
             # return bad request
