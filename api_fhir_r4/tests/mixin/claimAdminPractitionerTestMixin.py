@@ -28,16 +28,17 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
     _TEST_FAX = "1-408-999 8888"
     _TEST_ADDRESS = "TEST_ADDRESS"
 
-    _TEST_HF_ID = 10000
-    _TEST_HF_UUID = "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
-    _TEST_HF_CODE = "12345678"
+    _TEST_HF_ID = 90000
+    _TEST_HF_UUID = "3fd89df0-a532-4df6-9b77-3cdb33b883f2"
+    _TEST_HF_CODE = "92345678"
     _TEST_HF_NAME = "TEST_NAME"
     _TEST_HF_LEVEL = "H"
     _TEST_HF_LEGAL_FORM = "G"
 
-    def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
-        location.save()
+    def create_test_health_facility(self, location=None):
+        if location == None:
+            location = LocationTestMixin().create_test_imis_instance()
+            location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
         hf.uuid = self._TEST_HF_UUID
@@ -55,7 +56,7 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         hf.save()
         return hf
 
-    def create_test_imis_instance(self):
+    def create_test_imis_instance(self, location=None):
         imis_claim_admin = ClaimAdmin()
         imis_claim_admin.last_name = self._TEST_LAST_NAME
         imis_claim_admin.other_names = self._TEST_OTHER_NAME
@@ -65,7 +66,7 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         imis_claim_admin.dob = TimeUtils.str_to_date(self._TEST_DOB)
         imis_claim_admin.phone = self._TEST_PHONE
         imis_claim_admin.email_id = self._TEST_EMAIL
-        hf = self.create_test_health_facility()
+        hf = self.create_test_health_facility(location)
         imis_claim_admin.health_facility_id = hf.id
         imis_claim_admin.health_facility = hf
         imis_claim_admin.health_facility_code = hf.code
@@ -123,7 +124,7 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         
         organization_reference = Reference.construct()
         resource_type = 'Organization'
-        resource_id = '12345678'
+        resource_id = '92345678'
 
         organization_reference.type = resource_type
         organization_reference.identifier = HealthFacilityOrganisationConverter.build_fhir_identifier(
@@ -165,4 +166,4 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         self.assertEqual(1, len(fhir_obj.qualification))
         self.assertEqual("CA", fhir_obj.qualification[0].code.coding[0].code)
         self.assertEqual("Claim Administrator", fhir_obj.qualification[0].code.coding[0].display)
-        self.assertEqual("12345678", fhir_obj.extension[0].valueReference.display)
+        self.assertEqual("92345678", fhir_obj.extension[0].valueReference.display)
