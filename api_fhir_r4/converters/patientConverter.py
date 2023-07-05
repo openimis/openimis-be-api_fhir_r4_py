@@ -21,7 +21,6 @@ from fhir.resources.attachment import Attachment
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 
-
 class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):
 
     @classmethod
@@ -132,8 +131,9 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_insuree_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Insuree, uuid=imis_insuree_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Insuree,
+            **cls.get_database_query_id_parameteres_from_reference(reference, 'chf_id'))
 
     @classmethod
     def createDefaultInsuree(cls, audit_user_id):

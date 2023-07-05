@@ -71,8 +71,9 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_medication_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Item, uuid=imis_medication_code)
+        return DbManagerUtils.get_object_or_none(
+            Item,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_medication, imis_medication):

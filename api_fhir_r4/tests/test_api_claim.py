@@ -25,7 +25,9 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     _TEST_MAIN_ICD_NAME = 'Test diagnosis'
 
     _TEST_CLAIM_ADMIN_UUID = "044c33d1-dbf3-4d6a-9924-3797b461e535"
+    _TEST_CLAIM_ADMIN_CODE = "VITEST99"
     _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
+    _TEST_INSUREE_CODE = "999000001"
 
     # claim item data
     _TEST_ITEM_CODE = "iCode"
@@ -59,6 +61,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
     _test_json_path_credentials = "/tests/test/test_login.json"
     _test_request_data_credentials = None
+    _test_json_path_with_code_references = "/tests/test/test_claim_with_code_references.json"
 
     def setUp(self):
         super(ClaimAPITests, self).setUp()
@@ -77,11 +80,13 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
         self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance()
         self._TEST_CLAIM_ADMIN.uuid = self._TEST_CLAIM_ADMIN_UUID
+        self._TEST_CLAIM_ADMIN.code = self._TEST_CLAIM_ADMIN_CODE
         self._TEST_CLAIM_ADMIN.save()
         self._TEST_HF = self.create_test_health_facility()
 
         self._TEST_INSUREE = create_test_insuree()
         self._TEST_INSUREE.uuid = self._TEST_INSUREE_UUID
+        self._TEST_INSUREE.chf_id = self._TEST_INSUREE_CODE
         self._TEST_INSUREE.save()
         self._TEST_ITEM = self.create_test_claim_item()
         self._TEST_SERVICE = self.create_test_claim_service()
@@ -133,6 +138,15 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         service.save()
         return service
 
+    def _post_claim(self, data, headers):
+        return self.client.post(self.base_url, data=data, format='json', **headers)
+
+    def _get_json_of_claim_with_code_references(self):
+        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        return json.loads(
+            open(dir_path + self._test_json_path_with_code_references).read()
+            )
+
     def test_post_should_create_correctly(self):
         response = self.client.post(
             GeneralConfiguration.get_base_url() + 'login/', data=self._test_request_data_credentials, format='json'
@@ -144,20 +158,26 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             "Content-Type": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {token}"
         }
-        response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIsNotNone(response.content)
-        response_json = response.json()
-        self.assertEqual(response_json["resourceType"], 'ClaimResponse')
-        self.assertEqual(response_json["outcome"], 'complete')
-        # for both tests item and service should be 'rejected' and 'not in price list'
-        for item in response_json["item"]:
-            for adjudication in item["adjudication"]:
-                self.assertEqual(adjudication["category"]["coding"][0]["code"], f'{Claim.STATUS_REJECTED}')
-                # 2 not in price list
-                self.assertEqual(adjudication["reason"]["coding"][0]["code"], '2')
 
-        self.assertEqual(response_json["resourceType"], "ClaimResponse")
+        dataset = [
+            self._test_request_data,
+            self._get_json_of_claim_with_code_references()
+        ]
+        for data in dataset:
+            response = self.client.post(self.base_url, data=data, format='json', **headers)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
+            self.assertIsNotNone(response.content)
+            response_json = response.json()
+            self.assertEqual(response_json["resourceType"], 'ClaimResponse')
+            self.assertEqual(response_json["outcome"], 'complete')
+            # for both tests item and service should be 'rejected' and 'not in price list'
+            for item in response_json["item"]:
+                for adjudication in item["adjudication"]:
+                    self.assertEqual(adjudication["category"]["coding"][0]["code"], f'{Claim.STATUS_REJECTED}')
+                    # 2 not in price list
+                    self.assertEqual(adjudication["reason"]["coding"][0]["code"], '2')
+
+            self.assertEqual(response_json["resourceType"], "ClaimResponse")
 
     def test_get_should_return_200_claim_response(self):
         # test if get ClaimResponse return 200
