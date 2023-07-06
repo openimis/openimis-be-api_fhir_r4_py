@@ -21,7 +21,7 @@ class Subscription(HistoryBusinessModel):
     status = models.SmallIntegerField(db_column='Status', null=False, choices=SubscriptionStatus.choices)
     channel = models.SmallIntegerField(db_column='Channel', null=False, choices=SubscriptionChannel.choices)
     endpoint = models.CharField(db_column='Endpoint', max_length=255, null=False)
-    headers = encrypt(models.TextField(db_column='Headers', null=True))
+    headers = encrypt(models.TextField(db_column='Headers', max_length=255, null=True))
     criteria = models.JSONField(db_column='Criteria', null=True)
     expiring = models.DateTimeField(db_column='Expiring', null=False)
 

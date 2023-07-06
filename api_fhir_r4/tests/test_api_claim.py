@@ -88,6 +88,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
     def create_test_health_facility(self):
         location = LocationTestMixin().create_test_imis_instance()
+        location.type = 'D'
         location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID

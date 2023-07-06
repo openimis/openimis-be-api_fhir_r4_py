@@ -44,8 +44,9 @@ def bind_service_signals():
         from invoice.models import Bill, Invoice
 
         def on_bill_create(**kwargs):
-            if kwargs.get('result', {}).get('success', False):
-                model_uuid = kwargs['result']['data']['uuid']
+            result = kwargs.get('result', {})
+            if result and result.get('success', False):
+                model_uuid = result['data']['uuid']
                 try:
                     model = Bill.objects.get(uuid=model_uuid)
                     notify_subscribers(model, BillInvoiceConverter(), 'Invoice',
@@ -56,8 +57,9 @@ def bind_service_signals():
                     logger.debug(traceback.format_exc())
 
         def on_invoice_create(**kwargs):
-            if kwargs.get('result', {}).get('success', False):
-                model_uuid = kwargs['result']['data']['uuid']
+            result = kwargs.get('result', {})
+            if result and result.get('success', False):
+                model_uuid = result['data']['uuid']
                 try:
                     model = Invoice.objects.get(uuid=model_uuid)
                     notify_subscribers(model, InvoiceConverter(), 'Invoice',
