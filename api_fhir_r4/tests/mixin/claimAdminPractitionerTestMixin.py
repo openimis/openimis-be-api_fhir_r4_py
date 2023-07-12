@@ -2,14 +2,17 @@ from claim.models import ClaimAdmin
 from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
-from api_fhir_r4.converters import ClaimAdminPractitionerConverter
+from api_fhir_r4.converters import ClaimAdminPractitionerConverter, HealthFacilityOrganisationConverter
 from fhir.resources.contactpoint import ContactPoint
+from fhir.resources.extension import Extension
 from fhir.resources.humanname import HumanName
 from fhir.resources.identifier import Identifier
 from fhir.resources.practitioner import Practitioner, PractitionerQualification
+from fhir.resources.reference import Reference
 from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUse
-from api_fhir_r4.tests import GenericTestMixin
+from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
+from location.models import HealthFacility
 
 
 class ClaimAdminPractitionerTestMixin(GenericTestMixin):
@@ -22,8 +25,38 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
     _TEST_CODE = "1234abcd"
     _TEST_PHONE = "813-996-476"
     _TEST_EMAIL = "TEST@TEST.com"
+    _TEST_FAX = "1-408-999 8888"
+    _TEST_ADDRESS = "TEST_ADDRESS"
 
-    def create_test_imis_instance(self):
+    _TEST_HF_ID = 90000
+    _TEST_HF_UUID = "3fd89df0-a532-4df6-9b77-3cdb33b883f2"
+    _TEST_HF_CODE = "92345678"
+    _TEST_HF_NAME = "TEST_NAME"
+    _TEST_HF_LEVEL = "H"
+    _TEST_HF_LEGAL_FORM = "G"
+
+    def create_test_health_facility(self, location=None):
+        if location == None:
+            location = LocationTestMixin().create_test_imis_instance()
+            location.save()
+        hf = HealthFacility()
+        hf.id = self._TEST_HF_ID
+        hf.uuid = self._TEST_HF_UUID
+        hf.code = self._TEST_HF_CODE
+        hf.name = self._TEST_HF_NAME
+        hf.level = self._TEST_HF_LEVEL
+        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
+        hf.address = self._TEST_ADDRESS
+        hf.phone = self._TEST_PHONE
+        hf.fax = self._TEST_FAX
+        hf.email = self._TEST_EMAIL
+        hf.location_id = location.id
+        hf.offline = False
+        hf.audit_user_id = -1
+        hf.save()
+        return hf
+
+    def create_test_imis_instance(self, location=None):
         imis_claim_admin = ClaimAdmin()
         imis_claim_admin.last_name = self._TEST_LAST_NAME
         imis_claim_admin.other_names = self._TEST_OTHER_NAME
@@ -33,6 +66,10 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         imis_claim_admin.dob = TimeUtils.str_to_date(self._TEST_DOB)
         imis_claim_admin.phone = self._TEST_PHONE
         imis_claim_admin.email_id = self._TEST_EMAIL
+        hf = self.create_test_health_facility(location)
+        imis_claim_admin.health_facility_id = hf.id
+        imis_claim_admin.health_facility = hf
+        imis_claim_admin.health_facility_code = hf.code
         return imis_claim_admin
 
     def verify_imis_instance(self, imis_obj):
@@ -42,6 +79,8 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_DOB+"T00:00:00", imis_obj.dob.isoformat())
         self.assertEqual(self._TEST_PHONE, imis_obj.phone)
         self.assertEqual(self._TEST_EMAIL, imis_obj.email_id)
+        # we are not checking the extension as it's optional and the health facility
+        # membership should be changed otherwise
 
     def create_test_fhir_instance(self):
         fhir_practitioner = Practitioner.construct()
@@ -82,6 +121,23 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
             display=_("Claim Administrator")
         )
         fhir_practitioner.qualification = [qualification]
+        
+        organization_reference = Reference.construct()
+        resource_type = 'Organization'
+        resource_id = '92345678'
+
+        organization_reference.type = resource_type
+        organization_reference.identifier = HealthFacilityOrganisationConverter.build_fhir_identifier(
+            self._TEST_HF_CODE,
+            R4IdentifierConfig.get_fhir_identifier_type_system(),
+            R4IdentifierConfig.get_fhir_generic_type_code())
+        organization_reference.reference = f'{resource_type}/{resource_id}'
+        organization_reference.display = resource_id
+
+        extension_organization = Extension.construct()
+        extension_organization.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/reference"
+        extension_organization.valueReference = organization_reference
+        fhir_practitioner.extension = [extension_organization]
 
         return fhir_practitioner
 
@@ -110,3 +166,4 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         self.assertEqual(1, len(fhir_obj.qualification))
         self.assertEqual("CA", fhir_obj.qualification[0].code.coding[0].code)
         self.assertEqual("Claim Administrator", fhir_obj.qualification[0].code.coding[0].display)
+        self.assertEqual("92345678", fhir_obj.extension[0].valueReference.display)

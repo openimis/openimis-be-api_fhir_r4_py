@@ -48,5 +48,31 @@
             ]
          }
       }
+   ],
+   "extension":
+   [
+       {
+           "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/reference",
+           "valueReference":
+           {
+               "reference": "Organization/92345678",
+               "type": "Organization",
+               "identifier":
+               {
+                   "type":
+                   {
+                       "coding":
+                       [
+                           {
+                               "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                               "code": "Code"
+                           }
+                       ]
+                   },
+                   "value": "92345678"
+               },
+               "display": "92345678"
+           }
+       }
    ]
 }
