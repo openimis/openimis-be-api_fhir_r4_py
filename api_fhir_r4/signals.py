@@ -19,9 +19,12 @@ imis_modules = openimis_apps()
 def bind_service_signals():
     if 'insuree' in imis_modules:
         def on_insuree_create_or_update(**kwargs):
-            model = kwargs.get('result', None)
-            if model:
-                notify_subscribers(model, PatientConverter(), 'Patient', None)
+            try:
+                model = kwargs.get('result', None)
+                if model:
+                    notify_subscribers(model, PatientConverter(), 'Patient', None)
+            except Exception as e:
+                logger.error("Error while processing Patient Subscription", exc_info=e)
 
         bind_service_signal(
             'insuree_service.create_or_update',
@@ -31,9 +34,12 @@ def bind_service_signals():
 
     if 'location' in imis_modules:
         def on_hf_create_or_update(**kwargs):
-            model = kwargs.get('result', None)
-            if model:
-                notify_subscribers(model, HealthFacilityOrganisationConverter(), 'Organisation', 'bus')
+            try:
+                model = kwargs.get('result', None)
+                if model:
+                    notify_subscribers(model, HealthFacilityOrganisationConverter(), 'Organisation', 'bus')
+            except Exception as e:
+                logger.error("Error while processing Organisation Subscription", exc_info=e)
 
         bind_service_signal(
             'health_facility_service.update_or_create',
@@ -44,30 +50,26 @@ def bind_service_signals():
         from invoice.models import Bill, Invoice
 
         def on_bill_create(**kwargs):
-            result = kwargs.get('result', {})
-            if result and result.get('success', False):
-                model_uuid = result['data']['uuid']
-                try:
+            try:
+                result = kwargs.get('result', {})
+                if result and result.get('success', False):
+                    model_uuid = result['data']['uuid']
                     model = Bill.objects.get(uuid=model_uuid)
                     notify_subscribers(model, BillInvoiceConverter(), 'Invoice',
                                        BillTypeMapping.invoice_type[model.subject_type.model])
-                except ObjectDoesNotExist:
-                    logger.error(f'Bill returned from service does not exists ({model_uuid})')
-                    import traceback
-                    logger.debug(traceback.format_exc())
+            except Exception as e:
+                logger.error("Error while processing Bill Subscription", exc_info=e)
 
         def on_invoice_create(**kwargs):
-            result = kwargs.get('result', {})
-            if result and result.get('success', False):
-                model_uuid = result['data']['uuid']
-                try:
+            try:
+                result = kwargs.get('result', {})
+                if result and result.get('success', False):
+                    model_uuid = result['data']['uuid']
                     model = Invoice.objects.get(uuid=model_uuid)
                     notify_subscribers(model, InvoiceConverter(), 'Invoice',
                                        InvoiceTypeMapping.invoice_type[model.subject_type.model])
-                except ObjectDoesNotExist:
-                    logger.error(f'Invoice returned from service does not exists ({model_uuid})')
-                    import traceback
-                    logger.debug(traceback.format_exc())
+            except Exception as e:
+                logger.error("Error while processing Invoice Subscription", exc_info=e)
 
         bind_service_signal(
             'signal_after_invoice_module_bill_create_service',
