@@ -16,6 +16,8 @@ from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.fhirabstractmodel import FHIRAbstractModel
 from api_fhir_r4.serializers import BaseFHIRSerializer
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
