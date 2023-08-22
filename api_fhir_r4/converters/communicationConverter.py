@@ -216,12 +216,16 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_subject(cls, imis_feedback, fhir_communication, errors, audit_user_id):
-        insuree = get_from_contained_or_by_reference(
-            fhir_communication.subject, None , PatientConverter, audit_user_id)
-        if insuree:
-            imis_feedback.claim.insuree = insuree
-            imis_feedback.claim.insuree.chf_id = insuree.chf_id
-        cls.valid_condition(not imis_feedback.claim.insuree, _('Missing or invalid `subject` reference'), errors)
+            raise FHIRException(
+                _('subject is required')
+            )
+        else:
+            insuree = get_from_contained_or_by_reference(
+                fhir_communication.subject, None , PatientConverter, audit_user_id)
+            if insuree:
+                imis_feedback.claim.insuree = insuree
+                imis_feedback.claim.insuree.chf_id = insuree.chf_id
+            cls.valid_condition(not imis_feedback.claim.insuree, _('Missing or invalid `subject` reference'), errors)
 
     @classmethod
     def _validate_fhir_status(cls, fhir_communication):

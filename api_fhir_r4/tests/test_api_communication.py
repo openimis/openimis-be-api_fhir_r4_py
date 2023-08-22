@@ -221,18 +221,19 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             for payload in response_json['payload']:
                 code = payload['extension'][0]['valueCodeableConcept']['coding'][0]['code']
                 content_string = payload['contentString']
+                print(f'code {code}: {content_string}')
                 if code != Config.get_fhir_asessment_code():
                     bool_value = self._convert_bool_value(content_string)
                 if code == Config.get_fhir_care_rendered_code():
-                    self.assertEqual(self._TEST_CARE_RENDERED, bool_value)
+                    self.assertEqual(self._TEST_CARE_RENDERED, bool_value, f'code {code}: {content_string}')
                 elif code == Config.get_fhir_payment_asked_code():
-                    self.assertEqual(self._TEST_PAYMENT_ASKED, bool_value)
+                    self.assertEqual(self._TEST_PAYMENT_ASKED, bool_value, f'code {code}: {content_string}')
                 elif code == Config.get_fhir_drug_prescribed_code():
-                    self.assertEqual(self._TEST_DRUG_PRESCRIBED, bool_value)
+                    self.assertEqual(self._TEST_DRUG_PRESCRIBED, bool_value, f'code {code}: {content_string}')
                 elif code == Config.get_fhir_drug_received_code():
-                    self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value)
+                    self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value, f'code {code}: {content_string}')
                 elif code == Config.get_fhir_asessment_code():
-                    self.assertEqual(self._TEST_ASESSMENT, content_string)
+                    self.assertEqual(self._TEST_ASESSMENT, content_string, f'code {code}: {content_string}')
 
     def _convert_bool_value(self, fhir_content_string):
         if fhir_content_string == "yes":
