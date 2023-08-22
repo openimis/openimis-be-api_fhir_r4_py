@@ -8,6 +8,8 @@ from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from claim.models import Feedback
 
+import logging
+logger = logging.getLogger(__name__)
 
 class CommunicationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, viewsets.ModelViewSet):
     retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]

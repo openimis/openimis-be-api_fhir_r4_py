@@ -27,6 +27,8 @@ from fhir.resources.R4B.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimI
 
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
@@ -125,7 +127,6 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_imis_patient(cls, imis_claim, fhir_claim, errors, audit_user_id):
         insuree = get_from_contained_or_by_reference(
             fhir_claim.patient, fhir_claim.contained, PatientConverter, audit_user_id)
-
         if insuree:
             imis_claim.insuree = insuree
             imis_claim.insuree_chf_code = insuree.chf_id
@@ -216,7 +217,6 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
         admin = get_from_contained_or_by_reference(
             fhir_claim.enterer, fhir_claim.contained, ClaimAdminPractitionerConverter, audit_user_id
         )
-
         if admin:
             imis_claim.admin = admin
             imis_claim.claim_admin_code = admin.code

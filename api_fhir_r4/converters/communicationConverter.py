@@ -1,5 +1,7 @@
 from api_fhir_r4.configurations import GeneralConfiguration, R4CommunicationRequestConfig as Config
+from api_fhir_r4.containedResources.converterUtils import get_from_contained_or_by_reference
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
+from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim, Feedback
@@ -25,15 +27,16 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def to_imis_obj(cls, fhir_communication, audit_user_id):
         errors = []
+        imis_feedback = Feedback()
         fhir_communication = Communication(**fhir_communication)
         cls._validate_fhir_status(fhir_communication)
-        cls._validate_fhir_subject(fhir_communication)
         cls._validate_fhir_about(fhir_communication)
         cls._validate_fhir_payload(fhir_communication)
-        imis_feedback = Feedback()
         cls.build_imis_about(imis_feedback, fhir_communication, errors)
+        cls.build_imis_subject(imis_feedback, fhir_communication, errors, audit_user_id=audit_user_id)
         cls.build_imis_payloads(imis_feedback, fhir_communication, errors)
         imis_feedback.audit_user_id = audit_user_id
+        cls.check_errors(errors)
         return imis_feedback
 
     @classmethod
@@ -212,17 +215,18 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             )
 
     @classmethod
-    def _validate_fhir_subject(cls, fhir_communication):
+    def build_imis_subject(cls, imis_feedback, fhir_communication, errors, audit_user_id):
         if not fhir_communication.subject:
             raise FHIRException(
                 _('subject is required')
             )
         else:
-            patient_uuid = fhir_communication.subject.reference.rsplit('/', 1)[1]
-            if Insuree.objects.filter(uuid=patient_uuid, validity_to__isnull=True).count() == 0:
-                raise FHIRException(
-                    _('Patient does not exist')
-                )
+            insuree = get_from_contained_or_by_reference(
+                fhir_communication.subject, None , PatientConverter, audit_user_id)
+            if insuree:
+                imis_feedback.claim.insuree = insuree
+                imis_feedback.claim.insuree.chf_id = insuree.chf_id
+            cls.valid_condition(not imis_feedback.claim.insuree, _('Missing or invalid `subject` reference'), errors)
 
     @classmethod
     def _validate_fhir_status(cls, fhir_communication):
