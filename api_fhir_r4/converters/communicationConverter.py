@@ -1,3 +1,5 @@
+import logging
+
 from api_fhir_r4.configurations import GeneralConfiguration, R4CommunicationRequestConfig as Config
 from api_fhir_r4.containedResources.converterUtils import get_from_contained_or_by_reference
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
@@ -9,6 +11,8 @@ from insuree.models import Insuree
 from django.utils.translation import gettext as _
 from fhir.resources.communication import Communication, CommunicationPayload
 from fhir.resources.extension import Extension
+
+logger = logging.getLogger(__name__)
 
 
 class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
@@ -143,6 +147,8 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         for payload in payloads:
             code = cls.get_code_from_extension_codeable_concept(payload.extension[0])
             fhir_content_string = payload.contentString
+            logger.debug(f"***** fhir code = {code}")
+            logger.debug(f"***** fhir content_string = {fhir_content_string}")
             if code == Config.get_fhir_care_rendered_code():
                 cls.build_imis_care_rendered(imis_feedback, fhir_content_string)
             if code == Config.get_fhir_payment_asked_code():
