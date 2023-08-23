@@ -1,7 +1,7 @@
 import hashlib
 import urllib
 from api_fhir_r4.configurations import GeneralConfiguration
-from fhir.resources.bundle import Bundle, BundleEntry, BundleLink
+from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleLink
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django.core.cache import caches

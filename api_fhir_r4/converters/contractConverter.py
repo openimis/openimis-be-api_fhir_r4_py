@@ -8,11 +8,11 @@ from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.mapping.contractMapping import PayTypeMapping, ContractStatus, \
     ContractState
-from fhir.resources.contract import Contract, ContractTermAssetValuedItem, \
+from fhir.resources.R4B.contract import Contract, ContractTermAssetValuedItem, \
     ContractTerm, ContractTermAsset, ContractTermOffer, ContractTermOfferParty
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.period import Period
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.period import Period
 
 from product.models import Product
 from policy.models import Policy

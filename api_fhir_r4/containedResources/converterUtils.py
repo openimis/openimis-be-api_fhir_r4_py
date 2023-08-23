@@ -1,7 +1,7 @@
-from fhir.resources.fhirtypes import ReferenceType
+from fhir.resources.R4B.fhirtypes import ReferenceType
 from typing import Iterable, List
 
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.reference import Reference
 
 from api_fhir_r4.apps import logger
 from api_fhir_r4.converters import BaseFHIRConverter

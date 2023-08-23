@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin
-from fhir.resources.practitioner import Practitioner, PractitionerQualification
+from fhir.resources.R4B.practitioner import Practitioner, PractitionerQualification
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 
 

@@ -2,7 +2,7 @@ import datetime
 from copy import deepcopy
 from urllib import parse
 
-from fhir.resources.subscription import Subscription as FHIRSubscription
+from fhir.resources.R4B.subscription import Subscription as FHIRSubscription
 
 from api_fhir_r4.configurations import R4SubscriptionConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin

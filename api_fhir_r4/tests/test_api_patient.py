@@ -3,7 +3,7 @@ import os
 from unittest import skip
 
 from django.utils.translation import gettext as _
-from fhir.resources.patient import Patient
+from fhir.resources.R4B.patient import Patient
 from rest_framework import status
 from rest_framework.test import APITestCase
 

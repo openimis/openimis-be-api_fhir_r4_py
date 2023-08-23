@@ -7,7 +7,7 @@ from django.db import models, IntegrityError
 from django.forms import model_to_dict
 
 from api_fhir_r4.containedResources.converters import FHIRContainedResourceConverter, IMISContainedResourceConverter
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B.fhirabstractmodel import FHIRAbstractModel
 
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from location.models import HealthFacility

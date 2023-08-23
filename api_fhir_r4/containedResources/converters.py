@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 from typing import List, Callable, Iterable, Union
 from django.db import models
 
-from fhir.resources.resource import Resource
+from fhir.resources.R4B.resource import Resource
 
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.exceptions import FHIRException
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B.fhirabstractmodel import FHIRAbstractModel
 
 
 DEFAULT_REF_TYPE = ReferenceConverterMixin.UUID_REFERENCE_TYPE

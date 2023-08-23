@@ -1,7 +1,7 @@
 from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter, OperationOutcomeConverter
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.R4B.codeableconcept import CodeableConcept
 from api_fhir_r4.tests import GenericTestMixin
 
 

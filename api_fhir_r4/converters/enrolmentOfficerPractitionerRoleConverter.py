@@ -4,8 +4,8 @@ from api_fhir_r4.converters.healthFacilityOrganisationConverter import LocationC
 from api_fhir_r4.utils import DbManagerUtils
 from core.models import Officer
 from django.utils.translation import gettext as _
-from fhir.resources.extension import Extension
-from fhir.resources.practitionerrole import PractitionerRole
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.practitionerrole import PractitionerRole
 
 
 class EnrolmentOfficerPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):

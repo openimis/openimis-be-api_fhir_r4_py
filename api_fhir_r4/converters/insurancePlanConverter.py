@@ -6,14 +6,14 @@ from product.models import Product
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
     InsurancePlanCoverageBenefit, InsurancePlanCoverageBenefitLimit, \
     InsurancePlanPlan, InsurancePlanPlanGeneralCost
-from fhir.resources.period import Period
-from fhir.resources.reference import Reference
-from fhir.resources.quantity import Quantity
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.quantity import Quantity
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 

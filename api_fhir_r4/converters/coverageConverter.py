@@ -3,9 +3,9 @@ from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.mapping.coverageMapping import CoverageStatus
 from api_fhir_r4.models import CoverageV2 as Coverage, CoverageClassV2 as CoverageClass
-from fhir.resources.period import Period
-from fhir.resources.extension import Extension
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.reference import Reference
 from policy.signals import signal_check_formal_sector_for_policy
 from product.models import ProductItem, ProductService
 from policy.models import Policy

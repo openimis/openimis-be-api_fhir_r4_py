@@ -1,9 +1,9 @@
 from urllib.parse import urljoin
 
 from django.utils.translation import gettext as _
-from fhir.resources.address import Address
-from fhir.resources.extension import Extension
-from fhir.resources.humanname import HumanName
+from fhir.resources.R4B.address import Address
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.humanname import HumanName
 
 from api_fhir_r4.mapping.organizationMapping import PolicyHolderOrganisationLegalFormMapping, \
     PolicyHolderOrganisationActivityMapping
@@ -12,7 +12,7 @@ from location.models import Location
 from policyholder.models import PolicyHolder
 from api_fhir_r4.configurations import R4IdentifierConfig, R4OrganisationConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from fhir.resources.organization import Organization
+from fhir.resources.R4B.organization import Organization
 from api_fhir_r4.utils import DbManagerUtils
 
 

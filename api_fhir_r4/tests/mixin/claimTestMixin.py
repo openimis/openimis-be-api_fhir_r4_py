@@ -8,8 +8,8 @@ from api_fhir_r4.converters import PatientConverter, HealthFacilityOrganisationC
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from api_fhir_r4.mapping.claimMapping import ClaimVisitTypeMapping
 from api_fhir_r4.models import ClaimV2 as FHIRClaim
-from fhir.resources.period import Period
-from fhir.resources.money import Money
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.money import Money
 from location.models import HealthFacility
 from medical.test_helpers import create_test_item, create_test_service
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin, ClaimAdminPractitionerTestMixin

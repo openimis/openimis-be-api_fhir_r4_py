@@ -1,7 +1,7 @@
-from fhir.resources.practitionerrole import PractitionerRole
-from fhir.resources.extension import Extension
-from fhir.resources.identifier import Identifier
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.practitionerrole import PractitionerRole
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import EnrolmentOfficerPractitionerConverter, EnrolmentOfficerPractitionerRoleConverter
 from api_fhir_r4.tests import GenericTestMixin, EnrolmentOfficerPractitionerTestMixin, LocationTestMixin

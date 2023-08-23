@@ -21,9 +21,9 @@ from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFacilityOrganisationConverter
 from api_fhir_r4.converters.claimAdminPractitionerConverter import ClaimAdminPractitionerConverter
 from api_fhir_r4.models import ClaimV2 as FHIRClaim, ClaimInsuranceV2 as ClaimInsurance
-from fhir.resources.attachment import Attachment
-from fhir.resources.period import Period
-from fhir.resources.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimItem as FHIRClaimItem
+from fhir.resources.R4B.attachment import Attachment
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimItem as FHIRClaimItem
 
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 

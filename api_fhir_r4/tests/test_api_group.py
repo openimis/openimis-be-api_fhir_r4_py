@@ -2,7 +2,7 @@ import json
 import os
 
 from django.utils.translation import gettext as _
-from fhir.resources.group import Group
+from fhir.resources.R4B.group import Group
 from rest_framework import status
 from rest_framework.test import APITestCase
 

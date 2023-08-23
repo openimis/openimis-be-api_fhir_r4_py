@@ -2,19 +2,19 @@ from abc import ABC
 from typing import Union
 
 from django.db.models import Model
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.quantity import Quantity
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.quantity import Quantity
 
 import core
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.contactpoint import ContactPoint
-from fhir.resources.address import Address
-from fhir.resources.coding import Coding
-from fhir.resources.reference import Reference
-from fhir.resources.identifier import Identifier
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.address import Address
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.identifier import Identifier
 from api_fhir_r4.configurations import GeneralConfiguration
 
 

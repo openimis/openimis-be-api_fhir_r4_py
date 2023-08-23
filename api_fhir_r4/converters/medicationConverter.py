@@ -4,14 +4,14 @@ from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, Refere
 from api_fhir_r4.models import UsageContextV2 as UsageContext
 from api_fhir_r4.mapping.medicationMapping import ItemTypeMapping, ItemVenueTypeMapping, ItemContextlevel
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
-from fhir.resources.medication import Medication as FHIRMedication
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.coding import Coding
-from fhir.resources.quantity import Quantity
-from fhir.resources.ratio import Ratio
-from fhir.resources.timing import Timing, TimingRepeat
+from fhir.resources.R4B.medication import Medication as FHIRMedication
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.quantity import Quantity
+from fhir.resources.R4B.ratio import Ratio
+from fhir.resources.R4B.timing import Timing, TimingRepeat
 from django.utils.translation import gettext
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils

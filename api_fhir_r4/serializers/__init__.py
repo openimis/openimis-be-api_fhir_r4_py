@@ -2,7 +2,7 @@ import logging
 from typing import Union
 
 from django.http.response import HttpResponseBase
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B.fhirabstractmodel import FHIRAbstractModel
 from rest_framework import serializers
 
 from api_fhir_r4.configurations import GeneralConfiguration

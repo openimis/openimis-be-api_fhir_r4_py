@@ -12,11 +12,11 @@ from api_fhir_r4.converters.medicationConverter import MedicationConverter
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from api_fhir_r4.mapping.claimMapping import ClaimResponseMapping
 from api_fhir_r4.models import ClaimResponseV2 as ClaimResponse
-from fhir.resources.money import Money
-from fhir.resources.claimresponse import ClaimResponseItem, ClaimResponseItemAdjudication, \
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.claimresponse import ClaimResponseItem, ClaimResponseItemAdjudication, \
     ClaimResponseProcessNote, ClaimResponseTotal
-from fhir.resources.reference import Reference
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.extension import Extension
 from api_fhir_r4.utils import TimeUtils, FhirUtils
 
 

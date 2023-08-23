@@ -1,6 +1,6 @@
 from django.db.models.query import Q
 from django.utils.translation import gettext as _
-from fhir.resources.humanname import HumanName
+from fhir.resources.R4B.humanname import HumanName
 
 from insuree.models import Insuree, InsureePolicy, Family, FamilyType, ConfirmationType
 from policy.models import Policy
@@ -9,8 +9,8 @@ from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
 from api_fhir_r4.mapping.groupMapping import GroupTypeMapping, ConfirmationTypeMapping
-from fhir.resources.extension import Extension
-from fhir.resources.group import Group, GroupMember
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.group import Group, GroupMember
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.exceptions import FHIRException
 

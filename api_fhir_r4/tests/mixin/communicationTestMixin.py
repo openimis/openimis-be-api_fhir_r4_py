@@ -3,8 +3,8 @@ from api_fhir_r4.converters import CommunicationConverter
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
-from fhir.resources.communication import Communication, CommunicationPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communication import Communication, CommunicationPayload
+from fhir.resources.R4B.extension import Extension
 from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime

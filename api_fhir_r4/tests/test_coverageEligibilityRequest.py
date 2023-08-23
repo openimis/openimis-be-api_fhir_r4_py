@@ -3,7 +3,7 @@ import os
 
 from api_fhir_r4.converters import CoverageEligibilityRequestConverter
 from api_fhir_r4.tests import CoverageEligibilityRequestTestMixin
-from fhir.resources.coverageeligibilityresponse import CoverageEligibilityResponse
+from fhir.resources.R4B.coverageeligibilityresponse import CoverageEligibilityResponse
 
 
 class CoverageEligibilityRequestConverterTestCase(CoverageEligibilityRequestTestMixin):

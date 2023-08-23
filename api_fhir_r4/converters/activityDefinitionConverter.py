@@ -1,10 +1,10 @@
-from fhir.resources.timing import Timing, TimingRepeat
+from fhir.resources.R4B.timing import Timing, TimingRepeat
 from medical.models import Service
-from fhir.resources.activitydefinition import ActivityDefinition
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.usagecontext import UsageContext
-from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.R4B.activitydefinition import ActivityDefinition
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.usagecontext import UsageContext
+from fhir.resources.R4B.codeableconcept import CodeableConcept
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, ReferenceConverterMixin
