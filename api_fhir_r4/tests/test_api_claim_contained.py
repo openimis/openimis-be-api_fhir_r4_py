@@ -106,10 +106,10 @@ class ClaimAPIContainedTestBaseMixin:
         self._TEST_DIAGNOSIS_CODE.audit_user_id = self._ADMIN_AUDIT_USER_ID
         self._TEST_DIAGNOSIS_CODE.save()
 
-        self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance()
+        self._TEST_LOCATION = self.create_test_location()
+        self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance(self._TEST_LOCATION)
         self._TEST_CLAIM_ADMIN.uuid = self._TEST_CLAIM_ADMIN_UUID
         self._TEST_CLAIM_ADMIN.save()
-        self._TEST_LOCATION = self.create_test_location()
 
     def create_test_location(self):
         location = LocationTestMixin().create_test_imis_instance()

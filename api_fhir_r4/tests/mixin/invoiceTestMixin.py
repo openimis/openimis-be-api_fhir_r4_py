@@ -31,8 +31,8 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_LINE_ITEM_TAX_PRICE_COMPONENT_TYPE = 'tax'
 
     def create_test_imis_instance(self):
-        self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model='Family')
-        self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model='Policy')
+        self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model__iexact='Family')
+        self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Policy')
 
         imis_invoice = Invoice()
         imis_invoice.code = self._TEST_INVOICE_CODE

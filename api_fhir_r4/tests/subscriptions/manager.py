@@ -29,10 +29,10 @@ class TestSubscriptionNotificationManager(CommunicationTestMixin, LogInMixin, Te
     NOTIFICATION_CONTENT = {'notification_content': 'content'}
 
     def setUp(self) -> None:
-        super().setUp()
+        super(TestSubscriptionNotificationManager, self).setUp()
         self._test_user = self.get_or_create_user_api()
         self._test_subscriptions = self._create_test_subscriptions()
-        self._test_resource = self.create_test_claim()
+        self._test_resource = self._TEST_CLAIM
         self._test_converter = ClaimConverter()
 
     def test_sending_claim_notification(self):

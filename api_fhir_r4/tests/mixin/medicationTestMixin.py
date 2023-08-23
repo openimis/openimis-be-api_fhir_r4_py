@@ -1,4 +1,5 @@
 import decimal
+import re
 
 from medical.models import Item
 
@@ -23,7 +24,7 @@ class MedicationTestMixin(GenericTestMixin):
     _TEST_MEDICATION_CODE = "TEST1"
     _TEST_MEDICATION_NAME = "TEST TABS 300MG"
     _TEST_MEDICATION_TYPE = "D"
-    _TEST_MEDICATION_PACKAGE = "1000 TABLETS"
+    _TEST_MEDICATION_PACKAGE = "1000TABLETS"
     _TEST_MEDICATION_PRICE = 5.99
     _TEST_MEDICATION_CARE_TYPE = "B"
     _TEST_MEDICATION_FREQUENCY = 3
@@ -163,6 +164,8 @@ class MedicationTestMixin(GenericTestMixin):
         extension_medication_frequency = fhir_obj.extension[2].valueTiming
         self.assertTrue(isinstance(extension_medication_frequency, Timing))
         self.assertEqual(self._TEST_MEDICATION_FREQUENCY, extension_medication_frequency.repeat.period)
+        self.assertEqual(int(re.sub("[^0-9]", "", self._TEST_MEDICATION_PACKAGE)), fhir_obj.amount.numerator.value)
+        self.assertEqual(self._TEST_MEDICATION_PACKAGE, fhir_obj.form.text)
 
         extension_usage_context = fhir_obj.extension[3].extension
         for ext in extension_usage_context:
