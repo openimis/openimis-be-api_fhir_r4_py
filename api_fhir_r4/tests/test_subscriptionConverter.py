@@ -1,4 +1,4 @@
-from fhir.resources.subscription import Subscription
+from fhir.resources.R4B.subscription import Subscription
 
 from api_fhir_r4.subscriptions import SubscriptionConverter
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin

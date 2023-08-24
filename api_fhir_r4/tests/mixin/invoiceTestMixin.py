@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from fhir.resources.invoice import Invoice as FHIRInvoice
+from fhir.resources.R4B.invoice import Invoice as FHIRInvoice
 
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.tests import GenericTestMixin

@@ -8,15 +8,15 @@ from api_fhir_r4.converters import MedicationConverter
 from api_fhir_r4.mapping.medicationMapping import ItemVenueTypeMapping
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
 from api_fhir_r4.tests import GenericTestMixin
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.extension import Extension
-from fhir.resources.identifier import Identifier
-from fhir.resources.money import Money
-from fhir.resources.medication import Medication
-from fhir.resources.ratio import Ratio
-from fhir.resources.timing import Timing
-from fhir.resources.quantity import Quantity
-from fhir.resources.usagecontext import UsageContext
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.medication import Medication
+from fhir.resources.R4B.ratio import Ratio
+from fhir.resources.R4B.timing import Timing
+from fhir.resources.R4B.quantity import Quantity
+from fhir.resources.R4B.usagecontext import UsageContext
 
 
 class MedicationTestMixin(GenericTestMixin):

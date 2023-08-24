@@ -4,7 +4,7 @@ from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFac
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import ClaimAdmin
 from django.utils.translation import gettext as _
-from fhir.resources.practitionerrole import PractitionerRole
+from fhir.resources.R4B.practitionerrole import PractitionerRole
 
 
 class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):

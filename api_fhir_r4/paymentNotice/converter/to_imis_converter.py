@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from fhir.resources.paymentnotice import PaymentNotice
+from fhir.resources.R4B.paymentnotice import PaymentNotice
 
 from .errors import (
     ERROR_BAD_STATUS,

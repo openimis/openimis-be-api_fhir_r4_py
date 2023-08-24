@@ -6,11 +6,11 @@ from location.models import Location
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import GroupConverter
 from api_fhir_r4.mapping.groupMapping import GroupTypeMapping
-from fhir.resources.extension import Extension
-from fhir.resources.humanname import HumanName
-from fhir.resources.identifier import Identifier
-from fhir.resources.group import Group, GroupMember
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.humanname import HumanName
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.group import Group, GroupMember
+from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.tests import GenericTestMixin
 
 from insuree.test_helpers import create_test_insuree

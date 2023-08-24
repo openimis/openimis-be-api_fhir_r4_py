@@ -2,7 +2,7 @@ from django.utils.translation import gettext
 from location.models import HealthFacility
 from api_fhir_r4.configurations import R4IdentifierConfig, R4LocationConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from fhir.resources.location import Location as FHIRLocation
+from fhir.resources.R4B.location import Location as FHIRLocation
 from api_fhir_r4.models.imisModelEnums import ImisHfLevel
 from api_fhir_r4.utils import DbManagerUtils
 

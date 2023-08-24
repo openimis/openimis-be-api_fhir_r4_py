@@ -1,5 +1,5 @@
 from api_fhir_r4.converters import BaseFHIRConverter
-from fhir.resources.codesystem import CodeSystem, CodeSystemConcept
+from fhir.resources.R4B.codesystem import CodeSystem, CodeSystemConcept
 
 from api_fhir_r4.utils import FhirUtils
 

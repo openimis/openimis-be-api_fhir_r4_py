@@ -4,8 +4,8 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.mapping.feedbackMapping import FeedbackStatus
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim
-from fhir.resources.communicationrequest import CommunicationRequest, CommunicationRequestPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communicationrequest import CommunicationRequest, CommunicationRequestPayload
+from fhir.resources.R4B.extension import Extension
 
 
 class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):

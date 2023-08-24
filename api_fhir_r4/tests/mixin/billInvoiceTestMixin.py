@@ -7,7 +7,7 @@ from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.tests.mixin import FhirConverterTestMixin
 from insuree.models import Family
 from invoice.models import Bill, BillItem
-from fhir.resources.invoice import Invoice as FHIRInvoice
+from fhir.resources.R4B.invoice import Invoice as FHIRInvoice
 from api_fhir_r4.utils.timeUtils import TimeUtils
 
 

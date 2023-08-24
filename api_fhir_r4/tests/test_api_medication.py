@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from rest_framework.test import APITestCase
 
 from api_fhir_r4.configurations import R4IdentifierConfig
-from fhir.resources.medication import Medication as FHIRMedication
+from fhir.resources.R4B.medication import Medication as FHIRMedication
 from api_fhir_r4.converters import MedicationConverter
 from api_fhir_r4.tests import GenericFhirAPITestMixin, \
     FhirApiCreateTestMixin, FhirApiUpdateTestMixin, FhirApiReadTestMixin

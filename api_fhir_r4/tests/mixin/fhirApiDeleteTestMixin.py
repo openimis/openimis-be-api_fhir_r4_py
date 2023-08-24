@@ -1,4 +1,4 @@
-from fhir.resources.operationoutcome import OperationOutcome
+from fhir.resources.R4B.operationoutcome import OperationOutcome
 from rest_framework import status
 
 from api_fhir_r4.configurations import R4IssueTypeConfig

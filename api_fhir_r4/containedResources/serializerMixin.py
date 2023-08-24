@@ -1,6 +1,6 @@
 from typing import List, Type, Dict
 
-from fhir.resources import FHIRAbstractModel
+from fhir.resources.R4B import FHIRAbstractModel
 
 from api_fhir_r4.containedResources.containedResourceHandler import ContainedResourceManager
 from api_fhir_r4.containedResources.containedResources import AbstractContainedResourceCollection

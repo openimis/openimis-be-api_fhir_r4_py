@@ -3,7 +3,7 @@ import urllib
 from urllib.parse import urlparse
 
 from django.utils.translation import gettext as _
-from fhir.resources.address import Address
+from fhir.resources.R4B.address import Address
 
 from insuree.models import Insuree, Gender, Education, Profession, Family, \
     InsureePhoto, Relation, IdentificationType
@@ -15,9 +15,9 @@ from api_fhir_r4.converters.locationConverter import LocationConverter
 from api_fhir_r4.mapping.patientMapping import RelationshipMapping, EducationLevelMapping, \
     PatientProfessionMapping, MaritalStatusMapping, PatientCategoryMapping
 from api_fhir_r4.models.imisModelEnums import ImisMaritalStatus
-from fhir.resources.patient import Patient, PatientContact
-from fhir.resources.extension import Extension
-from fhir.resources.attachment import Attachment
+from fhir.resources.R4B.patient import Patient, PatientContact
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.attachment import Attachment
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 

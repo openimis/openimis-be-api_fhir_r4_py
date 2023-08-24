@@ -4,7 +4,7 @@ import logging
 from typing import Tuple
 
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.reference import Reference
 
 
 logger = logging.getLogger(__name__)

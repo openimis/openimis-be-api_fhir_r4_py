@@ -5,8 +5,8 @@ from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim, Feedback
 from insuree.models import Insuree
 from django.utils.translation import gettext as _
-from fhir.resources.communication import Communication, CommunicationPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communication import Communication, CommunicationPayload
+from fhir.resources.R4B.extension import Extension
 
 
 class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):

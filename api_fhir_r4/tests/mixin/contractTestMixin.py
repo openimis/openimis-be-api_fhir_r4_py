@@ -9,12 +9,12 @@ from api_fhir_r4.converters import ContractConverter
 from api_fhir_r4.tests import GenericTestMixin
 
 from django.utils.translation import gettext as _
-from fhir.resources.contract import Contract, ContractTerm, ContractTermOffer, \
+from fhir.resources.R4B.contract import Contract, ContractTerm, ContractTermOffer, \
     ContractTermAsset, ContractTermOfferParty, ContractTermAssetValuedItem
-from fhir.resources.identifier import Identifier
-from fhir.resources.money import Money
-from fhir.resources.period import Period
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.utils import TimeUtils
 
 from core.test_helpers import create_test_officer

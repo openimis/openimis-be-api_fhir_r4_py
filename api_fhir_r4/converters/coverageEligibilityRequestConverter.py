@@ -1,12 +1,12 @@
 from django.db import connection
-from fhir.resources.coverageeligibilityresponse import (
+from fhir.resources.R4B.coverageeligibilityresponse import (
     CoverageEligibilityResponse as FHIRCoverageEligibilityResponse,
     CoverageEligibilityResponseInsuranceItem,
     CoverageEligibilityResponseInsurance,
     CoverageEligibilityResponseInsuranceItemBenefit
 )
-from fhir.resources.money import Money
-from fhir.resources.period import Period
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.period import Period
 
 from api_fhir_r4.configurations import (
     GeneralConfiguration,

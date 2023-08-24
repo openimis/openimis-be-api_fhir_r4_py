@@ -3,13 +3,13 @@ import logging
 from django.core.exceptions import MultipleObjectsReturned
 from location.models import HealthFacility, Location, HealthFacilityLegalForm
 from claim.models import ClaimAdmin
-from fhir.resources.address import Address
+from fhir.resources.R4B.address import Address
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin, LocationConverter, PersonConverterMixin
-from fhir.resources.organization import Organization
-from fhir.resources.organization import OrganizationContact
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.organization import Organization
+from fhir.resources.R4B.organization import OrganizationContact
+from fhir.resources.R4B.extension import Extension
 from api_fhir_r4.mapping.organizationMapping import HealthFacilityOrganizationTypeMapping
 from api_fhir_r4.models.imisModelEnums import ImisLocationType
 from api_fhir_r4.utils import DbManagerUtils

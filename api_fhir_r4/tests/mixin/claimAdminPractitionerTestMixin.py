@@ -3,12 +3,13 @@ from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import ClaimAdminPractitionerConverter, HealthFacilityOrganisationConverter
-from fhir.resources.contactpoint import ContactPoint
-from fhir.resources.extension import Extension
-from fhir.resources.humanname import HumanName
-from fhir.resources.identifier import Identifier
-from fhir.resources.practitioner import Practitioner, PractitionerQualification
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.contactpoint import ContactPoint
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.humanname import HumanName
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.practitioner import Practitioner, PractitionerQualification
+from fhir.resources.R4B.reference import Reference
+
 from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUse
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils

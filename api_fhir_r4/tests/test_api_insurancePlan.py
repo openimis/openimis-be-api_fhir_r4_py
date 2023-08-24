@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 from rest_framework.test import APITestCase
-from fhir.resources.insuranceplan import InsurancePlan
+from fhir.resources.R4B.insuranceplan import InsurancePlan
 from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiCreateTestMixin, \
     FhirApiUpdateTestMixin, FhirApiReadTestMixin
 from api_fhir_r4.configurations import  GeneralConfiguration

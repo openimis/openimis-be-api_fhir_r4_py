@@ -2,7 +2,7 @@ from api_fhir_r4.models import Subscription
 from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 
-from fhir.resources.subscription import Subscription as FHIRSubscription
+from fhir.resources.R4B.subscription import Subscription as FHIRSubscription
 
 
 class SubscriptionTestMixin(GenericTestMixin):

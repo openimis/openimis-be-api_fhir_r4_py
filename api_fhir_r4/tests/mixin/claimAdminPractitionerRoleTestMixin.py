@@ -1,8 +1,8 @@
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.converters import ClaimAdminPractitionerRoleConverter
-from fhir.resources.identifier import Identifier
-from fhir.resources.practitionerrole import PractitionerRole
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.practitionerrole import PractitionerRole
+from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.tests import GenericTestMixin, ClaimAdminPractitionerTestMixin, LocationTestMixin
 from location.models import HealthFacility
 

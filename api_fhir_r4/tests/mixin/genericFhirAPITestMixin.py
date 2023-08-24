@@ -2,7 +2,7 @@ import json
 import os
 
 from core.models import User
-from fhir.resources import construct_fhir_element
+from fhir.resources.R4B import construct_fhir_element
 from rest_framework import status
 
 from api_fhir_r4.configurations import (
@@ -10,7 +10,7 @@ from api_fhir_r4.configurations import (
     GeneralConfiguration
 )
 from api_fhir_r4.converters import BaseFHIRConverter
-from fhir.resources.bundle import Bundle
+from fhir.resources.R4B.bundle import Bundle
 from api_fhir_r4.utils import DbManagerUtils
 
 

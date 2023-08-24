@@ -9,7 +9,7 @@ from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.models import OperationOutcomeV2
-from fhir.resources.operationoutcome import OperationOutcomeIssue
+from fhir.resources.R4B.operationoutcome import OperationOutcomeIssue
 from pydantic.error_wrappers import ValidationError as PydanticValidationError
 
 

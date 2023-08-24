@@ -1,7 +1,7 @@
 import json
 import os
 
-from fhir.resources.activitydefinition import ActivityDefinition
+from fhir.resources.R4B.activitydefinition import ActivityDefinition
 
 from api_fhir_r4.converters import ActivityDefinitionConverter
 from api_fhir_r4.tests.mixin.activityDefinitionTestMixin import ActivityDefinitionTestMixin

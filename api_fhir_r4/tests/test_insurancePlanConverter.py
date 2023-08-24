@@ -3,7 +3,7 @@ import os
 
 from api_fhir_r4.converters import InsurancePlanConverter
 
-from fhir.resources.insuranceplan import InsurancePlan
+from fhir.resources.R4B.insuranceplan import InsurancePlan
 from api_fhir_r4.tests import InsurancePlanTestMixin
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 
