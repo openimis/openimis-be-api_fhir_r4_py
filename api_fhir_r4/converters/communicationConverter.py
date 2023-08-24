@@ -163,25 +163,25 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_imis_care_rendered(cls, imis_feedback, fhir_content_string):
         value = cls._convert_bool_value(fhir_content_string)
-        if value:
+        if value is not None:
             imis_feedback.care_rendered = value
 
     @classmethod
     def build_imis_payment_asked(cls, imis_feedback, fhir_content_string):
         value = cls._convert_bool_value(fhir_content_string)
-        if value:
+        if value is not None:
             imis_feedback.payment_asked = value
 
     @classmethod
     def build_imis_drug_prescribed(cls, imis_feedback, fhir_content_string):
         value = cls._convert_bool_value(fhir_content_string)
-        if value:
+        if value is not None:
             imis_feedback.drug_prescribed = value
 
     @classmethod
     def build_imis_drug_received(cls, imis_feedback, fhir_content_string):
         value = cls._convert_bool_value(fhir_content_string)
-        if value:
+        if value is not None:
             imis_feedback.drug_received = value
 
     @classmethod
@@ -190,11 +190,10 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def _convert_bool_value(cls, fhir_content_string):
-        if fhir_content_string == "yes":
-            return True
-        if fhir_content_string == "no":
-            return False
-        return None
+        if fhir_content_string not in [ "yes", "no"]:
+            return None
+        
+        return fhir_content_string == "yes"
 
     @classmethod
     def get_reference_obj_id(cls, imis_feedback):
