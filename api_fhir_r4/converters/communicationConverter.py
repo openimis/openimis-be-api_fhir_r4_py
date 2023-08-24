@@ -153,27 +153,23 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_care_rendered(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.care_rendered = value
+        cls._should_be_yes_or_no(Config.get_fhir_care_rendered_code(), fhir_content_string)
+        imis_feedback.care_rendered = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_payment_asked(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.payment_asked = value
+        cls._should_be_yes_or_no(Config.get_fhir_payment_asked_code(), fhir_content_string)
+        imis_feedback.payment_asked = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_drug_prescribed(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.drug_prescribed = value
+        cls._should_be_yes_or_no(Config.get_fhir_drug_prescribed_code(), fhir_content_string)
+        imis_feedback.drug_prescribed = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_drug_received(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.drug_received = value
+        cls._should_be_yes_or_no(Config.get_fhir_drug_received_code(), fhir_content_string)
+        imis_feedback.drug_received = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_asessment(cls, imis_feedback, fhir_content_string):
@@ -181,11 +177,12 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def _convert_bool_value(cls, fhir_content_string):
-        if fhir_content_string == "yes":
-            return True
-        if fhir_content_string == "no":
-            return False
-        return None
+        return fhir_content_string == "yes"
+
+    @classmethod
+    def _should_be_yes_or_no(cls, code, content):
+        if content not in ["yes", "no"]:
+            raise ValidationError(f"Value for '{code}' must be either 'yes' or 'no' but is '{content}'")
 
     @classmethod
     def get_reference_obj_id(cls, imis_feedback):
