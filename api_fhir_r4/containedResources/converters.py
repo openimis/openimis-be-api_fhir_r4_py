@@ -7,7 +7,7 @@ from fhir.resources.R4B.resource import Resource
 
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.exceptions import FHIRException
-from fhir.resources.R4B.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B import FHIRAbstractModel
 
 
 DEFAULT_REF_TYPE = ReferenceConverterMixin.UUID_REFERENCE_TYPE
