@@ -176,7 +176,6 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         claim_admin.uuid = self._TEST_CLAIM_ADMIN_UUID
         claim_admin.save()
         imis_claim.admin = claim_admin
-        imis_claim.feedback_status = Claim.FEEDBACK_SELECTED
         imis_claim.save()
         return imis_claim
 
@@ -198,7 +197,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
         response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
         self.assertIsNotNone(response.content)
         response_json = response.json()
         self.assertEqual(len(response_json['payload']), 5)
@@ -217,6 +216,12 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
                 self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value)
             elif code == Config.get_fhir_asessment_code():
                 self.assertEqual(self._TEST_ASESSMENT, content_string)
+        claim = Claim.objects.get(uuid=self._TEST_CLAIM_UUID)
+        self.assertEqual(claim.feedback_status, Claim.FEEDBACK_DELIVERED)
+        self.assertTrue(claim.feedback_available)
+        self.assertIsNotNone(claim.feedback)
+        self.assertEqual(claim.feedback.uuid.lower(), response_json['identifier'][0]['value'].lower())
+        self.assertEqual(claim.uuid.lower(), response_json['about'][0]['identifier']['value'].lower())
 
     def _convert_bool_value(self, fhir_content_string):
         if fhir_content_string == "yes":
