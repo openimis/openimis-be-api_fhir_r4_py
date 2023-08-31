@@ -27,7 +27,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
     # feedback expected data
     _TEST_FEE_UUID = "612a1e12-ce44-4632-90a8-129ec714ec59"
-    _TEST_CARE_RENDERED = True
+    _TEST_CARE_RENDERED = False
     _TEST_PAYMENT_ASKED = True
     _TEST_DRUG_PRESCRIBED = True
     _TEST_DRUG_RECEIVED = False
