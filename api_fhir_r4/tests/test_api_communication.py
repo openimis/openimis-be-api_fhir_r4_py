@@ -179,7 +179,6 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         claim_admin.uuid = self._TEST_CLAIM_ADMIN_UUID
         claim_admin.save()
         imis_claim.admin = claim_admin
-        imis_claim.feedback_status = Claim.FEEDBACK_SELECTED
         imis_claim.save()
         return imis_claim
 
@@ -206,34 +205,32 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
-
-        dataset = [
-            # self._test_request_data,
-            self._get_json_of_communication_with_code_reference()
-        ]
-
-        for data in dataset:
-            response = self.client.post(self.base_url, data=data, format='json', **headers)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
-            self.assertIsNotNone(response.content)
-            response_json = response.json()
-            self.assertEqual(len(response_json['payload']), 5)
-            for payload in response_json['payload']:
-                code = payload['extension'][0]['valueCodeableConcept']['coding'][0]['code']
-                content_string = payload['contentString']
-                print(f'code {code}: {content_string}')
-                if code != Config.get_fhir_asessment_code():
-                    bool_value = self._convert_bool_value(content_string)
-                if code == Config.get_fhir_care_rendered_code():
-                    self.assertEqual(self._TEST_CARE_RENDERED, bool_value, f'code {code}: {content_string}')
-                elif code == Config.get_fhir_payment_asked_code():
-                    self.assertEqual(self._TEST_PAYMENT_ASKED, bool_value, f'code {code}: {content_string}')
-                elif code == Config.get_fhir_drug_prescribed_code():
-                    self.assertEqual(self._TEST_DRUG_PRESCRIBED, bool_value, f'code {code}: {content_string}')
-                elif code == Config.get_fhir_drug_received_code():
-                    self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value, f'code {code}: {content_string}')
-                elif code == Config.get_fhir_asessment_code():
-                    self.assertEqual(self._TEST_ASESSMENT, content_string, f'code {code}: {content_string}')
+        response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
+        self.assertIsNotNone(response.content)
+        response_json = response.json()
+        self.assertEqual(len(response_json['payload']), 5)
+        for payload in response_json['payload']:
+            code = payload['extension'][0]['valueCodeableConcept']['coding'][0]['code']
+            content_string = payload['contentString']
+            if code != Config.get_fhir_asessment_code():
+                bool_value = self._convert_bool_value(content_string)
+            if code == Config.get_fhir_care_rendered_code():
+                self.assertEqual(self._TEST_CARE_RENDERED, bool_value)
+            elif code == Config.get_fhir_payment_asked_code():
+                self.assertEqual(self._TEST_PAYMENT_ASKED, bool_value)
+            elif code == Config.get_fhir_drug_prescribed_code():
+                self.assertEqual(self._TEST_DRUG_PRESCRIBED, bool_value)
+            elif code == Config.get_fhir_drug_received_code():
+                self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value)
+            elif code == Config.get_fhir_asessment_code():
+                self.assertEqual(self._TEST_ASESSMENT, content_string)
+        claim = Claim.objects.get(uuid=self._TEST_CLAIM_UUID)
+        self.assertEqual(claim.feedback_status, Claim.FEEDBACK_DELIVERED)
+        self.assertTrue(claim.feedback_available)
+        self.assertIsNotNone(claim.feedback)
+        self.assertEqual(claim.feedback.uuid.lower(), response_json['identifier'][0]['value'].lower())
+        self.assertEqual(claim.uuid.lower(), response_json['about'][0]['identifier']['value'].lower())
 
     def _convert_bool_value(self, fhir_content_string):
         if fhir_content_string == "yes":
