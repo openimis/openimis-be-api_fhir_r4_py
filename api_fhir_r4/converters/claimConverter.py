@@ -28,7 +28,7 @@ from fhir.resources.R4B.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimI
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('openimis.' + __name__)
 
 class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
