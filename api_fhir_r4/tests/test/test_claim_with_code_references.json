@@ -1,0 +1,208 @@
+{
+    "resourceType": "Claim",
+    "identifier": [
+        {
+            "type": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                        "code": "Code"
+                    }
+                ]
+            },
+            "value": "T00002"
+        }
+    ],
+    "status": "active",
+    "type": {
+        "coding": [
+            {
+                "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem-claim-visit-type.html",
+                "code": "O",
+                "display": "Other"
+            }
+        ]
+    },
+    "use": "claim",
+    "patient": {
+            "type": "Patient",
+            "identifier":
+            {
+                "value": "999000001",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }
+    },
+    "billablePeriod": {
+        "start": "2021-02-03",
+        "end": "2021-02-03"
+    },
+    "created": "2021-02-03",
+    "enterer": {
+            "type": "Practitioner",
+            "identifier":
+            {
+                "value": "VITEST99",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }
+    },
+    "provider": {
+            "type": "Organization",
+            "identifier":
+            {
+                "value": "12345678",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }   
+    },
+    "priority": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/processpriority",
+                "code": "normal",
+                "display": "Normal"
+            }
+        ]
+    },
+    "supportingInfo": [
+        {
+            "sequence": 1,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-supporting-info-category",
+                        "code": "guarantee"
+                    }
+                ]
+            },
+            "valueString": "1234"
+        },
+        {
+            "sequence": 2,
+            "category": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/claim-supporting-info-category",
+                        "code": "explanation"
+                    }
+                ]
+            },
+            "valueString": "example explanation"
+        }
+    ],
+    "diagnosis": [
+        {
+            "sequence": 1,
+            "diagnosisCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/diagnosis-ICD10-level1",
+                        "code": "T_CD",
+                        "display": "Test diagnosis"
+                    }
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "extension": [
+                {
+                    "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+                    "valueReference": {
+                        "type": "Medication",
+                        "identifier": {
+                            "type": {
+                                "coding": [
+                                    {
+                                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                        "code": "code"
+                                    }
+                                ]
+                            },
+                            "value": "iCode"
+                        }
+                    }
+                }
+            ],
+            "sequence": 1,
+            "category": {
+                "text": "item"
+            },
+            "productOrService": {
+                "text": "iCode"
+            },
+            "quantity": {
+                "value": 10.0
+            },
+            "unitPrice": {
+                "value": 10.0,
+                "currency": "$"
+            }
+        },
+        {
+            "extension": [
+                {
+                    "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
+                    "valueReference": {
+                        "type": "ActivityDefinition",
+                        "identifier": {
+                            "type": {
+                                "coding": [
+                                    {
+                                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                                        "code": "code"
+                                    }
+                                ]
+                            },
+                            "value": "sCode"
+                        }
+                    }
+                }
+            ],
+            "sequence": 2,
+            "category": {
+                "text": "service"
+            },
+            "productOrService": {
+                "text": "sCode"
+            },
+            "quantity": {
+                "value": 1.0
+            },
+            "unitPrice": {
+                "value": 21000.0,
+                "currency": "$"
+            }
+        }
+    ],
+    "total": {
+        "value": 21100.0,
+        "currency": "$"
+    }
+}

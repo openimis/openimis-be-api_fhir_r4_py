@@ -66,7 +66,7 @@ class ContractAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.create_dependencies()
         headers = self._build_headers()
         response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
         self.assertIsNotNone(response.content)
 
     def test_post_patient_subject_reference(self):

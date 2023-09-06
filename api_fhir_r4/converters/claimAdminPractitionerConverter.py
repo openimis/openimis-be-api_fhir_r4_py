@@ -57,9 +57,10 @@ class ClaimAdminPractitionerConverter(BaseFHIRConverter, PersonConverterMixin, R
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_claim_admin_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(ClaimAdmin, uuid=imis_claim_admin_uuid)
-
+        return DbManagerUtils.get_object_or_none(
+            ClaimAdmin,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+        
     @classmethod
     def create_default_claim_admin(cls, audit_user_id):
         imis_claim_admin = ClaimAdmin()
