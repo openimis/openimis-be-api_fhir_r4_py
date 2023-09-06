@@ -44,6 +44,12 @@ class ConvertToFhirTestMixin:
         raise NotImplementedError()
 
     def cleanup(self):
+        """
+        This method is intended for cleanup operations if needed.
+
+        If there are no specific cleanup actions required for this class,
+        you can leave this method empty.
+        """
         pass
 
     def test_to_fhir_obj(self):

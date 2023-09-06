@@ -18,4 +18,11 @@ class GenericTestMixin(TestCase, ABC):  # pragma: no cover
         raise NotImplementedError('`verify_fhir_instance()` must be implemented.')
 
     def cleanup(self):
+        """
+        This method is intended for cleanup operations if needed.
+
+        If there are no specific cleanup actions required for this class,
+        you can leave this method empty.
+        """
         pass
+
