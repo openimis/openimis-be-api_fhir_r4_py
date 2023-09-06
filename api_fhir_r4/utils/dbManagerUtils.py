@@ -12,7 +12,7 @@ class DbManagerUtils(object):
         try:
             result = get_object_or_404(model, **kwargs)
         except MultipleObjectsReturned:
-            result = get_list_or_404(model, **kwargs)[cls.__FIRST]
+            result = get_list_or_404(model, validity_to__isnull=True, **kwargs)[cls.__FIRST]
         except Http404:
             result = None
         return result
