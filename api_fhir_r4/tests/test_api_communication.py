@@ -208,7 +208,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
 
         dataset = [
-            i#self._test_request_data,
+            #self._test_request_data,
             self._get_json_of_communication_with_code_reference()
         ]
 
