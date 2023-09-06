@@ -1,3 +1,5 @@
+import uuid
+
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.converters import CommunicationConverter
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
@@ -5,9 +7,10 @@ from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
 from fhir.resources.R4B.communication import Communication, CommunicationPayload
 from fhir.resources.R4B.extension import Extension
-from claim.models import Claim, ClaimItem, ClaimService, Feedback
+from claim.models import Claim, ClaimItem, ClaimService, Feedback, ClaimAdmin
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
+from insuree.models import Insuree
 from location.models import HealthFacility
 from insuree.test_helpers import create_test_insuree
 from medical.test_helpers import create_test_item, create_test_service
@@ -120,7 +123,7 @@ class CommunicationTestMixin(GenericTestMixin):
         return service
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
+        location = LocationTestMixin().get_or_create_location()
         location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
@@ -313,3 +316,15 @@ class CommunicationTestMixin(GenericTestMixin):
         if fhir_content_string == "no":
             return False
         return None
+
+    def cleanup(self):
+        insuree = Insuree.objects.filter(uuid=self._TEST_PATIENT_UUID).first()
+        if insuree:
+            insuree.uuid = uuid.uuid4()
+            insuree.save()
+
+        claim_admin = ClaimAdmin.objects.filter(uuid=self._TEST_CLAIM_ADMIN_UUID).first()
+        if claim_admin:
+            claim_admin.uuid = uuid.uuid4()
+            claim_admin.save()
+

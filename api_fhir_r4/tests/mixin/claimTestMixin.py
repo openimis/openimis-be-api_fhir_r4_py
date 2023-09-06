@@ -1,4 +1,6 @@
-from claim.models import Claim, ClaimItem, ClaimService
+import uuid
+
+from claim.models import Claim, ClaimItem, ClaimService, ClaimAdmin
 from insuree.test_helpers import create_test_insuree
 from medical.models import Diagnosis
 
@@ -87,7 +89,7 @@ class ClaimTestMixin(GenericTestMixin):
         self._TEST_SERVICE = self.create_test_claim_service()
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
+        location = LocationTestMixin().get_or_create_location()
         location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
@@ -271,3 +273,9 @@ class ClaimTestMixin(GenericTestMixin):
                 self.assertEqual(self._TEST_SERVICE_CODE, item.productOrService.text)
                 self.assertEqual(self._TEST_SERVICE_QUANTITY_PROVIDED, item.quantity.value)
                 self.assertEqual(self._TEST_SERVICE_PRICE_ASKED, item.unitPrice.value)
+
+    def cleanup(self):
+        claim_admin = ClaimAdmin.objects.filter(uuid=self._TEST_CLAIM_ADMIN_UUID).first()
+        if claim_admin:
+            claim_admin.uuid = uuid.uuid4()
+            claim_admin.save()

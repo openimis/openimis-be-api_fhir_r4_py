@@ -145,7 +145,7 @@ class ClaimAPIContainedTestBaseMixin:
     def create_test_hf(self):
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
-        hf.uuid = 'AAAA5F9B-97C6-444B-AAD9-2FCCFD460000'
+        hf.uuid = self._TEST_HF_UUID
         hf.code = self._TEST_HF_CODE
         hf.name = self._TEST_HF_NAME
         hf.level = self._TEST_HF_LEVEL

@@ -16,3 +16,6 @@ class GenericTestMixin(TestCase, ABC):  # pragma: no cover
 
     def verify_fhir_instance(self, fhir_obj):
         raise NotImplementedError('`verify_fhir_instance()` must be implemented.')
+
+    def cleanup(self):
+        pass

@@ -1,3 +1,5 @@
+import uuid
+
 from location.models import Location
 
 from api_fhir_r4.configurations import R4IdentifierConfig, R4LocationConfig
@@ -43,6 +45,12 @@ class LocationTestMixin(GenericTestMixin):
         imis_location.parent = imis_location_municipality
         return imis_location
 
+    def get_or_create_location(self):
+        query = Location.objects.filter(uuid=self._TEST_MUNICIPALITY_UUID)
+        if query.exists():
+            return query.first().parent
+        return self.create_test_imis_instance()
+
     def verify_imis_instance(self, imis_obj):
         self.assertEqual(self._TEST_CODE, imis_obj.code)
         self.assertEqual(self._TEST_NAME, imis_obj.name)
@@ -77,3 +85,9 @@ class LocationTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_LOCATION_TYPE, physical_type_code)
         self.assertEqual(R4LocationConfig.get_fhir_code_for_active(), fhir_obj.status)
         self.assertEqual('instance', fhir_obj.mode)
+
+    def cleanup(self):
+        instance = Location.objects.filter(uuid=self._TEST_MUNICIPALITY_UUID).first()
+        if instance:
+            instance.uuid = uuid.uuid4()
+            instance.save()

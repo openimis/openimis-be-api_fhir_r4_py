@@ -43,7 +43,11 @@ class ConvertToFhirTestMixin:
     def verify_fhir_instance(self, fhir_instance):
         raise NotImplementedError()
 
+    def cleanup(self):
+        pass
+
     def test_to_fhir_obj(self):
+        self.cleanup()
         imis_instance = self.create_test_imis_instance()
         fhir_instance = self.converter.to_fhir_obj(imis_instance)
         self.verify_fhir_instance(fhir_instance)

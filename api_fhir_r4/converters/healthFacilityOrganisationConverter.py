@@ -56,7 +56,7 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        healthfacility_uuid = cls.get_resource_id_from_reference(reference).lower()
+        healthfacility_uuid = cls.get_resource_id_from_reference(reference)
         return DbManagerUtils.get_object_or_none(HealthFacility, uuid=healthfacility_uuid)
 
     @classmethod

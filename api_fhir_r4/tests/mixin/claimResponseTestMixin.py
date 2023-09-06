@@ -1,4 +1,7 @@
+import uuid
+
 from core import datetime
+from insuree.models import Insuree
 
 from insuree.test_helpers import create_test_insuree
 from location.models import HealthFacility
@@ -7,7 +10,7 @@ from api_fhir_r4.configurations import R4IdentifierConfig
 
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
-from claim.models import Claim, ClaimItem, ClaimService
+from claim.models import Claim, ClaimItem, ClaimService, ClaimAdmin
 from medical.models import Diagnosis
 from claim.test_helpers import create_test_claim_admin
 
@@ -138,7 +141,7 @@ class ClaimResponseTestMixin(GenericTestMixin):
         return imis_claim
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
+        location = LocationTestMixin().get_or_create_location()
         location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
@@ -177,3 +180,14 @@ class ClaimResponseTestMixin(GenericTestMixin):
         self.assertEqual(self._PRICE_ASKED, fhir_obj.total[0].amount.value)
         self.assertEqual(self._TEST_CLAIM_ADMIN_UUID, fhir_obj.requestor.identifier.value)
         self.assertEqual(self._TEST_PATIENT_UUID, fhir_obj.patient.identifier.value)
+
+    def cleanup(self):
+        insuree = Insuree.objects.filter(uuid=self._TEST_PATIENT_UUID).first()
+        if insuree:
+            insuree.uuid = uuid.uuid4()
+            insuree.save()
+
+        claim_admin = ClaimAdmin.objects.filter(uuid=self._TEST_CLAIM_ADMIN_UUID).first()
+        if claim_admin:
+            claim_admin.uuid = uuid.uuid4()
+            claim_admin.save()
