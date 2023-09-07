@@ -9,7 +9,7 @@ from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.tests import LocationTestMixin
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 from api_fhir_r4.utils import TimeUtils
-from claim.models import Claim, ClaimItem, ClaimService
+from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
 from insuree.test_helpers import create_test_insuree
@@ -208,7 +208,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
 
         dataset = [
-            #self._test_request_data,
+            self._test_request_data,
             self._get_json_of_communication_with_code_reference()
         ]
 
@@ -221,7 +221,6 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             for payload in response_json['payload']:
                 code = payload['extension'][0]['valueCodeableConcept']['coding'][0]['code']
                 content_string = payload['contentString']
-                print(f'code {code}: {content_string}')
                 if code != Config.get_fhir_asessment_code():
                     bool_value = self._convert_bool_value(content_string)
                 if code == Config.get_fhir_care_rendered_code():
@@ -234,14 +233,14 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
                     self.assertEqual(self._TEST_DRUG_RECEIVED, bool_value, f'code {code}: {content_string}')
                 elif code == Config.get_fhir_asessment_code():
                     self.assertEqual(self._TEST_ASESSMENT, content_string, f'code {code}: {content_string}')
-
-        
-        claim = Claim.objects.get(uuid=self._TEST_CLAIM_UUID)
-        self.assertEqual(claim.feedback_status, Claim.FEEDBACK_DELIVERED)
-        self.assertTrue(claim.feedback_available)
-        self.assertIsNotNone(claim.feedback)
-        self.assertEqual(claim.feedback.uuid.lower(), response_json['identifier'][0]['value'].lower())
-        self.assertEqual(claim.uuid.lower(), response_json['about'][0]['identifier']['value'].lower())
+    
+            claim = Claim.objects.get(uuid=self._TEST_CLAIM_UUID)
+            self.assertEqual(claim.feedback_status, Claim.FEEDBACK_DELIVERED)
+            self.assertTrue(claim.feedback_available)
+            self.assertIsNotNone(claim.feedback)
+            self.assertEqual(claim.feedback.uuid.lower(), response_json['identifier'][0]['value'].lower())
+            self.assertEqual(claim.uuid.lower(), response_json['about'][0]['identifier']['value'].lower())
+            claim.feedback.delete()
 
 
     def _convert_bool_value(self, fhir_content_string):
