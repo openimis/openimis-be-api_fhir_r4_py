@@ -40,7 +40,7 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
         return officer
 
     def create_test_location(self):
-        location = LocationTestMixin().create_test_imis_instance()
+        location = LocationTestMixin().get_or_create_location()
         location.uuid = self._TEST_LOCATION_UUID
         location.save()
         return location

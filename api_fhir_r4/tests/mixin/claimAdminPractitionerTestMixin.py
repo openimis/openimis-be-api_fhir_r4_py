@@ -38,7 +38,7 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
 
     def create_test_health_facility(self, location=None):
         if location == None:
-            location = LocationTestMixin().create_test_imis_instance()
+            location = LocationTestMixin().get_or_create_location()
             location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID

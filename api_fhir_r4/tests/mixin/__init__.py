@@ -43,7 +43,17 @@ class ConvertToFhirTestMixin:
     def verify_fhir_instance(self, fhir_instance):
         raise NotImplementedError()
 
+    def cleanup(self):
+        """
+        This method is intended for cleanup operations if needed.
+
+        If there are no specific cleanup actions required for this class,
+        you can leave this method empty.
+        """
+        pass
+
     def test_to_fhir_obj(self):
+        self.cleanup()
         imis_instance = self.create_test_imis_instance()
         fhir_instance = self.converter.to_fhir_obj(imis_instance)
         self.verify_fhir_instance(fhir_instance)

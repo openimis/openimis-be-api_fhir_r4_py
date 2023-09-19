@@ -1,9 +1,12 @@
+import uuid
+
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.converters import ClaimAdminPractitionerRoleConverter
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.practitionerrole import PractitionerRole
 from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.tests import GenericTestMixin, ClaimAdminPractitionerTestMixin, LocationTestMixin
+from claim.models import ClaimAdmin
 from location.models import HealthFacility
 
 
@@ -37,7 +40,7 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
         self._TEST_ORGANIZATION_REFERENCE = "Organization/" + self._TEST_HF.uuid
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
+        location = LocationTestMixin().get_or_create_location()
         location.save()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
