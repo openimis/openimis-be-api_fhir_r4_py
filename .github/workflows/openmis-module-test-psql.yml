@@ -38,7 +38,7 @@ jobs:
       - name: Pull openIMIS Backend
         run: |
           rm ./openimis -rf
-          git clone --depth 1 --branch develop https://github.com/openimis/openimis-be_py.git ./openimis
+          git clone --depth 1 --branch coreMIS https://github.com/openimis/openimis-be_py.git ./openimis
       - name: Copy Current branch
         uses: actions/checkout@v2
         with:
@@ -64,7 +64,7 @@ jobs:
           python manage.py migrate
           python manage.py showmigrations
           python init_test_db.py | grep . | uniq -c
-          python manage.py test  $MODULE_NAME
+          python manage.py test --keep $MODULE_NAME
         env:
           SECRET_KEY: secret
           DEBUG: true
