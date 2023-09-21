@@ -3,7 +3,7 @@ from invoice.models import Invoice
 
 
 class PaymentNoticeStatusMapping:
-    _IMIS_ACTIVE_PAYED = Invoice.Status.PAYED.value
+    _IMIS_ACTIVE_PAYED = Invoice.Status.PAID.value
     _IMIS_ACTIVE_VALIDATED = Invoice.Status.VALIDATED.value
     _IMIS_ACTIVE_SUSPENDED = Invoice.Status.SUSPENDED.value
     _FHIR_ACTIVE_PAYED = R4PaymentNoticeConfig.get_fhir_payment_notice_status_active()
