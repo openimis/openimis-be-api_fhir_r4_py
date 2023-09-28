@@ -2,7 +2,6 @@ import copy
 
 from insuree.apps import InsureeConfig
 from insuree.models import Insuree, Family
-from insuree.gql_mutations import create_file
 
 from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
@@ -18,9 +17,6 @@ class PatientSerializer(BaseFHIRSerializer):
         copied_data = self._clean_data(copy.deepcopy(validated_data))
         obj = InsureeService(self.context.get("request").user)\
             .create_or_update(copied_data)
-        # create photo as a file to specified configured path
-        if InsureeConfig.insuree_photos_root_path:
-            create_file(date=obj.photo.date, insuree_id=obj.id, photo_bin=obj.photo.photo)
 
         if copied_data['head']:
             self._create_patient_family(obj, validated_data)
