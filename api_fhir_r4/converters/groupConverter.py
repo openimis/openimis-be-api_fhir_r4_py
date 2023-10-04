@@ -8,6 +8,7 @@ from location.models import Location
 from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
+
 from api_fhir_r4.mapping.groupMapping import GroupTypeMapping, ConfirmationTypeMapping
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.group import Group, GroupMember
@@ -64,8 +65,10 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_family_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Family, uuid=imis_family_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Family,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_human_names(cls, fhir_family, imis_family):
@@ -203,12 +206,7 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     imis_family.address = address.text
                     for ext in address.extension:
                         if "StructureDefinition/address-location-reference" in ext.url:
-                            value = cls.get_location_reference(ext.valueReference.reference)
-                            if value:
-                                try:
-                                    imis_family.location = Location.objects.get(uuid=value, validity_to__isnull=True)
-                                except Location.DoesNotExist:
-                                    imis_family.location = None
+                                imis_family.location= Location.objects.filter(validity_to__isnull=True,**LocationConverter.get_database_query_id_parameteres_from_reference(ext.valueReference)).first()
 
             elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-poverty-status":
                 imis_family.poverty = extension.valueBoolean
@@ -234,9 +232,7 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 pass
         cls._validate_imis_family_location(imis_family)
 
-    @classmethod
-    def get_location_reference(cls, location):
-        return location.rsplit('Location/', 1)[1]
+
 
     @classmethod
     def _build_extension_address(cls, extension, fhir_family, imis_family, reference_type):
@@ -362,12 +358,12 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def _insuree_from_reference(cls, reference):
-        patient_uuid = cls.get_resource_id_from_reference(reference)
-        try:
-            return Insuree.objects.filter(uuid=patient_uuid, validity_to__isnull=True).get()
-        except Insuree.DoesNotExist as e:
+        from api_fhir_r4.converters import PatientConverter
+        insuree = PatientConverter.get_imis_obj_by_fhir_reference(reference)
+        if insuree is None:
             raise FHIRException(f"Invalid Family member reference. "
-                                f"Insuree with identifier `{patient_uuid}` does not exist") from e
+                                f"Insuree with identifier `{reference}` does not exist")
+        return insuree
 
     @classmethod
     def _insuree_has_family(cls, insuree):

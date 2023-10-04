@@ -21,6 +21,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_fhir_obj(cls, imis_activity_definition, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        PatientCategoryMapping.load()
         fhir_activity_definition = ActivityDefinition.construct()
         # first to construct is status - obligatory fields
         cls.build_fhir_status(fhir_activity_definition, imis_activity_definition)
@@ -42,6 +43,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_imis_obj(cls, fhir_activity_definition, audit_user_id):
+        PatientCategoryMapping.load()
         errors = []
         fhir_activity_definition = ActivityDefinition(**fhir_activity_definition)
         imis_activity_definition = Service()

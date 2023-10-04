@@ -60,8 +60,7 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        location_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Location, uuid=location_uuid)
+        return DbManagerUtils.get_object_or_none(Location, **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def build_fhir_location_identifier(cls, fhir_location, imis_location):
@@ -136,6 +135,39 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 reference_type=reference_type
             )
 
+    def get_location_from_address(cls, fhir_patient_address):
+        location_reference_ext = next((
+            ext for ext in fhir_patient_address.extension if 'address-location-reference' in ext.url
+        ))
+        location =  cls.get_imis_obj_by_fhir_reference(location_reference_ext.valueReference)
+        if location is None and location_reference_ext:
+            raise FHIRException(f"Invalid location reference, {location_reference_ext.valueReference} doesn't match any location.")
+        if location is None:
+            matching_locations = Location.objects \
+                .filter(
+                    validity_to__isnull=True,
+                    name=address.district,
+                    parent__name=address.state,
+                    type="D"  # HF is expected to be at district level
+                ).distinct()\
+                .all()
+        
+            if matching_locations.count() != 1:
+                raise FHIRException(cls.__get_invalid_location_msg(address, matching_locations))
+            else:
+                location = matching_locations.first()
+        return location
+    
+    
+    @classmethod
+    def __get_invalid_location_msg(cls, address, matching_locations):
+        count = matching_locations.count()
+        if count == 0:
+            return _(F"No matching location for district {address.district}, state {address.state}.")
+        elif count > 1:
+            return _(F"More than one matching location district {address.district}, state {address.state}:\n"
+                     F"{matching_locations}.")
+
     @classmethod
     def build_imis_parent_location_id(cls, imis_location, fhir_location, errors):
         if fhir_location.partOf:
@@ -173,10 +205,11 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def _validate_physical_type(cls, imis_location):
         allowed_keys = cls.PHYSICAL_TYPES.keys()
-        if imis_location.type not in allowed_keys:
+        if not imis_location or (imis_location.type not in allowed_keys):
+            
             error_msg_keys = {
                 'type': imis_location.type, 'location': imis_location.uuid, 'types': allowed_keys
-            }
+            } if imis_location else {'type':None,'location':None,'types': allowed_keys}
             raise FHIRException(
                 _('Invalid Location\'s type %(type) for location %(location), '
                   'supported types are: %(types)') % error_msg_keys

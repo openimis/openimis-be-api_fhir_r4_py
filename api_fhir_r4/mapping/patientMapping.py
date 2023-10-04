@@ -7,9 +7,10 @@ class RelationshipMapping(object):
     relationship = {}
     @classmethod
     def load(cls):
-        self.relationship = {
-        str(relation.id): relation.relation for relation in Relation.objects.all()
-    }
+        if cls.relationship == {}:
+            cls.relationship = {
+                str(relation.id): relation.relation for relation in Relation.objects.all()
+            }
 
 
 class EducationLevelMapping(object):
@@ -17,27 +18,30 @@ class EducationLevelMapping(object):
     
     @classmethod
     def load(cls):
-        self.education_level = {
-            str(education.id): education.education for education in Education.objects.all()
-            }
+        if cls.education_level ==  {}:
+            cls.education_level = {
+                str(education.id): education.education for education in Education.objects.all()
+                }
 
 
 class PatientProfessionMapping(object):
     patient_profession = {}
     @classmethod
     def load(cls):
-        self.patient_profession = {
-            str(profession.id): profession.profession for profession in Profession.objects.all()
-        }
+        if cls.patient_profession ==  {}:
+            cls.patient_profession = {
+                str(profession.id): profession.profession for profession in Profession.objects.all()
+            }
 
 
 class IdentificationTypeMapping(object):
     identification_type = {}
     @classmethod
     def load(cls):
-        self.identification_type = {
-            identification.code: identification.identification_type for identification in IdentificationType.objects.all()
-        }
+        if cls.identification_type == {}:
+            cls.identification_type = {
+                identification.code: identification.identification_type for identification in IdentificationType.objects.all()
+            }
 
 
 class MaritalStatusMapping(object):
@@ -53,7 +57,7 @@ class MaritalStatusMapping(object):
 class PatientCategoryMapping(object):
     GENDER_SYSTEM = "http://hl7.org/fhir/administrative-gender"
     AGE_SYSTEM = f"{GeneralConfiguration.get_system_base_url()}CodeSystem/usage-context-age-type"
-    imis_gender_mapping = None
+    imis_gender_mapping = {}
     fhir_patient_category_coding = {
         "male": {
             "system": GENDER_SYSTEM,
@@ -90,7 +94,8 @@ class PatientCategoryMapping(object):
         return imis_gender_mapping
     @classmethod
     def load(cls):
-        self.imis_gender_mapping = get_genders()
+        if cls.imis_gender_mapping ==  {}:
+            cls.imis_gender_mapping = cls.get_genders()
 
     imis_patient_category_flags = {
         "male": 1,

@@ -4,6 +4,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from location.models import HealthFacility, Location, HealthFacilityLegalForm
 from claim.models import ClaimAdmin
 from fhir.resources.R4B.address import Address
+from api_fhir_r4.exceptions import FHIRException
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin, LocationConverter, PersonConverterMixin
@@ -336,28 +337,9 @@ class HealthFacilityOrganisationConverter(BaseFHIRConverter, PersonConverterMixi
 
     @classmethod
     def build_imis_parent_location_id(cls, imis_hf, fhir_hf, errors):
-        address = fhir_hf.address[0]
-        matching_locations = Location.objects \
-            .filter(
-                validity_to__isnull=True,
-                name=address.district,
-                parent__name=address.state,
-                type="D"  # HF is expected to be at district level
-            ).distinct()\
-            .all()
-
-        if matching_locations.count() != 1:
-            msg = cls.__get_invalid_location_msg(address, matching_locations)
-            cls.valid_condition(matching_locations.count() == 1, msg, errors)
+        if not fhir_hf.address or len(fhir_hf.address) == 0:
+            msg = "address not found in the HealthFacility Organisation"
+            cls.valid_condition(len(fhir_hf.address) == 1, msg, errors)
             return
-        else:
-            imis_hf.location = matching_locations.first()
+        imis_hf.location = LocationConverter.get_location_from_address(LocationConverter, fhir_hf.address[0])
 
-    @classmethod
-    def __get_invalid_location_msg(cls, address, matching_locations):
-        count = matching_locations.count()
-        if count == 0:
-            return _(F"No matching location for district {address.district}, state {address.state}.")
-        elif count > 1:
-            return _(F"More than one matching location district {address.district}, state {address.state}:\n"
-                     F"{matching_locations}.")
