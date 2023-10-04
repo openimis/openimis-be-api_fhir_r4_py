@@ -24,6 +24,7 @@ class GroupTestMixin( GenericTestMixin):
     _TEST_INSUREE_CHFID = "TestChfId1"
     _TEST_POVERTY_STATUS = False
     _TEST_GROUP_TYPE = None
+
     _TEST_ADDRESS = "TEST_ADDRESS"
     _TEST_INSUREE_UUID = "7240daef-5f8f-4b0f-9042-b221e66f184a"
     _TEST_GROUP_UUID = "8e33033a-9f60-43ad-be3e-3bfeb992aae5"    
@@ -39,6 +40,7 @@ class GroupTestMixin( GenericTestMixin):
     @classmethod
     def setUpTestData(cls):
         cls._TEST_GROUP_TYPE = FamilyType.objects.get(code="H")
+
         cls.test_village =create_test_village(custom_props={
             'code': cls._TEST_VILLAGE_CODE,
             'uuid': cls._TEST_VILLAGE_UUID,
