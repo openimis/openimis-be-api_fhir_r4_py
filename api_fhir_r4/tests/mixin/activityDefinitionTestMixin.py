@@ -75,6 +75,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         self.assertEqual(self._TEST_SERVICE_LEVEL, imis_obj.level)
 
     def create_test_fhir_instance(self):
+        PatientCategoryMapping.load()
         fhir_activity_definition = ActivityDefinition.construct()
         fhir_activity_definition.status = self._TEST_ACTIVITY_DEFINITION_STATUS
         fhir_activity_definition.resource_type = self._TEST_ACTIVITY_DEFINITION_RESOURCE_TYPE

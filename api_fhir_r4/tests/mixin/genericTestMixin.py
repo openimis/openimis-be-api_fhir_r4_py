@@ -4,7 +4,7 @@ from django.test import TestCase
 
 
 class GenericTestMixin(TestCase, ABC):  # pragma: no cover
-
+   
     def create_test_imis_instance(self):
         raise NotImplementedError('`test_imis_instance()` must be implemented.')
 

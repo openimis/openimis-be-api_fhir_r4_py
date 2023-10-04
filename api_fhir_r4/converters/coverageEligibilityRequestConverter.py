@@ -187,7 +187,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
     def build_fhir_coverage(cls, insurance, policy_uuid):
         # Due to circular dependency import has to be done inside of method
         from api_fhir_r4.converters import CoverageConverter
-        policy = Policy.objects.filter(uuid=policy_uuid, validity_to__isnull=True).first()
+        policy = Policy.objects.filter(uuid__iexact=policy_uuid, validity_to__isnull=True).first()
         reference_coverage = CoverageConverter.build_fhir_resource_reference(
             policy,
             type='Coverage',

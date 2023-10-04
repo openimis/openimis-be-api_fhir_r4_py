@@ -62,8 +62,10 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_insurance_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Product, uuid=imis_insurance_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Product,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_insurance_plan, imis_product):
@@ -157,13 +159,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_imis_coverage_area(cls, imis_product, fhir_insurance_plan):
         if fhir_insurance_plan.coverageArea:
             coverage_area = fhir_insurance_plan.coverageArea[0]
-            value = cls.__get_location_reference(coverage_area.reference)
-            if value:
-                imis_product.location = Location.objects.get(uuid=value)
+            imis_product.location =  Location.objects.filter(**LocationConverter.get_database_query_id_parameteres_from_reference(coverage_area.reference)).first()
 
-    @classmethod
-    def __get_location_reference(cls, location):
-        return location.rsplit('/', 1)[1]
+
 
     @classmethod
     def build_fhir_coverage(cls, fhir_insurance_plan, imis_product):

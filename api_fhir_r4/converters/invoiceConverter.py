@@ -49,8 +49,10 @@ class GenericInvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        invoice_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Invoice, uuid=invoice_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Invoice,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def get_fhir_code_identifier_type(cls):

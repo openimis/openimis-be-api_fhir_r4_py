@@ -83,6 +83,7 @@ class MedicationTestMixin(GenericTestMixin):
         extension_usage.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/medication-usage-context"
 
         # gender
+        PatientCategoryMapping.load()
         male_flag = PatientCategoryMapping.imis_patient_category_flags["male"]
         female_flag = PatientCategoryMapping.imis_patient_category_flags["female"]
         extension = Extension.construct()

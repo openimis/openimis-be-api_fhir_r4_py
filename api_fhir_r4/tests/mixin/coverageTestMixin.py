@@ -26,7 +26,7 @@ class CoverageTestMixin(GenericTestMixin):
     _TEST_POLICY_STAGE = 'N'
     _TEST_PRODUCT_CODE = "T0001"
     _TEST_PRODUCT_NAME = "Test product"
-    _TEST_INSUREE_CHF_ID = 'chfid1'
+    _TEST_INSUREE_CHFID = 'chfid1'
     _TEST_PRODUCT_UUID = "8ed8d2d9-2644-4d29-ba37-ab772386cfca"
 
     _TEST_POLICY_VALUE = 10000.0
@@ -35,7 +35,7 @@ class CoverageTestMixin(GenericTestMixin):
         # create mocked insuree
         imis_insuree = create_test_insuree(
             with_family=True,
-            custom_props={"chf_id": self._TEST_INSUREE_CHF_ID}
+            custom_props={"chf_id": self._TEST_INSUREE_CHFID}
         )
 
         # update family uuid
@@ -52,7 +52,8 @@ class CoverageTestMixin(GenericTestMixin):
             insuree=imis_insuree,
             custom_props={
                 "uuid": self._TEST_POLICY_UUID,
-                "officer_id": imis_officer.id
+                "officer_id": imis_officer.id,
+                "family":imis_insuree.family
             }
         )
 
@@ -95,9 +96,9 @@ class CoverageTestMixin(GenericTestMixin):
             code = CoverageConverter.get_first_coding_from_codeable_concept(identifier.type).code
             if code == R4IdentifierConfig.get_fhir_uuid_type_code():
                 self.assertEqual(self._TEST_POLICY_UUID, identifier.value)
-        self.assertIn(f"Patient/{self._TEST_INSUREE_CHF_ID}", fhir_obj.policyHolder.reference)
-        self.assertIn(f"Patient/{self._TEST_INSUREE_CHF_ID}", fhir_obj.beneficiary.reference)
-        self.assertIn(f"Patient/{self._TEST_INSUREE_CHF_ID}", fhir_obj.payor[0].reference)
+        self.assertIn(f"Patient/{self._TEST_INSUREE_CHFID}", fhir_obj.policyHolder.reference)
+        self.assertIn(f"Patient/{self._TEST_INSUREE_CHFID}", fhir_obj.beneficiary.reference)
+        self.assertIn(f"Patient/{self._TEST_INSUREE_CHFID}", fhir_obj.payor[0].reference)
         self.assertEqual(1, len(fhir_obj.class_fhir))
         self.assertEqual('plan', fhir_obj.class_fhir[0].type.coding[0].code)
         self.assertEqual(self._TEST_PRODUCT_CODE, fhir_obj.class_fhir[0].value)

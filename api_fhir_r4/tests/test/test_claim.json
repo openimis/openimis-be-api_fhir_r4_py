@@ -130,18 +130,17 @@
                 {
                     "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
                     "valueReference": {
-                        "reference": "Medication/e2bc1546-390b-4d41-8571-632ecf7a0936",
                         "type": "Medication",
                         "identifier": {
                             "type": {
                                 "coding": [
                                     {
                                         "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                        "code": "UUID"
+                                        "code": "Code"
                                     }
                                 ]
                             },
-                            "value": "e2bc1546-390b-4d41-8571-632ecf7a0936"
+                            "value": "0004"
                         }
                     }
                 }
@@ -151,7 +150,7 @@
                 "text": "item"
             },
             "productOrService": {
-                "text": "iCode"
+                "text": "0004"
             },
             "quantity": {
                 "value": 10.0
@@ -173,11 +172,11 @@
                                 "coding": [
                                     {
                                         "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                        "code": "UUID"
+                                        "code": "Code"
                                     }
                                 ]
                             },
-                            "value": "a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6"
+                            "value": "M7"
                         }
                     }
                 }
@@ -187,7 +186,7 @@
                 "text": "service"
             },
             "productOrService": {
-                "text": "sCode"
+                "text": "M7"
             },
             "quantity": {
                 "value": 1.0

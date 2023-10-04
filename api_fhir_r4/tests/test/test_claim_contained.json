@@ -60,7 +60,7 @@
         }
     },
     "provider": {
-        "reference": "#Organization/AAAA5F9B-97C6-444B-AAD9-2FCCFD460000",
+        "reference": "Organization/AAAA5F9B-97C6-444B-AAD9-2FCCFD460000",
         "type": "Organization",
         "identifier": {
             "type": {
@@ -281,18 +281,17 @@
                         {
                             "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
                             "valueReference": {
-                                "reference": "Location/AAAA6B35-30EF-4E42-AB04-46AC043D0000",
                                 "type": "Location",
                                 "identifier": {
                                     "type": {
                                         "coding": [
                                             {
                                                 "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                                "code": "UUID"
+                                                "code": "Code"
                                             }
                                         ]
                                     },
-                                    "value": "AAAA6B35-30EF-4E42-AB04-46AC043D0000"
+                                    "value": "R2D2M1V1"
                                 }
                             }
                         }
@@ -328,18 +327,17 @@
                             {
                                 "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
                                 "valueReference": {
-                                    "reference": "Location/AAAA6B35-30EF-4E42-AB04-46AC043D0000",
                                     "type": "Location",
                                     "identifier": {
                                         "type": {
                                             "coding": [
                                                 {
                                                     "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                                    "code": "UUID"
+                                                    "code": "Code"
                                                 }
                                             ]
                                         },
-                                        "value": "AAAA6B35-30EF-4E42-AB04-46AC043D0000"
+                                        "value": "R2D2M1V1"
                                     }
                                 }
                             }
@@ -495,20 +493,19 @@
                 {
                     "extension": [
                         {
-                            "url": "https://openimis.github.io/openimis_fhir_r4_ig//StructureDefinition/address-location-reference",
+                            "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/address-location-reference",
                             "valueReference": {
-                                "reference": "Organization/AAAA5F9B-97C6-444B-AAD9-2FCCFD460000",
-                                "type": "Organization",
+                                "type": "Location",
                                 "identifier": {
                                     "type": {
                                         "coding": [
                                             {
                                                 "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                                "code": "UUID"
+                                                "code": "Code"
                                             }
                                         ]
                                     },
-                                    "value": "AAAA5F9B-97C6-444B-AAD9-2FCCFD460000"
+                                    "value": "R2D2"
                                 }
                             }
                         }

@@ -29,8 +29,11 @@ class EnrolmentOfficerPractitionerRoleConverter(BaseFHIRConverter, PersonConvert
         practitioner = fhir_practitioner_role.practitioner
         imis_officer = EnrolmentOfficerPractitionerConverter.get_imis_obj_by_fhir_reference(practitioner, errors)
         location_references = fhir_practitioner_role.location
-        location = cls.get_location_by_reference(location_references, errors)
-        substitution_officer = None
+        if len(location_references)!=1:
+            errors.append("Location does not have 1 element")
+        else:
+            location = cls.get_location_by_reference(location_references[0], errors)
+            substitution_officer = None
         if fhir_practitioner_role.extension and len(fhir_practitioner_role.extension) > 0:
             substitution_officer_reference = fhir_practitioner_role.extension[0].valueReference
             substitution_officer = EnrolmentOfficerPractitionerConverter.get_imis_obj_by_fhir_reference(
@@ -65,8 +68,16 @@ class EnrolmentOfficerPractitionerRoleConverter(BaseFHIRConverter, PersonConvert
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
+        return DbManagerUtils.get_object_or_none(
+            Officer,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
         imis_officer_code = cls.get_resource_id_from_reference(reference)
         return DbManagerUtils.get_object_or_none(Officer, code=imis_officer_code)
+        return DbManagerUtils.get_object_or_none(
+            Officer,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_fhir_extension(cls, fhir_practitioner_role, imis_officer, reference_type):
@@ -109,11 +120,7 @@ class EnrolmentOfficerPractitionerRoleConverter(BaseFHIRConverter, PersonConvert
 
     @classmethod
     def get_location_by_reference(cls, location_references, errors):
-        location = None
-        if location_references:
-            loc = cls.get_first_location(location_references)
-            location = LocationConverter.get_imis_obj_by_fhir_reference(loc, errors)
-        return location
+        return LocationConverter.get_imis_obj_by_fhir_reference(location_references)
 
     @classmethod
     def get_first_location(cls, location_references):

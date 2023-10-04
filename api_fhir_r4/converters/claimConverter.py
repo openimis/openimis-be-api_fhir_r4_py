@@ -93,8 +93,10 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_claim_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Claim, code=imis_claim_code)
+        return DbManagerUtils.get_object_or_none(
+            Claim,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_imis_date_claimed(cls, imis_claim, fhir_claim, errors):

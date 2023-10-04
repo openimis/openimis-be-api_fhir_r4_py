@@ -14,6 +14,11 @@ class ContainedContentSerializerMixin:
     listed contained_resources. The contained values are added only if the 'contained'
     value in the serializer context is set to True.
     """
+    ALLOWED_RESOURCE_UPDATE_CONTAINED = {
+        'Group':('Patient'), 
+        'Patient':('Group'),
+        'Claim':('Medication','ActivityDefinition','Organization','Patient','Practitioner','Group'),
+        }
 
     #  Used for determining what reference type will be used used in contained value,
     # if None then value from ContainedResourceManager is used
@@ -93,7 +98,16 @@ class ContainedContentSerializerMixin:
 
     def _create_or_update_contained(self, validated_data):
         result = {}
-        for resource in self._contained_definitions.get_contained().values():
-            name = resource.alias
-            result[name] = resource.create_or_update_from_contained(validated_data)
+        main_resource_type = validated_data['resourceType']
+        #TODO: use a bundle instead 
+        if 'contained' in validated_data\
+            and main_resource_type in self.ALLOWED_RESOURCE_UPDATE_CONTAINED:
+            for resource in self._contained_definitions.get_contained().values():
+                name = resource.alias
+                ressource_type = resource.imis_converter.fhir_resource_type
+                for contained in  validated_data['contained']:
+                    if 'resourceType' in contained and contained['resourceType'] == ressource_type\
+                        and contained['resourceType'] in self.ALLOWED_RESOURCE_UPDATE_CONTAINED[main_resource_type]:
+                        result[name] = resource.create_or_update_from_contained(contained)
+                        break
         return result
