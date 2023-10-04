@@ -88,6 +88,7 @@ class PatientTestMixin(GenericTestMixin):
         cls.sub_str[cls._TEST_INSUREE_CHFID] = cls.test_insuree.chf_id
         cls.sub_str[cls._TEST_INSUREE_UUID] = cls.test_insuree.uuid
         cls.sub_str[cls._TEST_VILLAGE_UUID] = cls.test_village.uuid
+        cls.sub_str[cls._TEST_GROUP_UUID] = cls.test_insuree.family.uuid
         
 
         

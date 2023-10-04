@@ -7,6 +7,7 @@ from api_fhir_r4.tests import GenericTestMixin,  LocationTestMixin
 from location.models import HealthFacility
 from location.test_helpers import create_test_village
 from claim.test_helpers import create_test_claim_admin
+from api_fhir_r4.utils import TimeUtils
 
 class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
     test_claim_admin = None
@@ -17,6 +18,8 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
     _TEST_CLAIM_ADMIN_ID = 1
     _TEST_CLAIM_ADMIN_UUID = "254f6268-964b-4d8d-aa26-20081f22235e"
     _TEST_CLAIM_ADMIN_CODE = "1234abcd"
+    
+    _TEST_CLAIM_ADMIN_DOB = "1990-03-24"
 
     _TEST_HF_ID = 10000
     _TEST_HF_UUID = "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
@@ -33,7 +36,11 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
     def setUp(self):
         super(ClaimAdminPractitionerRoleTestMixin, self).setUp()
         self.test_hf = self.create_test_health_facility()
-        self.test_claim_admin = create_test_claim_admin( custom_props={'health_facility_id': self.test_hf.id})
+        self.test_claim_admin = create_test_claim_admin( custom_props={
+            'health_facility_id': self.test_hf.id, 
+            'code':self._TEST_CLAIM_ADMIN_CODE,
+            'dob':TimeUtils.str_to_date(self._TEST_CLAIM_ADMIN_DOB),
+            'phone':self._TEST_CLAIM_ADMIN_PHONE})
         self._TEST_CLAIM_ADMIN_PRACTITIONER_REFERENCE = "Practitioner/" + str(self.test_claim_admin.uuid)
         self._TEST_ORGANIZATION_REFERENCE = "Organization/" + str(self.test_hf.uuid)
         self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid

@@ -1,6 +1,6 @@
 from claim.models import ClaimAdmin
 from django.utils.translation import gettext as _
-
+from api_fhir_r4.utils import TimeUtils
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import ClaimAdminPractitionerConverter, HealthFacilityOrganisationConverter
 from fhir.resources.R4B.contactpoint import ContactPoint
@@ -46,7 +46,11 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         super(ClaimAdminPractitionerTestMixin, self).setUp()
         self.village = create_test_village()
         self.test_hf=self.create_test_health_facility()
-        self.test_claim_admin = create_test_claim_admin( custom_props={'health_facility_id': self.test_hf.id})
+        self.test_claim_admin = create_test_claim_admin( custom_props={
+            'health_facility_id': self.test_hf.id, 
+            'code':self._TEST_CLAIM_ADMIN_CODE,
+            'dob':TimeUtils.str_to_date(self._TEST_CLAIM_ADMIN_DOB),
+            'phone':self._TEST_CLAIM_ADMIN_PHONE})
         self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
         self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
 
@@ -164,9 +168,9 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
             self.assertTrue(isinstance(identifier, Identifier))
             code = ClaimAdminPractitionerConverter.get_first_coding_from_codeable_concept(identifier.type).code
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
-                self.assertEqual(self._TEST_CLAIM_ADMIN_CODE, identifier.value)
+                self.assertEqual(self.test_claim_admin.code, identifier.value)
             elif code == R4IdentifierConfig.get_fhir_uuid_type_code():
-                self.assertEqual(self._TEST_CLAIM_ADMIN_UUID, identifier.value)
+                self.assertEqual(str(self.test_claim_admin.uuid), identifier.value)
         self.assertEqual(self._TEST_CLAIM_ADMIN_DOB, fhir_obj.birthDate.isoformat())
         self.assertEqual(2, len(fhir_obj.telecom))
         for telecom in fhir_obj.telecom:

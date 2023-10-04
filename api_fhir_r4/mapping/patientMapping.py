@@ -80,8 +80,8 @@ class PatientCategoryMapping(object):
             "display": "Child",
         },
     }
-
-    def get_genders(self):
+    @classmethod
+    def get_genders(cls):
         imis_gender_mapping = {
             # FHIR Gender code to IMIS object
             'male': Gender.objects.get(pk='M'),

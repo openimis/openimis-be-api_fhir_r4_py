@@ -123,6 +123,7 @@ class GroupTestMixin( GenericTestMixin):
 
         extension = Extension.construct()
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-type"
+        GroupTypeMapping.load()
         display = GroupTypeMapping.group_type[str(self._TEST_GROUP_TYPE.code)]
         system = f"CodeSystem/group-type"
         extension.valueCodeableConcept = GroupConverter.build_codeable_concept(code=str(self._TEST_GROUP_TYPE.code), system=system)
