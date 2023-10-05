@@ -32,7 +32,7 @@ class PatientTestMixin(GenericTestMixin):
     _TEST_PASSPORT = "TEST_PASSPORT"
     _TEST_GENDER_CODE = "M"
     _TEST_GENDER = None
-    _TEST_PROFESSION = Profession.objects.get(id=4)
+    _TEST_PROFESSION = None
     _TEST_CARD_ISSUED = False
     _TEST_PHONE = "813-996-476"
     _TEST_EMAIL = "TEST@TEST.com"
@@ -57,7 +57,7 @@ class PatientTestMixin(GenericTestMixin):
     def setUpTestData(cls):
         cls._TEST_GENDER = Gender()
         cls._TEST_GENDER.code = cls._TEST_GENDER_CODE
-
+        cls._TEST_PROFESSION = Profession.objects.get(id=4)
 
         if cls.test_region is None:
             
