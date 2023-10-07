@@ -62,7 +62,7 @@ class GenericFhirAPITestMixin(object):
             and len(response_json["issue"])>0\
             and 'details' in response_json["issue"][0]\
             and 'text' in response_json["issue"][0]["details"]: 
-                return self.get_response_details(response_json) 
+                return response_json["issue"][0]["details"]['text'] 
         
         elif 'detail' in response_json:
             return response_json["detail"]
