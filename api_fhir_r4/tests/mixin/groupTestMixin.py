@@ -154,13 +154,7 @@ class GroupTestMixin( GenericTestMixin):
         family_address.city = self.test_village.name
         extension.valueAddress = family_address
 
-        fhir_family.extension.append(extension)* add test
-
-* move cache removal to service
-
-* Update userServices.py
-
-* fix helper
+        fhir_family.extension.append(extension)
         self.test_group = fhir_family
         return self.test_group
 
