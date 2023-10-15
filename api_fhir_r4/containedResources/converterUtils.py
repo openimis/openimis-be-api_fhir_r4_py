@@ -5,7 +5,7 @@ from fhir.resources.R4B.reference import Reference
 
 from api_fhir_r4.apps import logger
 from api_fhir_r4.converters import BaseFHIRConverter
-from api_fhir_r4.exceptions import FHIRRequestProcessException
+from api_fhir_r4.exceptions import FHIRRequestProcessException, FHIRException
 from django.utils.translation import gettext as _
 
 
@@ -19,14 +19,10 @@ def get_converted_contained_resource(
         converter_for_contained: BaseFHIRConverter,
         audit_user_id: int
 ):
-    def validate_reference(ref):
+    def validate_contained_reference(ref):
         if isinstance(ref, str) and '/' in ref and ref[0] == '#':
             return True
-        else:
-            raise ContainedResourceProcessException(
-                'Invalid reference.reference format or type, '
-                'should be string "#{reference_type}/{reference_id}"'
-            )
+
 
     def _validate_matching_contained(matching: List):
         if len(matching) > 1:
@@ -38,7 +34,8 @@ def get_converted_contained_resource(
 
     if reference:
         reference = reference.reference
-        validate_reference(reference)
+        if not validate_contained_reference(reference):
+            return None
         path, resource_id = reference.split('/', maxsplit=1)
         resource_type = path[1:]
         contained = [
@@ -69,4 +66,9 @@ def get_from_contained_or_by_reference(fhir_reference, contained, converter, aud
         if contained:
             value = get_converted_contained_resource(contained, fhir_reference, converter, audit_user_id)
         value = value or converter.get_imis_obj_by_fhir_reference(fhir_reference)
+        if value is None:
+            raise FHIRException(
+            "Failed to find the resource based on reference(with contain: {}, converter: {}): {}".format(
+                (contained is not None), converter.__name__, str(json.dumps(fhir_reference)))
+            )
     return value

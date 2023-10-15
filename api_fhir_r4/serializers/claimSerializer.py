@@ -113,15 +113,18 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
              'health_facility__Organization', 'health_facility_code',  'health_facility_id' )              
 
 
-    def __get_contained_or_default(self, contained_dict, validated_data,ref_attr,ref_code,ref_id):
+    def __get_contained_or_default(self, contained_dict, validated_data,ref_attr,ref_code,ref_id, code='code'):
         c_elm =contained_dict.pop(ref_attr,None)
-        return self.__id_from_contained(c_elm,
-            lambda x: x.code == validated_data[ref_code]) if c_elm\
-            else validated_data[ref_id]
-
+        elm_id = None
+        if c_elm and ref_code in validated_data:
+            elm_id =  self.__id_from_contained(c_elm, lambda x: hasattr(x,code) and getattr(x,code) == validated_data[ref_code])
+        if elm_id is None and ref_id in validated_data:
+            elm_id = validated_data[ref_id]
+        return elm_id
+      
     def __get_contained_or_default_insuree(self, contained_dict, validated_data):
         return self.__get_contained_or_default( contained_dict, validated_data,
-             'insuree__Patient', 'insuree_chf_id',  'insuree_id' )              
+             'insuree__Patient', 'insuree_chf_id',  'insuree_id', 'chf_id' )              
 
 
     def __get_contained_or_default_claim_admin(self, contained_dict, validated_data):
@@ -130,7 +133,7 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
 
     def __get_contained_medical_provision(self, contained_items: list, item):
-        contained_value = self.__id_from_contained(contained_items, lambda x: x.code == item['code'])
+        contained_value = self.__id_from_contained(contained_items, lambda x: hasattr(x,'code') and x.code == item['code'])
         return contained_value
 
     def __id_from_contained(self, contained_collection, lookup_func):
