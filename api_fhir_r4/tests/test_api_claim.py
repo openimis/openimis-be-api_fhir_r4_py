@@ -93,6 +93,8 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
         self.sub_str[self._TEST_ITEM_UUID]=self._TEST_ITEM.uuid
         self.sub_str[self._TEST_SERVICE_UUID]=self._TEST_SERVICE.uuid
+        self.sub_str[self._TEST_ITEM_CODE]=self._TEST_ITEM.code
+        self.sub_str[self._TEST_SERVICE_CODE]=self._TEST_SERVICE.code
 
 
 
@@ -106,7 +108,8 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.test_hf = self.create_test_health_facility()
         if not self.test_claim_admin:
             self.test_claim_admin =create_test_claim_admin(
-                custom_props={'health_facility_id': self.test_hf.id,
+                custom_props={'code':'T-CA-API',
+                              'health_facility_id': self.test_hf.id,
                                 'last_name' : self._TEST_DATA_USER['last_name'],
                                 'other_names' : self._TEST_DATA_USER['other_names']})
         
@@ -119,8 +122,8 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         ud.validity_from = TimeUtils.now()
         ud.save()
 
-        self._TEST_ITEM = create_test_item(self._TEST_SERVICE_TYPE,custom_props= {'uuid': self._TEST_SERVICE_UUID,'code':self._TEST_SERVICE_CODE})
-        self._TEST_SERVICE = create_test_service(self._TEST_ITEM_TYPE,custom_props= {'uuid': self._TEST_ITEM_UUID,'code':self._TEST_ITEM_CODE})
+        self._TEST_ITEM = create_test_item(self._TEST_SERVICE_TYPE)
+        self._TEST_SERVICE = create_test_service(self._TEST_ITEM_TYPE)
 
     def create_test_health_facility(self):
         hf = HealthFacility()
@@ -172,7 +175,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             # for both tests item and service should be 'rejected' and 'not in price list'
             for item in response_json["item"]:
                 for adjudication in item["adjudication"]:
-                    self.assertEqual(adjudication["category"]["coding"][0]["code"], f'{ClaimDetail.STATUS_REJECTED}')
+                    self.assertEqual(adjudication["category"]["coding"][0]["code"], f'{Claim.STATUS_REJECTED}')
                     # 2 not in price list
                     self.assertEqual(adjudication["reason"]["coding"][0]["code"], '2')
 

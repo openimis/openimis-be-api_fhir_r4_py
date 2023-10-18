@@ -131,7 +131,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
             fhir_claim.patient, fhir_claim.contained, PatientConverter, audit_user_id)
         if insuree:
             imis_claim.insuree = insuree
-            imis_claim.insuree_chf_code = insuree.chf_id
+            imis_claim.insuree_chf_id = insuree.chf_id
         cls.valid_condition(not imis_claim.insuree, _('Missing or invalid `patient` reference'), errors)
 
     @classmethod

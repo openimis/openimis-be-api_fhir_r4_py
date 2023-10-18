@@ -31,7 +31,6 @@ class GroupTestMixin( GenericTestMixin):
     _TEST_VILLAGE_UUID = "637f05cf-d8e8-4135-8250-7f01f01936bc"
     _TEST_VILLAGE_NAME = "TEST_NAME"
     _TEST_VILLAGE_TYPE = "V"
-    _TEST_INSUREE_CHFID = "TestChfId1"
     test_insuree = None
     test_village = None
     test_group = None
@@ -86,7 +85,7 @@ class GroupTestMixin( GenericTestMixin):
 
         identifiers = []
         chf_id = GroupConverter.build_fhir_identifier(
-            self._TEST_INSUREE_CHFID,
+            self.test_insuree.chf_id,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
             R4IdentifierConfig.get_fhir_generic_type_code()
         )

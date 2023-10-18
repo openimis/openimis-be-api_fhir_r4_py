@@ -145,7 +145,7 @@
                                     }
                                 ]
                             },
-                            "value": "iCode"
+                            "value": "0004"
                         }
                     }
                 }
@@ -155,7 +155,7 @@
                 "text": "item"
             },
             "productOrService": {
-                "text": "iCode"
+                "text": "0004"
             },
             "quantity": {
                 "value": 10.0
@@ -180,7 +180,7 @@
                                     }
                                 ]
                             },
-                            "value": "sCode"
+                            "value": "M7"
                         }
                     }
                 }
@@ -190,7 +190,7 @@
                 "text": "service"
             },
             "productOrService": {
-                "text": "sCode"
+                "text": "M7"
             },
             "quantity": {
                 "value": 1.0
