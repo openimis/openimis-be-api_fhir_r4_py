@@ -9,7 +9,7 @@ from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.tests import LocationTestMixin
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 from api_fhir_r4.utils import TimeUtils
-from claim.models import Claim, ClaimItem, ClaimService
+from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
 from insuree.test_helpers import create_test_insuree
