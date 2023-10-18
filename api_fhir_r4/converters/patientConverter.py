@@ -277,6 +277,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
     @classmethod
     def build_imis_gender(cls, imis_insuree, fhir_patient):
         gender = fhir_patient.gender
+        PatientCategoryMapping.load()
         if gender is not None:
             imis_gender = PatientCategoryMapping.imis_gender_mapping.get(gender)
             imis_insuree.gender = imis_gender
@@ -383,6 +384,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
             elif value == "education.education":
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-education-level"
                 if hasattr(imis_insuree, "education") and imis_insuree.education is not None:
+                    EducationLevelMapping.load()
                     display = EducationLevelMapping.education_level[str(imis_insuree.education.id)]
                     system = "CodeSystem/patient-education-level"
                     extension.valueCodeableConcept = cls.build_codeable_concept(code=str(imis_insuree.education.id), system=system)
@@ -417,6 +419,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
             else:
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-profession"
                 if hasattr(imis_insuree, "profession") and imis_insuree.profession is not None:
+                    PatientProfessionMapping.load()
                     display = PatientProfessionMapping.patient_profession[str(imis_insuree.profession.id)]
                     system = "CodeSystem/patient-profession"
                     extension.valueCodeableConcept = cls.build_codeable_concept(code=str(imis_insuree.profession.id), system=system)
@@ -449,6 +452,7 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
                 and imis_insuree.family.head_insuree is not None:
             system = "CodeSystem/patient-contact-relationship"
             # map to the fhir value from imis one
+            RelationshipMapping.load()
             display = RelationshipMapping.relationship[str(imis_insuree.relationship.id)]
             fhir_contact.relationship = [cls.build_codeable_concept(code=imis_insuree.relationship.id, system=system)]
             fhir_contact.relationship[0].coding[0].display = display
@@ -762,14 +766,8 @@ class PatientConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConvert
 
     @classmethod
     def __get_location_from_address(cls, fhir_patient_address):
-        try:
-            location_reference = next((
-                ext for ext in fhir_patient_address.extension if 'address-location-reference' in ext.url
-            ))
-            location_uuid = LocationConverter.get_resource_id_from_reference(location_reference.valueReference)
-            return Location.objects.get(uuid=location_uuid)
-        except Location.DoesNotExist as e:
-            raise FHIRException(f"Invalid location reference, {location_uuid} doesn't match any location.")
+        return LocationConverter.get_location_from_address( LocationConverter, fhir_patient_address)
+
 
     @classmethod
     def __get_family_address_from_fhir_patient(cls, fhir_patient) -> Address:

@@ -77,8 +77,10 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_policy_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Policy, code=imis_policy_code)
+        return DbManagerUtils.get_object_or_none(
+            Policy,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_contract_identifier(cls, fhir_contract, imis_policy):

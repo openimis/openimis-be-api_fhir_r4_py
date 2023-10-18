@@ -11,3 +11,4 @@ class ClaimAdminPractitionerRoleConverterTestCase(ClaimAdminPractitionerRoleTest
     converter = ClaimAdminPractitionerRoleConverter
     fhir_resource = PractitionerRole
     json_repr = 'test/test_claimAdminPractitionerRole.json'
+

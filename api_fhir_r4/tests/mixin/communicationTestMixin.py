@@ -9,6 +9,7 @@ from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
 from location.models import HealthFacility
+from location.test_helpers import create_test_village
 from insuree.test_helpers import create_test_insuree
 from medical.test_helpers import create_test_item, create_test_service
 from medical.models import Diagnosis
@@ -120,8 +121,7 @@ class CommunicationTestMixin(GenericTestMixin):
         return service
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
-        location.save()
+        location = create_test_village()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
         hf.uuid = self._TEST_HF_UUID
@@ -133,7 +133,7 @@ class CommunicationTestMixin(GenericTestMixin):
         hf.phone = self._TEST_PHONE
         hf.fax = self._TEST_FAX
         hf.email = self._TEST_EMAIL
-        hf.location_id = location.id
+        hf.location = location.parent.parent
         hf.offline = False
         hf.audit_user_id = -1
         hf.save()

@@ -109,25 +109,31 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         return out
 
     def __get_contained_or_default_hf_id(self, contained_dict, validated_data):
-        contained_value = self.__id_from_contained(
-            contained_dict['health_facility__Organization'],
-            lambda x: x.code == validated_data['health_facility_code'])
-        return contained_value or validated_data['health_facility_id']
+        return self.__get_contained_or_default( contained_dict, validated_data,
+             'health_facility__Organization', 'health_facility_code',  'health_facility_id' )              
 
+
+    def __get_contained_or_default(self, contained_dict, validated_data,ref_attr,ref_code,ref_id, code='code'):
+        c_elm =contained_dict.pop(ref_attr,None)
+        elm_id = None
+        if c_elm and ref_code in validated_data:
+            elm_id =  self.__id_from_contained(c_elm, lambda x: hasattr(x,code) and getattr(x,code) == validated_data[ref_code])
+        if elm_id is None and ref_id in validated_data:
+            elm_id = validated_data[ref_id]
+        return elm_id
+      
     def __get_contained_or_default_insuree(self, contained_dict, validated_data):
-        contained_value = self.__id_from_contained(
-            contained_dict['insuree__Patient'],
-            lambda x: x.chf_id == validated_data['insuree_chf_code'])
-        return contained_value or validated_data['insuree_id']
+        return self.__get_contained_or_default( contained_dict, validated_data,
+             'insuree__Patient', 'insuree_chf_id',  'insuree_id', 'chf_id' )              
+
 
     def __get_contained_or_default_claim_admin(self, contained_dict, validated_data):
-        contained_value = self.__id_from_contained(
-            contained_dict['admin__Practitioner'],
-            lambda x: x.code == validated_data['claim_admin_code'])
-        return contained_value or validated_data['admin_id']
+        return self.__get_contained_or_default( contained_dict, validated_data,
+             'admin__Practitioner', 'claim_admin_code',  'admin_id' )              
+
 
     def __get_contained_medical_provision(self, contained_items: list, item):
-        contained_value = self.__id_from_contained(contained_items, lambda x: x.code == item['code'])
+        contained_value = self.__id_from_contained(contained_items, lambda x: hasattr(x,'code') and x.code == item['code'])
         return contained_value
 
     def __id_from_contained(self, contained_collection, lookup_func):
@@ -176,13 +182,14 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         truncated_data.pop('_state', None)
 
         # Items and services passed in converter through additional attributes
+        #TODO : check that items__Medication could be a key of contained
         truncated_data['items'] = self.__claim_provisions_to_dict(
             validated_data['submit_items'],
-            contained['items__Medication'])
+            contained.get('items__Medication',[]))
 
         truncated_data['services'] = self.__claim_provisions_to_dict(
             validated_data['submit_services'],
-            contained['services__ActivityDefinition'])
+            contained.get('services__ActivityDefinition',[]))
 
         # If those resources are created through contained id is not available until _create_or_update_contained is
         # called. This ensures references are ok. Codes are assigned in converter as additional variables.

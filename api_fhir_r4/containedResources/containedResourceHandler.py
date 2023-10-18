@@ -40,7 +40,7 @@ class ContainedResourceManager:
     ):
         self.fhir_converter = fhir_converter
         self.imis_converter = imis_converter
-        self.serialzier = serializer
+        self.serializer = serializer
         self.alias = alias
 
     def convert_to_fhir(self, imis_obj: models.Model) -> List[FHIRAbstractModel]:
@@ -49,7 +49,7 @@ class ContainedResourceManager:
 
     def convert_to_imis(self, fhir_model: dict) -> List[models.Model]:
         self._assert_imis_converter()
-        return self.imis_converter.convert(fhir_model, self.serialzier.get_audit_user_id())
+        return self.imis_converter.convert(fhir_model, self.serializer.get_audit_user_id())
 
     def create_or_update_from_contained(self, fhir_model: dict) -> List[models.Model]:
         self._assert_serializer()
@@ -70,7 +70,7 @@ class ContainedResourceManager:
         assert self.imis_converter is not None, "IMIS Converter is required"
 
     def _assert_serializer(self):
-        assert self.serialzier is not None, "Serializer is required to perform create and update"
+        assert self.serializer is not None, "Serializer is required to perform create and update"
 
     def _update(self, updated_instance):
         try:
@@ -82,7 +82,7 @@ class ContainedResourceManager:
                 F" with uuid {updated_instance.uuid} multiple objects with this uuid were found") from a
 
         try:
-            updated = self.serialzier.update(instance, self._model_to_dict(updated_instance))
+            updated = self.serializer.update(instance, self._model_to_dict(updated_instance))
             updated.save()
             return updated
         except Exception as e:
@@ -99,7 +99,7 @@ class ContainedResourceManager:
         as_dict = self._model_to_dict(instance)
         uuid = as_dict.get('uuid', None)
         as_dict['uuid'] = None
-        created = self.serialzier.create(as_dict)
+        created = self.serializer.create(as_dict)
         if uuid:
             created.uuid = uuid
             created.save()
@@ -107,7 +107,7 @@ class ContainedResourceManager:
 
     def _is_saved_in_db(self, obj: models.Model):
         # Checks if given ID is already stored in database
-        return obj.__class__.objects.filter(uuid=obj.uuid).exists()
+        return obj.__class__.objects.filter(uuid__iexact=obj.uuid).exists()
 
     def _model_to_dict(self, instance):
         # Due to how serializers are build simple __dict__ is used instead of builtin model_to_dict

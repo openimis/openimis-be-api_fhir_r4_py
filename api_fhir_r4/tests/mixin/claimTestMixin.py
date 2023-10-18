@@ -11,14 +11,17 @@ from api_fhir_r4.models import ClaimV2 as FHIRClaim
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.money import Money
 from location.models import HealthFacility
+from location.test_helpers import create_test_village
+from medical.models import Item, Service
 from medical.test_helpers import create_test_item, create_test_service
-from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin, ClaimAdminPractitionerTestMixin
+from claim.test_helpers import create_test_claimservice,create_test_claimitem,create_test_claim_admin
+from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 
 
 class ClaimTestMixin(GenericTestMixin):
     _TEST_UUID = "315c3b16-62eb-11ea-8e75-df3492b349f6"
-    _TEST_CODE = 'T00001'
+    _TEST_CLAIM_CODE = 'T00001'
     _TEST_DATE_FROM = TimeUtils.str_to_date('2021-02-03')
     _TEST_DATE_TO = TimeUtils.str_to_date('2021-02-03')
 
@@ -34,7 +37,7 @@ class ClaimTestMixin(GenericTestMixin):
     _TEST_STATUS = Claim.STATUS_REJECTED
 
     # claim item data
-    _TEST_ITEM_CODE = "iCode"
+    _TEST_ITEM_CODE = "0004"
     _TEST_ITEM_UUID = "e2bc1546-390b-4d41-8571-632ecf7a0936"
     _TEST_ITEM_QUANTITY_PROVIDED = 10.0
     _TEST_ITEM_PRICE_ASKED = 10.0
@@ -42,7 +45,7 @@ class ClaimTestMixin(GenericTestMixin):
     _TEST_ITEM_TYPE = 'D'
 
     # claim service data
-    _TEST_SERVICE_CODE = "sCode"
+    _TEST_SERVICE_CODE = "M7"
     _TEST_SERVICE_UUID = "a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6"
     _TEST_SERVICE_QUANTITY_PROVIDED = 1
     _TEST_SERVICE_PRICE_ASKED = 21000.0
@@ -62,33 +65,44 @@ class ClaimTestMixin(GenericTestMixin):
     _TEST_EMAIL = "TEST@TEST.com"
 
     # insuree and claim admin data
-    _TEST_PATIENT_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
+    _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
     _TEST_CLAIM_ADMIN_UUID = "044c33d1-dbf3-4d6a-9924-3797b461e535"
 
     _ADMIN_AUDIT_USER_ID = -1
+    test_insuree = None
+    test_icd = None
+    test_hf = None
+    test_claim_admin = None
+    test_claim = None
+    test_claim_item = None
+    test_claim_service = None
+    sub_str = {}
 
     def setUp(self):
         super(ClaimTestMixin, self).setUp()
-        self._TEST_DIAGNOSIS_CODE = Diagnosis()
-        self._TEST_DIAGNOSIS_CODE.code = self._TEST_MAIN_ICD_CODE
-        self._TEST_DIAGNOSIS_CODE.name = self._TEST_MAIN_ICD_NAME
-        self._TEST_DIAGNOSIS_CODE.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        self._TEST_DIAGNOSIS_CODE.save()
+        self.test_icd = Diagnosis()
+        self.test_icd.code = self._TEST_MAIN_ICD_CODE
+        self.test_icd.name = self._TEST_MAIN_ICD_NAME
+        self.test_icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
+        self.test_icd.save()
 
-        self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance()
-        self._TEST_CLAIM_ADMIN.uuid = self._TEST_CLAIM_ADMIN_UUID
-        self._TEST_CLAIM_ADMIN.save()
-        self._TEST_HF = self.create_test_health_facility()
+        self.test_claim_admin= create_test_claim_admin()
 
-        self._TEST_INSUREE = create_test_insuree()
-        self._TEST_INSUREE.uuid = self._TEST_PATIENT_UUID
-        self._TEST_INSUREE.save()
-        self._TEST_ITEM = self.create_test_claim_item()
-        self._TEST_SERVICE = self.create_test_claim_service()
+        self.test_hf = self.create_test_health_facility()
 
+        self.test_insuree = create_test_insuree()
+        self.test_claim=self.create_test_claim()
+        self.test_claim_item= self.create_test_claim_item()
+        self.test_claim_service = self.create_test_claim_service()
+        self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
+        self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
+        self.sub_str[self._TEST_INSUREE_UUID]=self.test_insuree.uuid
+        self.sub_str[self._TEST_SERVICE_UUID]=self.test_claim_service.service.uuid
+        self.sub_str[self._TEST_ITEM_UUID]=self.test_claim_item.item.uuid
+        self.sub_str[self._TEST_UUID]=self.test_claim.uuid
+        
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
-        location.save()
+        location = create_test_village()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
         hf.uuid = self._TEST_HF_UUID
@@ -100,62 +114,73 @@ class ClaimTestMixin(GenericTestMixin):
         hf.phone = self._TEST_PHONE
         hf.fax = self._TEST_FAX
         hf.email = self._TEST_EMAIL
-        hf.location_id = location.id
+        hf.location = location.parent.parent
         hf.offline = False
         hf.audit_user_id = -1
         hf.save()
         return hf
-
-    def create_test_claim_item(self):
-        item = ClaimItem()
-        item.item = create_test_item(
-            self._TEST_ITEM_TYPE,
-            custom_props={"code": self._TEST_ITEM_CODE}
-        )
-        item.item.code = self._TEST_ITEM_CODE
-        item.price_asked = self._TEST_ITEM_PRICE_ASKED
-        item.qty_provided = self._TEST_ITEM_QUANTITY_PROVIDED
-        item.explanation = self._TEST_ITEM_EXPLANATION
-        item.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        return item
-
-    def create_test_claim_service(self):
-        service = ClaimService()
-        service.service = create_test_service(
-            self._TEST_SERVICE_TYPE,
-            custom_props={"code": self._TEST_SERVICE_CODE}
-        )
-        service.service.code = self._TEST_SERVICE_CODE
-        service.price_asked = self._TEST_SERVICE_PRICE_ASKED
-        service.qty_provided = self._TEST_SERVICE_QUANTITY_PROVIDED
-        service.explanation = self._TEST_SERVICE_EXPLANATION
-        service.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        return service
-
-    def create_test_imis_instance(self):
+    def create_test_claim(self):
         imis_claim = Claim()
         imis_claim.uuid = self._TEST_UUID
-        imis_claim.insuree = self._TEST_INSUREE
-        imis_claim.code = self._TEST_CODE
+        imis_claim.insuree = self.test_insuree
+        imis_claim.code = self._TEST_CLAIM_CODE
         imis_claim.date_from = TimeUtils.str_to_date(self._TEST_DATE_FROM)
         imis_claim.date_to = TimeUtils.str_to_date(self._TEST_DATE_TO)
 
-        imis_claim.icd = self._TEST_DIAGNOSIS_CODE
+        imis_claim.icd = self.test_icd
 
         imis_claim.claimed = self._TEST_CLAIMED
         imis_claim.date_claimed = TimeUtils.str_to_date(self._TEST_DATE_CLAIMED)
-        imis_claim.health_facility = self._TEST_HF
+        imis_claim.health_facility = self.test_hf
         imis_claim.guarantee_id = self._TEST_GUARANTEE_ID
-        imis_claim.admin = self._TEST_CLAIM_ADMIN
+        imis_claim.admin = self.test_claim_admin
         imis_claim.visit_type = self._TEST_VISIT_TYPE
         imis_claim.status = self._TEST_STATUS
         imis_claim.audit_user_id = self._ADMIN_AUDIT_USER_ID
         imis_claim.save()
         return imis_claim
+    
+    def create_test_claim_item(self):
+        item = Item.objects.filter(code=self._TEST_ITEM_CODE).first()
+        if item is None:
+            item = create_test_item(
+                self._TEST_ITEM_TYPE,
+                custom_props={"code": self._TEST_ITEM_CODE}
+            )
+        return create_test_claimitem( self.test_claim, self._TEST_ITEM_TYPE,
+            custom_props={
+                "item": item,
+                "price_asked": self._TEST_ITEM_PRICE_ASKED,
+                "qty_provided": self._TEST_ITEM_QUANTITY_PROVIDED,
+                "explanation": self._TEST_ITEM_EXPLANATION,
+                "audit_user_id": self._ADMIN_AUDIT_USER_ID
+            }
+        )
+    
+        
+    def create_test_claim_service(self):
+        service = Service.objects.filter(code=self._TEST_ITEM_CODE).first()
+        if service is None:
+            service = create_test_service( 
+                self._TEST_SERVICE_TYPE,
+                custom_props={"code": self._TEST_ITEM_CODE}
+            )
+        return create_test_claimservice(self.test_claim, self._TEST_SERVICE_TYPE,
+            custom_props={
+                "service": service,
+                "price_asked": self._TEST_ITEM_PRICE_ASKED,
+                "qty_provided": self._TEST_ITEM_QUANTITY_PROVIDED,
+                "explanation": self._TEST_ITEM_EXPLANATION,
+                "audit_user_id": self._ADMIN_AUDIT_USER_ID
+            }
+        )
+
+    def create_test_imis_instance(self):
+        return self.test_claim
 
     def verify_imis_instance(self, imis_obj):
         self.assertIsNotNone(imis_obj.insuree)
-        self.assertEqual(self._TEST_CODE, imis_obj.code)
+        self.assertEqual(self._TEST_CLAIM_CODE, imis_obj.code)
         self.assertEqual(self._TEST_DATE_FROM.isoformat(), imis_obj.date_from.isoformat())
         self.assertEqual(self._TEST_DATE_TO.isoformat(), imis_obj.date_to.isoformat())
         self.assertEqual(self._TEST_MAIN_ICD_CODE, imis_obj.icd.code)
@@ -186,9 +211,9 @@ class ClaimTestMixin(GenericTestMixin):
         fhir_claim.type = ClaimConverter.build_codeable_concept_from_coding(
             ClaimConverter.build_fhir_mapped_coding(mapping))
 
-        fhir_claim.patient = PatientConverter.build_fhir_resource_reference(self._TEST_INSUREE)
+        fhir_claim.patient = PatientConverter.build_fhir_resource_reference(self.test_insuree)
         claim_code = ClaimConverter.build_fhir_identifier(
-            self._TEST_CODE,
+            self._TEST_CLAIM_CODE,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
             R4IdentifierConfig.get_fhir_claim_code_type()
         )
@@ -202,7 +227,7 @@ class ClaimTestMixin(GenericTestMixin):
         diagnoses = []
         ClaimConverter.build_fhir_diagnosis(
             diagnoses,
-            self._TEST_DIAGNOSIS_CODE,
+            self.test_icd,
         )
         fhir_claim.diagnosis = diagnoses
 
@@ -215,19 +240,19 @@ class ClaimTestMixin(GenericTestMixin):
         fhir_claim.supportingInfo = supportingInfo
 
         fhir_claim.enterer = ClaimAdminPractitionerConverter.build_fhir_resource_reference(
-            self._TEST_CLAIM_ADMIN
+            self.test_claim_admin
         )
 
         fhir_claim.item = []
         type = R4ClaimConfig.get_fhir_claim_item_code()
-        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_ITEM_CODE, type, self._TEST_ITEM,
+        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_ITEM_CODE, type, self.test_claim_item,
                                        reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
         type = R4ClaimConfig.get_fhir_claim_service_code()
-        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_SERVICE_CODE, type, self._TEST_SERVICE,
+        ClaimConverter.build_fhir_item(fhir_claim, self._TEST_SERVICE_CODE, type, self.test_claim_service,
                                        reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE)
 
         fhir_claim.provider = HealthFacilityOrganisationConverter.build_fhir_resource_reference(
-            self._TEST_HF,
+            self.test_hf,
             display=self._TEST_HF_CODE
         )
 
@@ -241,7 +266,7 @@ class ClaimTestMixin(GenericTestMixin):
         self.assertIsNotNone(fhir_obj.patient.reference)
         for identifier in fhir_obj.identifier:
             if identifier.type.coding[0].code == R4IdentifierConfig.get_fhir_claim_code_type():
-                self.assertEqual(self._TEST_CODE, identifier.value)
+                self.assertEqual(self._TEST_CLAIM_CODE, identifier.value)
 
         self.assertIn(fhir_obj.billablePeriod.start.isoformat(), self._TEST_DATE_FROM.isoformat())
         self.assertIn(fhir_obj.billablePeriod.end.isoformat(), self._TEST_DATE_TO.isoformat())
@@ -257,11 +282,11 @@ class ClaimTestMixin(GenericTestMixin):
             elif supportingInfo.category.text == R4ClaimConfig.get_fhir_claim_information_guarantee_id_code():
                 self.assertEqual(self._TEST_GUARANTEE_ID, supportingInfo.valueString)
         self.assertIsNotNone(fhir_obj.provider.reference)
-        self.assertIn(self._TEST_HF_UUID, fhir_obj.provider.reference)
+        self.assertIn(str(self.test_hf.uuid), fhir_obj.provider.reference)
         self.assertIsNotNone(fhir_obj.enterer.reference)
-        self.assertIn(self._TEST_CLAIM_ADMIN_UUID, fhir_obj.enterer.reference)
+        self.assertIn(str(self.test_claim_admin.uuid), fhir_obj.enterer.reference)
         self.assertIsNotNone(fhir_obj.patient.reference)
-        self.assertIn(self._TEST_PATIENT_UUID, fhir_obj.patient.reference)
+        self.assertIn(str(self.test_insuree.uuid), fhir_obj.patient.reference)
         for item in fhir_obj.item:
             if item.category.text == R4ClaimConfig.get_fhir_claim_item_code():
                 self.assertEqual(self._TEST_ITEM_CODE, item.productOrService.text)
