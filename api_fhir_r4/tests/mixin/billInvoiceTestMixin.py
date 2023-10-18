@@ -15,7 +15,7 @@ class BillInvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_BILL_STATUS = 'active'
     _TEST_BILL_UUID = '12345678-1234-1234-1234-123456789012'
     _TEST_BILL_CODE = 'TEST-CODE'
-    _TEST_BILL_SUBJECT_TYPE = ContentType.objects.get(model__iexact='BatchRun')
+    _TEST_BILL_SUBJECT_TYPE = None
     _TEST_BILL_SUBJECT_TYPE_CODING = 'claim-batch'
     _TEST_BILL_THIRD_PARTY = Family()
     _TEST_BILL_THIRD_PARTY_UUID = '98765432-1234-1234-1234-123456789012'
@@ -23,7 +23,7 @@ class BillInvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_BILL_TOTAL_NET = 10000.0
     _TEST_BILL_TOTAL_GROSS = 10000.0
     _TEST_BILL_CURRENCY = 'USD'
-    _TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Claim')
+    _TEST_LINE_ITEM_CHARGE_ITEM = None
     _TEST_LINE_ITEM_CHARGE_ITEM_CODING = 'claim'
     _TEST_LiNE_ITEM_QUANTITY = 2
     _TEST_LINE_ITEM_UNIT_PRICE = 5000.0
@@ -35,6 +35,11 @@ class BillInvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_LINE_ITEM_DEDUCTION_FACTOR = 1
     _TEST_LINE_ITEM_TAX_PRICE_COMPONENT_TYPE = 'tax'
     _TEST_LINE_ITEM_TAX_RATE = 0.02
+    
+    @classmethod
+    def setUpTestData(cls):
+        cls._TEST_BILL_SUBJECT_TYPE = ContentType.objects.get(model__iexact='BatchRun')
+        cls._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Claim')
 
     def create_test_imis_instance(self):
         imis_bill = Bill()

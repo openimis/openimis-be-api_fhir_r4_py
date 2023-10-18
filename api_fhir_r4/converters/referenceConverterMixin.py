@@ -90,9 +90,9 @@ class ReferenceConverterMixin(object):
         """
         resource_id, path, code_type = None, None, None
         if reference:
-            reference_str = reference.reference
-            if isinstance(reference_str, str) and '/' in reference_str:
-                path, resource_id = reference_str.rsplit('/', 1)
+            
+            if reference.reference and isinstance(reference.reference, str) and '/' in reference.reference:
+                path, resource_id = reference.reference.rsplit('/', 1)
             elif isinstance(reference.type, str) and reference.identifier is not None \
                 and isinstance(reference.identifier.value, str):
                 path = reference.type

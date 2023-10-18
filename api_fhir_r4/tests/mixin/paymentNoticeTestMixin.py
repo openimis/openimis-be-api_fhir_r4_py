@@ -66,7 +66,7 @@ class PaymentNoticeTestMixin(GenericTestMixin):
         self.assertEquals(imis_detail_obj.reconcilation_id, self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_RECON_ID)
 
     def verify_imis_invoice_status(self, imis_invoice_status):
-        self.assertEquals(imis_invoice_status, Invoice.Status.PAYED)
+        self.assertEquals(imis_invoice_status, Invoice.Status.PAID)
 
     def create_test_fhir_instance(self):
         return {

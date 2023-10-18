@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from django.test import TestCase
+from api_fhir_r4.tests.utils import load_and_replace_json
 
 
 class FhirConverterTestMixin(TestCase):
@@ -50,6 +51,7 @@ class ConvertToFhirTestMixin:
 
 
 class ConvertJsonToFhirTestMixin:
+    sub_str = {}
     @property
     def fhir_resource(self):
         raise NotImplementedError()
@@ -62,10 +64,7 @@ class ConvertJsonToFhirTestMixin:
         raise NotImplementedError()
 
     def test_fhir_object_from_json(self):
-        fhir_instance = self.fhir_resource.parse_obj(self._load_json_repr())
+        fhir_instance = self.fhir_resource.parse_obj(load_and_replace_json(self.json_repr, self.sub_str))
         self.verify_fhir_instance(fhir_instance)
 
-    def _load_json_repr(self):
-        test_root = Path(__file__).parent.parent
-        json_representation = open(test_root.joinpath(self.json_repr)).read()
-        return json.loads(json_representation)
+
