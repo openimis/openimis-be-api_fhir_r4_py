@@ -220,10 +220,8 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
 
         dataset = [
-
             load_and_replace_json(self._test_json_path, self.sub_str),
             load_and_replace_json(self._test_json_path_with_code_reference, self.sub_str),
-
         ]
 
         for data in dataset:
