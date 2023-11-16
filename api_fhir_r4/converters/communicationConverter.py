@@ -215,6 +215,7 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_subject(cls, imis_feedback, fhir_communication, errors, audit_user_id):
+        if not fhir_communication.subject:
             raise FHIRException(
                 _('subject is required')
             )
