@@ -50,7 +50,11 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
             'health_facility_id': self.test_hf.id, 
             'code':self._TEST_CLAIM_ADMIN_CODE,
             'dob':TimeUtils.str_to_date(self._TEST_CLAIM_ADMIN_DOB),
-            'phone':self._TEST_CLAIM_ADMIN_PHONE})
+            'phone': self._TEST_CLAIM_ADMIN_PHONE,
+            'email_id': self._TEST_CLAIM_ADMIN_EMAIL ,
+            'last_name': self._TEST_CLAIM_ADMIN_LAST_NAME,
+            'other_names': self._TEST_CLAIM_ADMIN_OTHER_NAME}
+                                            )
         self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
         self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
 
@@ -74,19 +78,7 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
 
     def create_test_imis_instance(self, location=None, hf = None):
         return self.test_claim_admin
-    
-    def create_test_claim_admin(self):
-        imis_claim_admin = ClaimAdmin()
-        imis_claim_admin.last_name = self._TEST_CLAIM_ADMIN_LAST_NAME
-        imis_claim_admin.other_names = self._TEST_CLAIM_ADMIN_OTHER_NAME
-        imis_claim_admin.id = self._TEST_CLAIM_ADMIN_ID
-        imis_claim_admin.uuid = self._TEST_CLAIM_ADMIN_UUID
-        imis_claim_admin.code = self._TEST_CLAIM_ADMIN_CODE
-        imis_claim_admin.dob = TimeUtils.str_to_date(self._TEST_CLAIM_ADMIN_DOB)
-        imis_claim_admin.phone = self._TEST_CLAIM_ADMIN_PHONE
-        imis_claim_admin.email_id = self._TEST_CLAIM_ADMIN_EMAIL
-        imis_claim_admin.health_facility = self.test_hf
-        return imis_claim_admin
+
 
     def verify_imis_instance(self, imis_obj):
         self.assertEqual(self._TEST_CLAIM_ADMIN_LAST_NAME, imis_obj.last_name)
