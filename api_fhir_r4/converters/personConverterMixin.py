@@ -2,7 +2,7 @@ from django.utils.translation import gettext
 
 from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from fhir.resources.humanname import HumanName
+from fhir.resources.R4B.humanname import HumanName
 
 from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUse
 

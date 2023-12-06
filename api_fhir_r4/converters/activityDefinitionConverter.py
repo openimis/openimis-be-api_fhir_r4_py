@@ -1,10 +1,10 @@
-from fhir.resources.timing import Timing, TimingRepeat
+from fhir.resources.R4B.timing import Timing, TimingRepeat
 from medical.models import Service
-from fhir.resources.activitydefinition import ActivityDefinition
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.usagecontext import UsageContext
-from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.R4B.activitydefinition import ActivityDefinition
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.usagecontext import UsageContext
+from fhir.resources.R4B.codeableconcept import CodeableConcept
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, ReferenceConverterMixin
@@ -21,6 +21,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_fhir_obj(cls, imis_activity_definition, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        PatientCategoryMapping.load()
         fhir_activity_definition = ActivityDefinition.construct()
         # first to construct is status - obligatory fields
         cls.build_fhir_status(fhir_activity_definition, imis_activity_definition)
@@ -42,6 +43,7 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_imis_obj(cls, fhir_activity_definition, audit_user_id):
+        PatientCategoryMapping.load()
         errors = []
         fhir_activity_definition = ActivityDefinition(**fhir_activity_definition)
         imis_activity_definition = Service()
@@ -78,8 +80,9 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_activity_definition_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Service, uuid=imis_activity_definition_code)
+        return DbManagerUtils.get_object_or_none(
+            Service,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_activity_definition, imis_activity_definition):

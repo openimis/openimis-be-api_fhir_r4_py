@@ -63,8 +63,8 @@ class ImisCategoryDefinition(Enum):
 
 class BundleType(Enum):
     """
-    fhir.resources doesn't use enum for bundle type,
-    see https://github.com/nazrulworld/fhir.resources/blob/91bf2064aa03c6f3c252d26d7945fa0bb140b03a/fhir/resources/bundle.py#L103
+    fhir.resources.R4B doesn't use enum for bundle type,
+    see https://github.com/nazrulworld/fhir.resources.R4B/blob/91bf2064aa03c6f3c252d26d7945fa0bb140b03a/fhir/resources/bundle.py#L103
     this class allows to use constants instead of plain strings.
     """
     DOCUMENT = "document"

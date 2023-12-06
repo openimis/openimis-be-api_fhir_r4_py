@@ -2,7 +2,7 @@ from django.utils.translation import gettext
 from location.models import HealthFacility
 from api_fhir_r4.configurations import R4IdentifierConfig, R4LocationConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from fhir.resources.location import Location as FHIRLocation
+from fhir.resources.R4B.location import Location as FHIRLocation
 from api_fhir_r4.models.imisModelEnums import ImisHfLevel
 from api_fhir_r4.utils import DbManagerUtils
 
@@ -56,8 +56,7 @@ class LocationSiteConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        location_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(HealthFacility, uuid=location_uuid)
+        return DbManagerUtils.get_object_or_none(HealthFacility, **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def build_fhir_location_identifier(cls, fhir_location, imis_hf):
@@ -144,7 +143,7 @@ class LocationSiteConverter(BaseFHIRConverter, ReferenceConverterMixin):
                                        gettext('Missing location `parent id` attribute'), errors):
                 # get the imis location object, check if exists
                 uuid_location = parent_id.identifier.value
-                hf_location = Location.objects.filter(uuid=uuid_location)
+                hf_location = Location.objects.filter(uuid__iexact=uuid_location)
                 if hf_location:
                     hf_location = hf_location.first()
                     imis_hf.location = hf_location

@@ -24,15 +24,12 @@ class PaymentNoticeAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITe
     base_url = GeneralConfiguration.get_base_url()+'PaymentNotice/'
     _test_json_path = "/test/test_payment_notice.json"
     _test_invoice_uuid = "bd84b2f2-ec1d-48de-8f8c-5a477aa4a29f"
-    _test_json_path_credentials = "/tests/test/test_login.json"
+    _test_json_path_credentials = "/test/test_login.json"
     _test_request_data_credentials = None
     _user = None
 
     def setUp(self):
         super(PaymentNoticeAPITests, self).setUp()
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        json_representation = open(dir_path + self._test_json_path_credentials).read()
-        self._test_request_data_credentials = json.loads(json_representation)
         self._user = self.get_or_create_user_api()
 
     def create_dependencies(self):
@@ -77,7 +74,7 @@ class PaymentNoticeAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITe
         response = self.client.post(self.base_url, data=modified_payload, format='json', **headers)
         response_json_no_name = response.json()
         self.assertEqual(
-            response_json_no_name["issue"][0]["details"]["text"],
+            self.get_response_details(response_json_no_name),
             _("The request cannot be processed due to the following issues:\nBad value "
               "in paymentStatus, should be either 'active', 'cancelled', draft', 'entered-in-error'"
               ",\nBad value in paymentStatus, ""should be either 'active', 'cancelled', draft', 'entered-in-error'")
@@ -91,7 +88,7 @@ class PaymentNoticeAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITe
         response = self.client.post(self.base_url, data=modified_payload, format='json', **headers)
         response_json_no_name = response.json()
         self.assertEqual(
-            response_json_no_name["issue"][0]["details"]["text"],
+            self.get_response_details(response_json_no_name),
             _("The request cannot be processed due to the following "
               "issues:\nBad value in paymentStatus, should be either 'paid' or 'cleared'")
         )
@@ -104,7 +101,7 @@ class PaymentNoticeAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITe
         response = self.client.post(self.base_url, data=modified_payload, format='json', **headers)
         response_json_no_name = response.json()
         self.assertEqual(
-            response_json_no_name["issue"][0]["details"]["text"],
+            self.get_response_details(response_json_no_name),
             _("The request cannot be processed due to the following "
               "issues:\nBad value in type in request, should be either 'bill' or 'invoice'")
         )

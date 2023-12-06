@@ -1,12 +1,14 @@
 from api_fhir_r4.configurations import GeneralConfiguration, R4CommunicationRequestConfig as Config
+from api_fhir_r4.containedResources.converterUtils import get_from_contained_or_by_reference
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
+from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim, Feedback
 from insuree.models import Insuree
 from django.utils.translation import gettext as _
-from fhir.resources.communication import Communication, CommunicationPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communication import Communication, CommunicationPayload
+from fhir.resources.R4B.extension import Extension
 
 
 class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
@@ -25,15 +27,16 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def to_imis_obj(cls, fhir_communication, audit_user_id):
         errors = []
+        imis_feedback = Feedback()
         fhir_communication = Communication(**fhir_communication)
         cls._validate_fhir_status(fhir_communication)
-        cls._validate_fhir_subject(fhir_communication)
         cls._validate_fhir_about(fhir_communication)
         cls._validate_fhir_payload(fhir_communication)
-        imis_feedback = Feedback()
         cls.build_imis_about(imis_feedback, fhir_communication, errors)
+        cls.build_imis_subject(imis_feedback, fhir_communication, errors, audit_user_id=audit_user_id)
         cls.build_imis_payloads(imis_feedback, fhir_communication, errors)
         imis_feedback.audit_user_id = audit_user_id
+        cls.check_errors(errors)
         return imis_feedback
 
     @classmethod
@@ -153,27 +156,23 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_care_rendered(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.care_rendered = value
+        cls._should_be_yes_or_no(Config.get_fhir_care_rendered_code(), fhir_content_string)
+        imis_feedback.care_rendered = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_payment_asked(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.payment_asked = value
+        cls._should_be_yes_or_no(Config.get_fhir_payment_asked_code(), fhir_content_string)
+        imis_feedback.payment_asked = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_drug_prescribed(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.drug_prescribed = value
+        cls._should_be_yes_or_no(Config.get_fhir_drug_prescribed_code(), fhir_content_string)
+        imis_feedback.drug_prescribed = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_drug_received(cls, imis_feedback, fhir_content_string):
-        value = cls._convert_bool_value(fhir_content_string)
-        if value:
-            imis_feedback.drug_received = value
+        cls._should_be_yes_or_no(Config.get_fhir_drug_received_code(), fhir_content_string)
+        imis_feedback.drug_received = cls._convert_bool_value(fhir_content_string)
 
     @classmethod
     def build_imis_asessment(cls, imis_feedback, fhir_content_string):
@@ -181,11 +180,12 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def _convert_bool_value(cls, fhir_content_string):
-        if fhir_content_string == "yes":
-            return True
-        if fhir_content_string == "no":
-            return False
-        return None
+        return fhir_content_string == "yes"
+
+    @classmethod
+    def _should_be_yes_or_no(cls, code, content):
+        if content not in ["yes", "no"]:
+            raise ValidationError(f"Value for '{code}' must be either 'yes' or 'no' but is '{content}'")
 
     @classmethod
     def get_reference_obj_id(cls, imis_feedback):
@@ -197,8 +197,10 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_feedback_id = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Feedback, pk=imis_feedback_id)
+        return DbManagerUtils.get_object_or_none(
+            Feedback,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def get_reference_obj_uuid(cls, imis_feedback):
@@ -212,17 +214,18 @@ class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             )
 
     @classmethod
-    def _validate_fhir_subject(cls, fhir_communication):
+    def build_imis_subject(cls, imis_feedback, fhir_communication, errors, audit_user_id):
         if not fhir_communication.subject:
             raise FHIRException(
                 _('subject is required')
             )
         else:
-            patient_uuid = fhir_communication.subject.reference.rsplit('/', 1)[1]
-            if Insuree.objects.filter(uuid=patient_uuid, validity_to__isnull=True).count() == 0:
-                raise FHIRException(
-                    _('Patient does not exist')
-                )
+            insuree = get_from_contained_or_by_reference(
+                fhir_communication.subject, None , PatientConverter, audit_user_id)
+            if insuree:
+                imis_feedback.claim.insuree = insuree
+                imis_feedback.claim.insuree.chf_id = insuree.chf_id
+            cls.valid_condition(not imis_feedback.claim.insuree, _('Missing or invalid `subject` reference'), errors)
 
     @classmethod
     def _validate_fhir_status(cls, fhir_communication):

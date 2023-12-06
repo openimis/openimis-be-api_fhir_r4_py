@@ -230,7 +230,7 @@ class _JoinedQuerysets:
             if start:
                 start_qs, qs_idx = self.__get_queryset_for_index(start)
                 intersection[0] = self.querysets.index(start_qs) + 1
-                start_qs = start_qs.all()[:qs_idx]
+                start_qs = start_qs.all()[qs_idx:]
             if end:
                 end_qs, qs_idx = self.__get_queryset_for_index(end)
                 intersection[1] = self.querysets.index(end_qs)
@@ -263,7 +263,9 @@ class _JoinedQuerysets:
             if k < next_queryset_last_index:
                 index_in_queryset = k - (next_queryset_last_index - qs_len)
                 return qs, index_in_queryset
-        raise IndexError
+            if k == next_queryset_last_index:
+                return qs, 0
+        raise IndexError(f"for index {k}")
 
     def count(self):
         return sum([qs.count() for qs in self.querysets])

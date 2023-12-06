@@ -26,6 +26,8 @@ setup(
         'fhir.resources<=7.0.2',
         'pydantic<2',
         'aiohttp~=3.8.5',
+        'fhir.resources>=7.0.2',
+        'aiohttp==3.8.1',
         'asynctest==0.13.0',
         'openimis-be-core',
         'openimis-be-insuree',

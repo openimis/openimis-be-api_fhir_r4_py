@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from fhir.resources.paymentnotice import PaymentNotice
+from fhir.resources.R4B.paymentnotice import PaymentNotice
 
 from .errors import (
     ERROR_BAD_STATUS,
@@ -102,7 +102,7 @@ class PaymentNoticeToImisConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def _convert_content_type(cls, subject_type):
-        return ContentType.objects.get(model=subject_type)
+        return ContentType.objects.get(model__iexact=subject_type)
 
     @classmethod
     def build_imis_payment_amount(cls, imis_payment, imis_payment_detail, fhir_payment_notice):

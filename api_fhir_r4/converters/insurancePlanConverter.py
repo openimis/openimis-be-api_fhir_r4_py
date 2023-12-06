@@ -6,14 +6,14 @@ from product.models import Product
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
     InsurancePlanCoverageBenefit, InsurancePlanCoverageBenefitLimit, \
     InsurancePlanPlan, InsurancePlanPlanGeneralCost
-from fhir.resources.period import Period
-from fhir.resources.reference import Reference
-from fhir.resources.quantity import Quantity
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.quantity import Quantity
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 
@@ -62,8 +62,10 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_insurance_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Product, uuid=imis_insurance_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Product,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_insurance_plan, imis_product):
@@ -157,13 +159,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_imis_coverage_area(cls, imis_product, fhir_insurance_plan):
         if fhir_insurance_plan.coverageArea:
             coverage_area = fhir_insurance_plan.coverageArea[0]
-            value = cls.__get_location_reference(coverage_area.reference)
-            if value:
-                imis_product.location = Location.objects.get(uuid=value)
+            imis_product.location =  Location.objects.filter(**LocationConverter.get_database_query_id_parameteres_from_reference(coverage_area.reference)).first()
 
-    @classmethod
-    def __get_location_reference(cls, location):
-        return location.rsplit('/', 1)[1]
+
 
     @classmethod
     def build_fhir_coverage(cls, fhir_insurance_plan, imis_product):

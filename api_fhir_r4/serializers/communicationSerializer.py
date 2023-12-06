@@ -20,4 +20,9 @@ class CommunicationSerializer(BaseFHIRSerializer):
         from core import datetime
         copied_data['feedback_date'] = datetime.datetime.now()
         obj = Feedback.objects.create(**copied_data)
+        imis_claim = Claim.objects.get(id=claim)
+        imis_claim.feedback_status = Claim.FEEDBACK_DELIVERED
+        imis_claim.feedback_available = True
+        imis_claim.feedback = obj
+        imis_claim.save()
         return obj

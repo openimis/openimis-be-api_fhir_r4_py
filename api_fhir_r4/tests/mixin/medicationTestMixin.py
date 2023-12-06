@@ -1,4 +1,5 @@
 import decimal
+import re
 
 from medical.models import Item
 
@@ -7,15 +8,15 @@ from api_fhir_r4.converters import MedicationConverter
 from api_fhir_r4.mapping.medicationMapping import ItemVenueTypeMapping
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
 from api_fhir_r4.tests import GenericTestMixin
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.extension import Extension
-from fhir.resources.identifier import Identifier
-from fhir.resources.money import Money
-from fhir.resources.medication import Medication
-from fhir.resources.ratio import Ratio
-from fhir.resources.timing import Timing
-from fhir.resources.quantity import Quantity
-from fhir.resources.usagecontext import UsageContext
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.medication import Medication
+from fhir.resources.R4B.ratio import Ratio
+from fhir.resources.R4B.timing import Timing
+from fhir.resources.R4B.quantity import Quantity
+from fhir.resources.R4B.usagecontext import UsageContext
 
 
 class MedicationTestMixin(GenericTestMixin):
@@ -23,7 +24,7 @@ class MedicationTestMixin(GenericTestMixin):
     _TEST_MEDICATION_CODE = "TEST1"
     _TEST_MEDICATION_NAME = "TEST TABS 300MG"
     _TEST_MEDICATION_TYPE = "D"
-    _TEST_MEDICATION_PACKAGE = "1000 TABLETS"
+    _TEST_MEDICATION_PACKAGE = "1000TABLETS"
     _TEST_MEDICATION_PRICE = 5.99
     _TEST_MEDICATION_CARE_TYPE = "B"
     _TEST_MEDICATION_FREQUENCY = 3
@@ -82,6 +83,7 @@ class MedicationTestMixin(GenericTestMixin):
         extension_usage.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/medication-usage-context"
 
         # gender
+        PatientCategoryMapping.load()
         male_flag = PatientCategoryMapping.imis_patient_category_flags["male"]
         female_flag = PatientCategoryMapping.imis_patient_category_flags["female"]
         extension = Extension.construct()
@@ -163,6 +165,8 @@ class MedicationTestMixin(GenericTestMixin):
         extension_medication_frequency = fhir_obj.extension[2].valueTiming
         self.assertTrue(isinstance(extension_medication_frequency, Timing))
         self.assertEqual(self._TEST_MEDICATION_FREQUENCY, extension_medication_frequency.repeat.period)
+        self.assertEqual(int(re.sub("[^0-9]", "", self._TEST_MEDICATION_PACKAGE)), fhir_obj.amount.numerator.value)
+        self.assertEqual(self._TEST_MEDICATION_PACKAGE, fhir_obj.form.text)
 
         extension_usage_context = fhir_obj.extension[3].extension
         for ext in extension_usage_context:

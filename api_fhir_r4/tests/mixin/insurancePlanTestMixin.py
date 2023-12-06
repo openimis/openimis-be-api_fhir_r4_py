@@ -8,14 +8,14 @@ from api_fhir_r4.converters import InsurancePlanConverter
 from api_fhir_r4.tests import GenericTestMixin
 
 from django.utils.translation import gettext as _
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
     InsurancePlanCoverageBenefit, InsurancePlanCoverageBenefitLimit, \
     InsurancePlanPlan, InsurancePlanPlanGeneralCost
-from fhir.resources.period import Period
-from fhir.resources.identifier import Identifier
-from fhir.resources.quantity import Quantity
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.quantity import Quantity
 from api_fhir_r4.utils import TimeUtils
 
 

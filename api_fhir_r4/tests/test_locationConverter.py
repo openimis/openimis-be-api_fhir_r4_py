@@ -1,5 +1,5 @@
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from fhir.resources.location import Location
+from fhir.resources.R4B.location import Location
 from api_fhir_r4.tests import LocationTestMixin
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 

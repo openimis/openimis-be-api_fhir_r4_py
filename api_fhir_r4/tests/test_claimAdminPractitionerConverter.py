@@ -1,6 +1,6 @@
 from api_fhir_r4.converters import ClaimAdminPractitionerConverter
 
-from fhir.resources.practitioner import Practitioner
+from fhir.resources.R4B.practitioner import Practitioner
 from api_fhir_r4.tests import ClaimAdminPractitionerTestMixin
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 

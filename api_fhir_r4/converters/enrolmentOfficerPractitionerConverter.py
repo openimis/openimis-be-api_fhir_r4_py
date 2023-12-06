@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin
-from fhir.resources.practitioner import Practitioner, PractitionerQualification
+from fhir.resources.R4B.practitioner import Practitioner, PractitionerQualification
 from api_fhir_r4.utils import TimeUtils, DbManagerUtils
 
 
@@ -54,8 +54,10 @@ class EnrolmentOfficerPractitionerConverter(BaseFHIRConverter, PersonConverterMi
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_officer_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Officer, uuid=imis_officer_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Officer,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def create_default_claim_admin(cls, audit_user_id):

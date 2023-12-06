@@ -1,6 +1,6 @@
 from api_fhir_r4.converters import MedicationConverter
 
-from fhir.resources.medication import Medication
+from fhir.resources.R4B.medication import Medication
 from api_fhir_r4.tests import MedicationTestMixin
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 

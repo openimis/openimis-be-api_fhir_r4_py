@@ -1,5 +1,5 @@
-from fhir.resources.reference import Reference
-from fhir.resources.paymentnotice import PaymentNotice
+from fhir.resources.R4B.reference import Reference
+from fhir.resources.R4B.paymentnotice import PaymentNotice
 
 from api_fhir_r4.configurations import (
     R4IdentifierConfig

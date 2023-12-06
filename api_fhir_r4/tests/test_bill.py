@@ -1,6 +1,6 @@
 import os
 
-from fhir.resources.invoice import Invoice
+from fhir.resources.R4B.invoice import Invoice
 
 from api_fhir_r4.converters import BillInvoiceConverter
 from api_fhir_r4.tests.mixin import ConvertToFhirTestMixin

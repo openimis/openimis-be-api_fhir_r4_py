@@ -13,14 +13,11 @@ class CommunicationRequestAPITests(GenericFhirAPITestMixin, APITestCase, LogInMi
     base_url = GeneralConfiguration.get_base_url() + 'CommunicationRequest/'
     _test_json_path = "/test/test_communicationRequest.json"
 
-    _test_json_path_credentials = "/tests/test/test_login.json"
+    _test_json_path_credentials = "/test/test_login.json"
     _test_request_data_credentials = None
 
     def setUp(self):
         super(CommunicationRequestAPITests, self).setUp()
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        json_representation = open(dir_path + self._test_json_path_credentials).read()
-        self._test_request_data_credentials = json.loads(json_representation)
         self._TEST_USER = self.get_or_create_user_api()
 
     def test_get_should_return_200(self):
