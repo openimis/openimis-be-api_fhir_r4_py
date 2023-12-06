@@ -11,7 +11,7 @@ from api_fhir_r4.tests.utils import load_and_replace_json
 
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 from api_fhir_r4.utils import TimeUtils
-from claim.models import Claim, ClaimItem, ClaimService
+from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
 from insuree.test_helpers import create_test_insuree
@@ -222,11 +222,11 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         dataset = [
             load_and_replace_json(self._test_json_path, self.sub_str),
             load_and_replace_json(self._test_json_path_with_code_reference, self.sub_str),
-
         ]
 
         for data in dataset:
             response = self.client.post(self.base_url, data=data, format='json', **headers)
+
             if False:#FIXME static data gets feedback exists, 
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
                 self.assertIsNotNone(response.content)
@@ -256,6 +256,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         if False:#FIXME
             self.assertEqual(claim.feedback.uuid.lower(), response_json['identifier'][0]['value'].lower())
             self.assertEqual(claim.uuid.lower(), response_json['about'][0]['identifier']['value'].lower())
+
 
 
     def _convert_bool_value(self, fhir_content_string):
