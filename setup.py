@@ -23,7 +23,6 @@ setup(
         'django',
         'django-db-signals',
         'djangorestframework',
-        'fhir.resources<=7.0.2',
         'pydantic<2',
         'aiohttp~=3.8.5',
         'fhir.resources>=7.0.2',
