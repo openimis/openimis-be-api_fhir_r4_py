@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from typing import Type
 
-from core.models import User
+from core.models import User,filter_validity
 from core.services import create_or_update_interactive_user, create_or_update_core_user
 from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.configurations import GeneralConfiguration
@@ -103,13 +103,21 @@ class ClaimAPIContainedTestBaseMixin:
 
     def create_dependencies(self):
         self._TEST_USER = get_or_create_user_api(self._TEST_DATA_USER)
+        if not  self.test_insuree:
+            self.test_insuree = create_test_insuree()
+        UserDistrict.objects.create(
+            **{
+                'user':self._TEST_USER._u,
+                'location': self.test_insuree.family.location.parent.parent,
+                'audit_user_id':-1
+            }
+        )
         self.test_icd = Diagnosis()
         self.test_icd.code = self._TEST_MAIN_ICD_CODE
         self.test_icd.name = self._TEST_MAIN_ICD_NAME
         self.test_icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
         self.test_icd.save()
-        if not  self.test_insuree:
-            self.test_insuree = create_test_insuree()
+
 
         self.test_village = self.test_insuree.current_village or self.test_insuree.family.location
         self.test_hf=self.create_test_hf()
@@ -233,7 +241,7 @@ class ClaimAPIContainedTestBaseMixin:
 class ClaimAPIContainedTests(ClaimAPIContainedTestBaseMixin, GenericFhirAPITestMixin, APITestCase):
     base_url = GeneralConfiguration.get_base_url() + 'Claim/'
     _test_json_path = "/test/test_claim_contained.json"
-    
+
     def test_post_should_create_correctly(self):
         response = self.client.post(
             GeneralConfiguration.get_base_url() + 'login/', data=get_connection_payload(self._TEST_DATA_USER), format='json'
