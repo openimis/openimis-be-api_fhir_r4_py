@@ -37,19 +37,20 @@ class ReferenceConverterMixin(object):
 
     @classmethod
     def build_fhir_resource_reference(cls, obj, type=None, display=None, reference_type=UUID_REFERENCE_TYPE):
-        reference = Reference.construct()
+        if obj:
+            reference = Reference.construct()
 
-        resource_type = type if type else cls.__get_fhir_resource_type_as_string()
-        resource_id = cls.__get_imis_object_id_as_string(obj, reference_type)
+            resource_type = type if type else cls.__get_fhir_resource_type_as_string()
+            resource_id = cls.__get_imis_object_id_as_string(obj, reference_type)
 
-        reference.type = resource_type
-        reference.identifier = cls.build_reference_identifier(obj, reference_type)
-        reference.reference = f'{resource_type}/{resource_id}'
+            reference.type = resource_type
+            reference.identifier = cls.build_reference_identifier(obj, reference_type)
+            reference.reference = f'{resource_type}/{resource_id}'
 
-        if display:
-            reference.display = display
+            if display:
+                reference.display = display
 
-        return reference
+            return reference
 
     @classmethod
     def get_resource_id_from_reference(cls, reference):
