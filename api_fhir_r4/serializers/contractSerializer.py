@@ -1,6 +1,6 @@
 from api_fhir_r4.converters.contractConverter import ContractConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
-from contribution.gql_mutations import update_or_create_premium
+from contribution.services import update_or_create_premium
 from policy.services import PolicyService
 from policy.models import Policy
 import copy
@@ -30,11 +30,6 @@ class ContractSerializer(BaseFHIRSerializer):
         # create contributions related to newly created policy
         if premiums:
             for premium in premiums:
-                premium = premium.__dict__
-                del premium['_state']
-                premium['policy_uuid'] = new_policy.uuid
-                premium['policy_id'] = new_policy.id
-                premium['audit_user_id'] = copied_data['audit_user_id']
                 premium = update_or_create_premium(premium, user)
                 new_policy = premium.policy
 
