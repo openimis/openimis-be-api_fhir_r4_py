@@ -21,6 +21,10 @@ class ApiFhirConfig(AppConfig):
         self.__configure_module(cfg)
         setup_yaml()
 
+        from openIMIS.ExceptionHandlerRegistry import ExceptionHandlerRegistry
+        from .exceptions.fhir_api_exception_handler import fhir_api_exception_handler
+        ExceptionHandlerRegistry.register_exception_handler(MODULE_NAME, fhir_api_exception_handler)
+
     def __configure_module(self, cfg):
         ModuleConfiguration.build_configuration(cfg)
         logger.info(F'Module {MODULE_NAME} configured successfully')

@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from fhir.resources.invoice import Invoice as FHIRInvoice
+from fhir.resources.R4B.invoice import Invoice as FHIRInvoice
 
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.tests import GenericTestMixin
@@ -31,8 +31,8 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_LINE_ITEM_TAX_PRICE_COMPONENT_TYPE = 'tax'
 
     def create_test_imis_instance(self):
-        self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model='Family')
-        self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model='Policy')
+        self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model__iexact='Family')
+        self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Policy')
 
         imis_invoice = Invoice()
         imis_invoice.code = self._TEST_INVOICE_CODE

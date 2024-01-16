@@ -5,7 +5,7 @@ from medical.test_helpers import create_test_service, create_test_item
 from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageEligibilityConfiguration as Config
 from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.models import CoverageEligibilityRequestV2 as CoverageEligibilityRequest
-from fhir.resources.coverageeligibilityrequest import CoverageEligibilityRequestItem
+from fhir.resources.R4B.coverageeligibilityrequest import CoverageEligibilityRequestItem
 from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 

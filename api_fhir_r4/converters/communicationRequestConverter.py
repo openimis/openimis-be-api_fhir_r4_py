@@ -4,8 +4,8 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.mapping.feedbackMapping import FeedbackStatus
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim
-from fhir.resources.communicationrequest import CommunicationRequest, CommunicationRequestPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communicationrequest import CommunicationRequest, CommunicationRequestPayload
+from fhir.resources.R4B.extension import Extension
 
 
 class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):
@@ -36,8 +36,10 @@ class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_claim_id = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Claim, pk=imis_claim_id)
+        return DbManagerUtils.get_object_or_none(
+            Claim,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def get_reference_obj_uuid(cls, imis_claim):

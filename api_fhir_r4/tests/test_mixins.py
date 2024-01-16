@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 
 from django.test import TestCase
 
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B import FHIRAbstractModel
 
 from api_fhir_r4.serializers import PatientSerializer
 

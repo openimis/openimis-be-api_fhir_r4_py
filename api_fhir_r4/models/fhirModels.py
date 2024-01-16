@@ -2,17 +2,17 @@ import typing
 
 SUPPORTED_FORMATS = ['json']
 
-# fix of 'issue' type from https://github.com/nazrulworld/fhir.resources/blob/main/fhir/resources/operationoutcome.py#L31
+# fix of 'issue' type from https://github.com/nazrulworld/fhir.resources.R4B/blob/main/fhir/resources/operationoutcome.py#L31
 # by overriding 'issue' property. Without this fix - there is no 'issue' field in 'OperationOutcome' model.
-from fhir.resources import fhirtypes
+from fhir.resources.R4B import fhirtypes
 from pydantic import Field
-from fhir.resources.operationoutcome import OperationOutcome
-from fhir.resources.usagecontext import UsageContext
-from fhir.resources.coverage import Coverage, CoverageClass
-from fhir.resources.contract import ContractSigner
-from fhir.resources.claim import Claim, ClaimInsurance
-from fhir.resources.claimresponse import ClaimResponse
-from fhir.resources.coverageeligibilityrequest import CoverageEligibilityRequest
+from fhir.resources.R4B.operationoutcome import OperationOutcome
+from fhir.resources.R4B.usagecontext import UsageContext
+from fhir.resources.R4B.coverage import Coverage, CoverageClass
+from fhir.resources.R4B.contract import ContractSigner
+from fhir.resources.R4B.claim import Claim, ClaimInsurance
+from fhir.resources.R4B.claimresponse import ClaimResponse
+from fhir.resources.R4B.coverageeligibilityrequest import CoverageEligibilityRequest
 
 
 class OperationOutcomeV2(OperationOutcome):

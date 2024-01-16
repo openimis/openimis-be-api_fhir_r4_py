@@ -21,12 +21,14 @@ from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFacilityOrganisationConverter
 from api_fhir_r4.converters.claimAdminPractitionerConverter import ClaimAdminPractitionerConverter
 from api_fhir_r4.models import ClaimV2 as FHIRClaim, ClaimInsuranceV2 as ClaimInsurance
-from fhir.resources.attachment import Attachment
-from fhir.resources.period import Period
-from fhir.resources.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimItem as FHIRClaimItem
+from fhir.resources.R4B.attachment import Attachment
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimItem as FHIRClaimItem
 
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 
+import logging
+logger = logging.getLogger('openimis.' + __name__)
 
 class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
@@ -91,8 +93,10 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_claim_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Claim, code=imis_claim_code)
+        return DbManagerUtils.get_object_or_none(
+            Claim,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_imis_date_claimed(cls, imis_claim, fhir_claim, errors):
@@ -125,10 +129,9 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_imis_patient(cls, imis_claim, fhir_claim, errors, audit_user_id):
         insuree = get_from_contained_or_by_reference(
             fhir_claim.patient, fhir_claim.contained, PatientConverter, audit_user_id)
-
         if insuree:
             imis_claim.insuree = insuree
-            imis_claim.insuree_chf_code = insuree.chf_id
+            imis_claim.insuree_chf_id = insuree.chf_id
         cls.valid_condition(not imis_claim.insuree, _('Missing or invalid `patient` reference'), errors)
 
     @classmethod
@@ -216,7 +219,6 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
         admin = get_from_contained_or_by_reference(
             fhir_claim.enterer, fhir_claim.contained, ClaimAdminPractitionerConverter, audit_user_id
         )
-
         if admin:
             imis_claim.admin = admin
             imis_claim.claim_admin_code = admin.code

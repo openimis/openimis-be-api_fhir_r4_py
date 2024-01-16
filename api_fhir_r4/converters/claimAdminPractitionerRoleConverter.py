@@ -4,7 +4,7 @@ from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFac
 from api_fhir_r4.utils import DbManagerUtils
 from claim.models import ClaimAdmin
 from django.utils.translation import gettext as _
-from fhir.resources.practitionerrole import PractitionerRole
+from fhir.resources.R4B.practitionerrole import PractitionerRole
 
 
 class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):
@@ -56,8 +56,10 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_claim_admin_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(ClaimAdmin, code=imis_claim_admin_code)
+        return DbManagerUtils.get_object_or_none(
+            ClaimAdmin,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_practitioner_role, imis_claim_admin):

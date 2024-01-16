@@ -1,6 +1,6 @@
 from api_fhir_r4.converters import GroupConverter
 
-from fhir.resources.group import Group
+from fhir.resources.R4B.group import Group
 from api_fhir_r4.tests import GroupTestMixin
 from api_fhir_r4.tests.mixin import ConvertToImisTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 

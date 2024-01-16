@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from rest_framework.test import APITestCase
 
 from api_fhir_r4.configurations import R4IdentifierConfig
-from fhir.resources.medication import Medication as FHIRMedication
+from fhir.resources.R4B.medication import Medication as FHIRMedication
 from api_fhir_r4.converters import MedicationConverter
 from api_fhir_r4.tests import GenericFhirAPITestMixin, \
     FhirApiCreateTestMixin, FhirApiUpdateTestMixin, FhirApiReadTestMixin
@@ -46,9 +46,9 @@ class MedicationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin, FhirAp
         modified_payload = self.update_payload_missing_code_identifier(data=self._test_request_data)
         response = self.client.post(self.base_url, data=modified_payload, format='json')
         response_json = response.json()
-        splited_output = response_json["issue"][0]["details"]["text"].split(" ")
+        splited_output = self.get_response_details(response_json).split(" ")
         self.assertEqual(
-            response_json["issue"][0]["details"]["text"],
+            self.get_response_details(response_json),
             _("The request cannot be processed due to the following issues:\nMissing medication `item_code` attribute")
         )
 
@@ -58,8 +58,8 @@ class MedicationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin, FhirAp
         modified_payload = self.update_payload_missing_item_name(data=self._test_request_data)
         response = self.client.post(self.base_url, data=modified_payload, format='json')
         response_json = response.json()
-        splited_output = response_json["issue"][0]["details"]["text"].split(" ")
+        splited_output = self.get_response_details(response_json).split(" ")
         self.assertEqual(
-            response_json["issue"][0]["details"]["text"],
+            self.get_response_details(response_json),
             _("The request cannot be processed due to the following issues:\nMissing medication `item_name` attribute")
         )

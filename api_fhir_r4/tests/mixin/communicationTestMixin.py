@@ -3,12 +3,13 @@ from api_fhir_r4.converters import CommunicationConverter
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
-from fhir.resources.communication import Communication, CommunicationPayload
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.communication import Communication, CommunicationPayload
+from fhir.resources.R4B.extension import Extension
 from claim.models import Claim, ClaimItem, ClaimService, Feedback
 from claim.test_helpers import create_test_claim_admin
 from core import datetime
 from location.models import HealthFacility
+from location.test_helpers import create_test_village
 from insuree.test_helpers import create_test_insuree
 from medical.test_helpers import create_test_item, create_test_service
 from medical.models import Diagnosis
@@ -17,7 +18,7 @@ from medical.models import Diagnosis
 class CommunicationTestMixin(GenericTestMixin):
     # feedback expected data
     _TEST_FEE_UUID = "612a1e12-ce44-4632-90a8-129ec714ec59"
-    _TEST_CARE_RENDERED = True
+    _TEST_CARE_RENDERED = False
     _TEST_PAYMENT_ASKED = True
     _TEST_DRUG_PRESCRIBED = True
     _TEST_DRUG_RECEIVED = False
@@ -120,8 +121,7 @@ class CommunicationTestMixin(GenericTestMixin):
         return service
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
-        location.save()
+        location = create_test_village()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
         hf.uuid = self._TEST_HF_UUID
@@ -133,7 +133,7 @@ class CommunicationTestMixin(GenericTestMixin):
         hf.phone = self._TEST_PHONE
         hf.fax = self._TEST_FAX
         hf.email = self._TEST_EMAIL
-        hf.location_id = location.id
+        hf.location = location.parent.parent
         hf.offline = False
         hf.audit_user_id = -1
         hf.save()
@@ -195,7 +195,7 @@ class CommunicationTestMixin(GenericTestMixin):
         fhir_payload = []
         # care rendered
         payload = {}
-        payload['contentString'] = "yes"
+        payload['contentString'] = "no"
         payload = CommunicationPayload(**payload)
         payload.extension = []
 

@@ -4,7 +4,7 @@ import logging
 from typing import Tuple
 
 from api_fhir_r4.exceptions import FHIRRequestProcessException
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.reference import Reference
 
 
 logger = logging.getLogger(__name__)
@@ -37,46 +37,75 @@ class ReferenceConverterMixin(object):
 
     @classmethod
     def build_fhir_resource_reference(cls, obj, type=None, display=None, reference_type=UUID_REFERENCE_TYPE):
-        reference = Reference.construct()
+        if obj:
+            reference = Reference.construct()
 
-        resource_type = type if type else cls.__get_fhir_resource_type_as_string()
-        resource_id = cls.__get_imis_object_id_as_string(obj, reference_type)
+            resource_type = type if type else cls.__get_fhir_resource_type_as_string()
+            resource_id = cls.__get_imis_object_id_as_string(obj, reference_type)
 
-        reference.type = resource_type
-        reference.identifier = cls.build_reference_identifier(obj, reference_type)
-        reference.reference = f'{resource_type}/{resource_id}'
+            reference.type = resource_type
+            reference.identifier = cls.build_reference_identifier(obj, reference_type)
+            reference.reference = f'{resource_type}/{resource_id}'
 
-        if display:
-            reference.display = display
+            if display:
+                reference.display = display
 
-        return reference
+            return reference
 
     @classmethod
     def get_resource_id_from_reference(cls, reference):
-        _, resource_id = cls._get_type_and_id_from_reference(reference)
+        _, resource_id, _ = cls._get_type_and_id_from_reference(reference)
         return resource_id
 
     @classmethod
     def get_resource_type_from_reference(cls, reference):
-        path, _ = cls._get_type_and_id_from_reference(reference)
+        path, _, _ = cls._get_type_and_id_from_reference(reference)
         return path
 
+
     @classmethod
-    def _get_type_and_id_from_reference(cls, reference: Reference) -> Tuple[str, str]:
+    def get_database_query_id_parameteres_from_reference(cls, reference, code_keyword_name = 'code'):
+        _, resource_id, id_type = cls._get_type_and_id_from_reference(reference)
+        id_parameters = {}
+        if cls._get_reference_type(id_type) == cls.CODE_REFERENCE_TYPE:
+            id_parameters[code_keyword_name] = resource_id
+        else:
+            id_parameters['uuid__iexact'] = resource_id
+        return id_parameters
+
+    @classmethod
+    def _get_reference_type(cls, reference_type):
+        if reference_type is None or reference_type.coding is None or \
+            reference_type.coding[0] is None or \
+            reference_type.coding[0].code is None:
+            return cls.UUID_REFERENCE_TYPE
+        if reference_type.coding[0].code.lower() == 'code':
+            return cls.CODE_REFERENCE_TYPE 
+        return cls.UUID_REFERENCE_TYPE
+
+
+    @classmethod
+    def _get_type_and_id_from_reference(cls, reference: Reference) -> Tuple[str, str, str]:
         """
         Extracts resource type and resource id from FHIR reference.
         """
-        resource_id, path = None, None
+        resource_id, path, code_type = None, None, None
         if reference:
-            reference = reference.reference
-            if isinstance(reference, str) and '/' in reference:
-                path, resource_id = reference.rsplit('/', 1)
+            
+            if reference.reference and isinstance(reference.reference, str) and '/' in reference.reference:
+                path, resource_id = reference.reference.rsplit('/', 1)
+            elif isinstance(reference.type, str) and reference.identifier is not None \
+                and isinstance(reference.identifier.value, str):
+                path = reference.type
+                resource_id = reference.identifier.value
+                if reference.identifier.type is not None:
+                    code_type = reference.identifier.type
         if path is None or resource_id is None:
             raise FHIRRequestProcessException(
                 [F'Invalid format of reference `{reference}`. '
                  F'Should be string with format <ReferenceType>/<ReferenceId>']
             )
-        return path, resource_id
+        return path, resource_id, code_type
 
     @classmethod
     def __get_imis_object_id_as_string(cls, obj, reference_type):

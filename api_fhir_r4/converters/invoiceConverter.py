@@ -1,10 +1,10 @@
-from fhir.resources.annotation import Annotation
-from fhir.resources.extension import Extension
+from fhir.resources.R4B.annotation import Annotation
+from fhir.resources.R4B.extension import Extension
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from fhir.resources.invoice import Invoice as FHIRInvoice, \
+from fhir.resources.R4B.invoice import Invoice as FHIRInvoice, \
     InvoiceLineItem as FHIRInvoiceLineItem, InvoiceLineItemPriceComponent
-from fhir.resources.money import Money
+from fhir.resources.R4B.money import Money
 from api_fhir_r4.mapping.invoiceMapping import InvoiceChargeItemMapping, InvoiceTypeMapping, BillTypeMapping, \
     BillChargeItemMapping
 from api_fhir_r4.utils import DbManagerUtils
@@ -49,8 +49,10 @@ class GenericInvoiceConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        invoice_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Invoice, uuid=invoice_uuid)
+        return DbManagerUtils.get_object_or_none(
+            Invoice,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
+
 
     @classmethod
     def get_fhir_code_identifier_type(cls):

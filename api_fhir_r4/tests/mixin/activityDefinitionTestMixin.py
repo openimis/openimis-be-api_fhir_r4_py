@@ -1,12 +1,12 @@
 import core
-from fhir.resources.activitydefinition import ActivityDefinition
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.coding import Coding
-from fhir.resources.extension import Extension
-from fhir.resources.identifier import Identifier
-from fhir.resources.money import Money
-from fhir.resources.timing import Timing, TimingRepeat
-from fhir.resources.usagecontext import UsageContext
+from fhir.resources.R4B.activitydefinition import ActivityDefinition
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.timing import Timing, TimingRepeat
+from fhir.resources.R4B.usagecontext import UsageContext
 from medical.models import Service
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
@@ -75,6 +75,7 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
         self.assertEqual(self._TEST_SERVICE_LEVEL, imis_obj.level)
 
     def create_test_fhir_instance(self):
+        PatientCategoryMapping.load()
         fhir_activity_definition = ActivityDefinition.construct()
         fhir_activity_definition.status = self._TEST_ACTIVITY_DEFINITION_STATUS
         fhir_activity_definition.resource_type = self._TEST_ACTIVITY_DEFINITION_RESOURCE_TYPE

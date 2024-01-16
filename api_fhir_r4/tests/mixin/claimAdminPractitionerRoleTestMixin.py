@@ -1,21 +1,25 @@
 from api_fhir_r4.configurations import R4IdentifierConfig
 from api_fhir_r4.converters import ClaimAdminPractitionerRoleConverter
-from fhir.resources.identifier import Identifier
-from fhir.resources.practitionerrole import PractitionerRole
-from fhir.resources.reference import Reference
-from api_fhir_r4.tests import GenericTestMixin, ClaimAdminPractitionerTestMixin, LocationTestMixin
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.practitionerrole import PractitionerRole
+from fhir.resources.R4B.reference import Reference
+from api_fhir_r4.tests import GenericTestMixin,  LocationTestMixin
 from location.models import HealthFacility
-
+from location.test_helpers import create_test_village
+from claim.test_helpers import create_test_claim_admin
+from api_fhir_r4.utils import TimeUtils
 
 class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
-    _TEST_CLAIM_ADMIN = None
-    _TEST_HF = None
+    test_claim_admin = None
+    test_hf = None
     _TEST_ORGANIZATION_REFERENCE = None
-    _TEST_PRACTITIONER_REFERENCE = None
+    _TEST_CLAIM_ADMIN_PRACTITIONER_REFERENCE = None
 
-    _TEST_ID = 1
-    _TEST_UUID = "254f6268-964b-4d8d-aa26-20081f22235e"
-    _TEST_CODE = "1234abcd"
+    _TEST_CLAIM_ADMIN_ID = 1
+    _TEST_CLAIM_ADMIN_UUID = "254f6268-964b-4d8d-aa26-20081f22235e"
+    _TEST_CLAIM_ADMIN_CODE = "1234abcd"
+    
+    _TEST_CLAIM_ADMIN_DOB = "1990-03-24"
 
     _TEST_HF_ID = 10000
     _TEST_HF_UUID = "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
@@ -23,22 +27,27 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
     _TEST_HF_NAME = "TEST_NAME"
     _TEST_HF_LEVEL = "H"
     _TEST_HF_LEGAL_FORM = "G"
-    _TEST_ADDRESS = "TEST_ADDRESS"
-    _TEST_PHONE = "133-996-476"
-    _TEST_FAX = "1-408-999 8888"
-    _TEST_EMAIL = "TEST@TEST.com"
+    _TEST_CLAIM_ADMIN_ADDRESS = "TEST_ADDRESS"
+    _TEST_CLAIM_ADMIN_PHONE = "133-996-476"
+    _TEST_CLAIM_ADMIN_FAX = "1-408-999 8888"
+    _TEST_CLAIM_ADMIN_EMAIL = "TEST@TEST.com"
+    sub_str = {}
 
     def setUp(self):
         super(ClaimAdminPractitionerRoleTestMixin, self).setUp()
-        self._TEST_CLAIM_ADMIN = ClaimAdminPractitionerTestMixin().create_test_imis_instance()
-        self._TEST_CLAIM_ADMIN.save()
-        self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + self._TEST_CLAIM_ADMIN.uuid
-        self._TEST_HF = self.create_test_health_facility()
-        self._TEST_ORGANIZATION_REFERENCE = "Organization/" + self._TEST_HF.uuid
+        self.test_hf = self.create_test_health_facility()
+        self.test_claim_admin = create_test_claim_admin( custom_props={
+            'health_facility_id': self.test_hf.id, 
+            'code':self._TEST_CLAIM_ADMIN_CODE,
+            'dob':TimeUtils.str_to_date(self._TEST_CLAIM_ADMIN_DOB),
+            'phone':self._TEST_CLAIM_ADMIN_PHONE})
+        self._TEST_CLAIM_ADMIN_PRACTITIONER_REFERENCE = "Practitioner/" + str(self.test_claim_admin.uuid)
+        self._TEST_ORGANIZATION_REFERENCE = "Organization/" + str(self.test_hf.uuid)
+        self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
+        self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
 
     def create_test_health_facility(self):
-        location = LocationTestMixin().create_test_imis_instance()
-        location.save()
+        location = create_test_village()
         hf = HealthFacility()
         hf.id = self._TEST_HF_ID
         hf.uuid = self._TEST_HF_UUID
@@ -46,28 +55,28 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
         hf.name = self._TEST_HF_NAME
         hf.level = self._TEST_HF_LEVEL
         hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location_id = location.id
+        hf.address = self._TEST_CLAIM_ADMIN_ADDRESS
+        hf.phone = self._TEST_CLAIM_ADMIN_PHONE
+        hf.fax = self._TEST_CLAIM_ADMIN_FAX
+        hf.email = self._TEST_CLAIM_ADMIN_EMAIL
+        hf.location = location.parent.parent
         hf.offline = False
         hf.audit_user_id = -1
         hf.save()
         return hf
 
     def create_test_imis_instance(self):
-        self._TEST_CLAIM_ADMIN.health_facility = self._TEST_HF
-        return self._TEST_CLAIM_ADMIN
+        self.test_claim_admin.health_facility = self.test_hf
+        return self.test_claim_admin
 
     def verify_imis_instance(self, imis_obj):
-        self.assertEqual(self._TEST_HF.code, imis_obj.health_facility.code)
+        self.assertEqual(self.test_hf.code, imis_obj.health_facility.code)
 
     def create_test_fhir_instance(self):
         fhir_practitioner_role = PractitionerRole.construct()
         identifiers = []
         code = ClaimAdminPractitionerRoleConverter.build_fhir_identifier(
-            self._TEST_CODE,
+            self._TEST_CLAIM_ADMIN_CODE,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
             R4IdentifierConfig.get_fhir_generic_type_code()
         )
@@ -77,7 +86,7 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
         organization_reference.reference = self._TEST_ORGANIZATION_REFERENCE
         fhir_practitioner_role.organization = organization_reference
         practitioner_reference = Reference.construct()
-        practitioner_reference.reference = self._TEST_PRACTITIONER_REFERENCE
+        practitioner_reference.reference = self._TEST_CLAIM_ADMIN_PRACTITIONER_REFERENCE
         fhir_practitioner_role.practitioner = practitioner_reference
         return fhir_practitioner_role
 
@@ -87,10 +96,10 @@ class ClaimAdminPractitionerRoleTestMixin(GenericTestMixin):
             self.assertTrue(isinstance(identifier, Identifier))
             code = ClaimAdminPractitionerRoleConverter.get_first_coding_from_codeable_concept(identifier.type).code
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
-                self.assertEqual(self._TEST_CODE, identifier.value)
+                self.assertEqual(self.test_claim_admin.code, identifier.value)
             elif code == R4IdentifierConfig.get_fhir_uuid_type_code():
-                self.assertEqual(self._TEST_UUID, identifier.value)
-        self.assertIn(self._TEST_PRACTITIONER_REFERENCE, fhir_obj.practitioner.reference)
+                self.assertEqual(str(self.test_claim_admin.uuid), identifier.value)
+        self.assertIn(self._TEST_CLAIM_ADMIN_PRACTITIONER_REFERENCE, fhir_obj.practitioner.reference)
         self.assertEqual(1, len(fhir_obj.code))
         self.assertEqual(1, len(fhir_obj.code[0].coding))
         self.assertEqual("CA", fhir_obj.code[0].coding[0].code)

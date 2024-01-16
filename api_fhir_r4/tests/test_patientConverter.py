@@ -2,7 +2,7 @@ from unittest import mock
 
 from api_fhir_r4.converters import PatientConverter
 
-from fhir.resources.patient import Patient
+from fhir.resources.R4B.patient import Patient
 from api_fhir_r4.tests import PatientTestMixin
 from api_fhir_r4.tests.mixin import ConvertToFhirTestMixin, ConvertToImisTestMixin, ConvertJsonToFhirTestMixin
 

@@ -4,25 +4,27 @@ from api_fhir_r4.converters import R4IdentifierConfig, BaseFHIRConverter, Refere
 from api_fhir_r4.models import UsageContextV2 as UsageContext
 from api_fhir_r4.mapping.medicationMapping import ItemTypeMapping, ItemVenueTypeMapping, ItemContextlevel
 from api_fhir_r4.mapping.patientMapping import PatientCategoryMapping
-from fhir.resources.medication import Medication as FHIRMedication
-from fhir.resources.extension import Extension
-from fhir.resources.money import Money
-from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.coding import Coding
-from fhir.resources.quantity import Quantity
-from fhir.resources.ratio import Ratio
-from fhir.resources.timing import Timing, TimingRepeat
+from fhir.resources.R4B.medication import Medication as FHIRMedication
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.codeableconcept import CodeableConcept
+from fhir.resources.R4B.coding import Coding
+from fhir.resources.R4B.quantity import Quantity
+from fhir.resources.R4B.ratio import Ratio
+from fhir.resources.R4B.timing import Timing, TimingRepeat
 from django.utils.translation import gettext
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.configurations import GeneralConfiguration
 import core
+import re
 
 
 class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_fhir_obj(cls, imis_medication, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+        PatientCategoryMapping.load()
         fhir_medication = FHIRMedication.construct()
         cls.build_fhir_pk(fhir_medication, imis_medication, reference_type)
         cls.build_fhir_identifiers(fhir_medication, imis_medication)
@@ -36,6 +38,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def to_imis_obj(cls, fhir_medication, audit_user_id):
+        PatientCategoryMapping.load()
         errors = []
         fhir_medication = FHIRMedication(**fhir_medication)
         imis_medication = Item()
@@ -70,8 +73,9 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_medication_code = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(Item, uuid=imis_medication_code)
+        return DbManagerUtils.get_object_or_none(
+            Item,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_medication, imis_medication):
@@ -96,16 +100,6 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             fhir_medication.form = codeable
 
     @classmethod
-    def split_package_form(cls, form):
-        form = form.lstrip()
-        if " " not in form:
-            return form
-        if " " in form:
-            form = form.split(' ', 1)
-            form = form[1]
-            return form
-
-    @classmethod
     def build_fhir_package_amount(cls, fhir_medication, imis_medication):
         # TODO - Split medical item ItemPackage into ItemForm and ItemAmount => openIMIS side
         if imis_medication.package:
@@ -119,12 +113,10 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def split_package_amount(cls, amount):
         amount = amount.lstrip()
-        if " " not in amount:
-            return None
-        if " " in amount:
-            amount = amount.split(' ', 1)
-            amount = amount[0]
-            return int(amount)
+        try:
+            return int(re.sub("[^0-9]","",amount))
+        except ValueError as exception:
+            return 0
 
     @classmethod
     def build_fhir_medication_extension(cls, fhir_medication, imis_medication):

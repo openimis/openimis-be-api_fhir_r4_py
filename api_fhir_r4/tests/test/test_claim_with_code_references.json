@@ -10,7 +10,7 @@
                     }
                 ]
             },
-            "value": "T00001"
+            "value": "T00002"
         }
     ],
     "status": "active",
@@ -25,19 +25,21 @@
     },
     "use": "claim",
     "patient": {
-        "reference": "Patient/76aca309-f8cf-4890-8f2e-b416d78de00b",
-        "type": "Patient",
-        "identifier": {
-            "type": {
-                "coding": [
-                    {
-                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                        "code": "UUID"
-                    }
-                ]
-            },
-            "value": "76aca309-f8cf-4890-8f2e-b416d78de00b"
-        }
+            "type": "Patient",
+            "identifier":
+            {
+                "value": "999000001",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }
     },
     "billablePeriod": {
         "start": "2021-02-03",
@@ -45,35 +47,38 @@
     },
     "created": "2021-02-03",
     "enterer": {
-        "reference": "Practitioner/044c33d1-dbf3-4d6a-9924-3797b461e535",
-        "type": "Practitioner",
-        "identifier": {
-            "type": {
-                "coding": [
-                    {
-                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                        "code": "UUID"
-                    }
-                ]
-            },
-            "value": "044c33d1-dbf3-4d6a-9924-3797b461e535"
-        }
+            "type": "Practitioner",
+            "identifier":
+            {
+                "value": "VITEST99",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }
     },
     "provider": {
-        "reference": "Organization/6d0eea8c-62eb-11ea-94d6-c36229a16c2f",
-        "type": "Organization",
-        "identifier": {
-            "type": {
-                "coding": [
-                    {
-                        "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                        "code": "UUID"
-                    }
-                ]
-            },
-            "value": "6d0eea8c-62eb-11ea-94d6-c36229a16c2f"
-        },
-        "display": "12345678"
+            "type": "Organization",
+            "identifier":
+            {
+                "value": "12345678",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }   
     },
     "priority": {
         "coding": [
@@ -136,7 +141,7 @@
                                 "coding": [
                                     {
                                         "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                        "code": "Code"
+                                        "code": "code"
                                     }
                                 ]
                             },
@@ -165,14 +170,13 @@
                 {
                     "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/claim-item-reference",
                     "valueReference": {
-                        "reference": "ActivityDefinition/a17602f4-e9ff-4f42-a6a4-ccefcb23b4d6",
                         "type": "ActivityDefinition",
                         "identifier": {
                             "type": {
                                 "coding": [
                                     {
                                         "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
-                                        "code": "Code"
+                                        "code": "code"
                                     }
                                 ]
                             },

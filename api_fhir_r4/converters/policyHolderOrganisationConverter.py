@@ -1,9 +1,9 @@
 from urllib.parse import urljoin
 
 from django.utils.translation import gettext as _
-from fhir.resources.address import Address
-from fhir.resources.extension import Extension
-from fhir.resources.humanname import HumanName
+from fhir.resources.R4B.address import Address
+from fhir.resources.R4B.extension import Extension
+from fhir.resources.R4B.humanname import HumanName
 
 from api_fhir_r4.mapping.organizationMapping import PolicyHolderOrganisationLegalFormMapping, \
     PolicyHolderOrganisationActivityMapping
@@ -12,7 +12,7 @@ from location.models import Location
 from policyholder.models import PolicyHolder
 from api_fhir_r4.configurations import R4IdentifierConfig, R4OrganisationConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
-from fhir.resources.organization import Organization
+from fhir.resources.R4B.organization import Organization
 from api_fhir_r4.utils import DbManagerUtils
 
 
@@ -38,8 +38,9 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        imis_ph_uuid = cls.get_resource_id_from_reference(reference)
-        return DbManagerUtils.get_object_or_none(PolicyHolder, uuid=imis_ph_uuid)
+        return DbManagerUtils.get_object_or_none(
+            PolicyHolder,
+            **cls.get_database_query_id_parameteres_from_reference(reference))
 
     @classmethod
     def get_reference_obj_id(cls, obj):

@@ -2,8 +2,22 @@
    "resourceType":"Communication",
    "status":"completed",
    "subject":{
-      "reference":"Patient/76aca309-f8cf-4890-8f2e-b416d78de00b"
-   },
+            "type": "Patient",
+            "identifier":
+            {
+                "value": "999000001",
+                "type":
+                {
+                    "coding":
+                    [
+                        {
+                            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+                            "code": "Code"
+                        }
+                    ]
+                }
+            }
+    },
    "about":[
       {
          "reference":"Claim/7ac646cb-d3cd-4660-baeb-ee34ecf0354e"

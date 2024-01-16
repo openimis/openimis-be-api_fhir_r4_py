@@ -1,10 +1,10 @@
 import logging
-from policy.services import EligibilityRequest, EligibilityService, EligibilityResponse, StoredProcEligibilityService
+from policy.services import EligibilityRequest, EligibilityService, EligibilityResponse
 from policy.services import ByInsureeRequest, ByInsureeService, ByInsureeResponse
 from api_fhir_r4.converters import CoverageEligibilityRequestConverter
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from django.http.response import HttpResponseBase
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B import FHIRAbstractModel
 from api_fhir_r4.converters import OperationOutcomeConverter
 
 

@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 from typing import List, Callable, Iterable, Union
 from django.db import models
 
-from fhir.resources.resource import Resource
+from fhir.resources.R4B.resource import Resource
 
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.exceptions import FHIRException
-from fhir.resources.fhirabstractmodel import FHIRAbstractModel
+from fhir.resources.R4B import FHIRAbstractModel
 
 
 DEFAULT_REF_TYPE = ReferenceConverterMixin.UUID_REFERENCE_TYPE
@@ -30,7 +30,7 @@ class _ConverterWrapper:
             return []
 
         try:
-            if isinstance(resource, Iterable):
+            if isinstance(resource, Iterable) and   'resourceType' not in resource:
                 return [method(next_resource, *args) for next_resource in resource]
             else:
                 return [method(resource, *args)]
@@ -39,7 +39,7 @@ class _ConverterWrapper:
 
     def __convert_to_imis(self, method, resource, reference_type, args):
         try:
-            if isinstance(resource, Iterable):
+            if isinstance(resource, Iterable) and 'resourceType' not in resource :
                 return [
                     self.__convert_single_resource(next_, method, args, reference_type) for next_ in resource
                 ]
@@ -132,6 +132,13 @@ class IMISContainedResourceConverter:
         :return: Attribute converted to FHIR object list. If attribute is single object then it's still converted to
         list format.
         """
-
-        resources = [r for r in fhir_dict_repr.get('contained', {}) if r['resourceType'] == self.fhir_resource_type]
-        return self.converter.to_imis(resources, self.reference_type, audit_user_id)
+        resource = None
+        if fhir_dict_repr:
+            if 'resourceType' in fhir_dict_repr and fhir_dict_repr['resourceType'] == self.fhir_resource_type:
+                resource = fhir_dict_repr
+            else:
+                resource = [r for r in fhir_dict_repr.get('contained', {}) if r['resourceType'] == self.fhir_resource_type]
+            if resource:
+                return self.converter.to_imis(resource, self.reference_type, audit_user_id)
+        
+        return None

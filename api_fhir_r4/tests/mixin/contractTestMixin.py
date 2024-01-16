@@ -9,12 +9,12 @@ from api_fhir_r4.converters import ContractConverter
 from api_fhir_r4.tests import GenericTestMixin
 
 from django.utils.translation import gettext as _
-from fhir.resources.contract import Contract, ContractTerm, ContractTermOffer, \
+from fhir.resources.R4B.contract import Contract, ContractTerm, ContractTermOffer, \
     ContractTermAsset, ContractTermOfferParty, ContractTermAssetValuedItem
-from fhir.resources.identifier import Identifier
-from fhir.resources.money import Money
-from fhir.resources.period import Period
-from fhir.resources.reference import Reference
+from fhir.resources.R4B.identifier import Identifier
+from fhir.resources.R4B.money import Money
+from fhir.resources.R4B.period import Period
+from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.utils import TimeUtils
 
 from core.test_helpers import create_test_officer
@@ -31,7 +31,7 @@ class ContractTestMixin(GenericTestMixin):
     _TEST_POLICY_EXPIRED_DATE = "2022-06-19T00:00:00"
     _TEST_POLICY_STATUS = 1
     _TEST_POLICY_STAGE = 'N'
-    _TEST_FAMILY_UUID = "e8bbb7e4-19ef-4bef-9342-9ab6b9a928d3"
+    _TEST_GROUP_UUID = "e8bbb7e4-19ef-4bef-9342-9ab6b9a928d3"
     _TEST_OFFICER_UUID = "ff7db42d-874b-400a-bba7-e59b273ae123"
     _TEST_INSUREE_UUID = "f8c56ada-d76d-4f6c-aad3-cfddc9fb38eb"
     _TEST_PRODUCT_CODE = "TE123"
@@ -50,7 +50,7 @@ class ContractTestMixin(GenericTestMixin):
 
         # update family uuid
         imis_family = imis_insuree.family
-        imis_family.uuid = self._TEST_FAMILY_UUID
+        imis_family.uuid = self._TEST_GROUP_UUID
         imis_family.save()
 
         # create mocked product
@@ -95,7 +95,7 @@ class ContractTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_POLICY_START_DATE, imis_obj.start_date.isoformat())
         self.assertEqual(self._TEST_POLICY_EFFECTIVE_DATE, imis_obj.effective_date.isoformat())
         self.assertEqual(self._TEST_POLICY_EXPIRED_DATE, imis_obj.expiry_date.isoformat())
-        self.assertEqual(self._TEST_FAMILY_UUID, str(uuid.UUID(imis_obj.family.uuid)))
+        self.assertEqual(self._TEST_GROUP_UUID, str(uuid.UUID(imis_obj.family.uuid)))
         self.assertEqual(self._TEST_OFFICER_UUID, str(uuid.UUID(imis_obj.officer.uuid)))
         self.assertEqual(self._TEST_PRODUCT_CODE, imis_obj.product.code)
         self.assertEqual(self._TEST_PRODUCT_UUID, str(uuid.UUID(imis_obj.product.uuid)))
@@ -109,7 +109,7 @@ class ContractTestMixin(GenericTestMixin):
 
         # create mocked family
         imis_family = imis_insuree.family
-        imis_family.uuid = self._TEST_FAMILY_UUID
+        imis_family.uuid = self._TEST_GROUP_UUID
         imis_family.save()
 
         # create mocked product
@@ -141,7 +141,7 @@ class ContractTestMixin(GenericTestMixin):
         fhir_contract.author = author
 
         subject = Reference.construct()
-        subject.reference = f"Group/{self._TEST_FAMILY_UUID}"
+        subject.reference = f"Group/{self._TEST_GROUP_UUID}"
         fhir_contract.subject = [subject]
 
         system = f"{GeneralConfiguration.get_system_base_url()}CodeSystem/contract-scope"
@@ -211,7 +211,7 @@ class ContractTestMixin(GenericTestMixin):
             code = ContractConverter.get_first_coding_from_codeable_concept(identifier.type).code
             if code == R4IdentifierConfig.get_fhir_id_type_code():
                 self.assertEqual(self._TEST_POLICY_ID, identifier.value)
-        self.assertIn(f"Group/{self._TEST_FAMILY_UUID}", fhir_obj.subject[0].reference)
+        self.assertIn(f"Group/{self._TEST_GROUP_UUID}", fhir_obj.subject[0].reference)
         self.assertIn(f"Practitioner/{self._TEST_OFFICER_UUID}", fhir_obj.author.reference)
         self.assertEqual("Offered", fhir_obj.status)
         self.assertEqual("Offered", fhir_obj.legalState.text)
