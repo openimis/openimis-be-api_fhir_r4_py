@@ -27,9 +27,9 @@ class SubscriptionCriteriaFilter:
                 R4SubscriptionConfig.get_fhir_sub_criteria_key_resource(): self.fhir_resource_name})
         if self.fhir_resource_type_name:
             queryset = queryset.filter(
-                ~Q(criteria__jsoncontainskey=R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type() | Q(
+                ~Q(criteria__jsoncontainskey=R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type() )| Q(
                     criteria__jsoncontains={
-                        R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type(): self.fhir_resource_type_name})))
+                        R4SubscriptionConfig.get_fhir_sub_criteria_key_resource_type(): self.fhir_resource_type_name}))
         return queryset.all()
 
     def _get_matching_subscriptions(self, subscriptions):

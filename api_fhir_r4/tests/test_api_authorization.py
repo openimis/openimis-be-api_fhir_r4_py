@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests import GenericFhirAPITestMixin
+from gettext import gettext as _
 
 from api_fhir_r4.tests.utils import get_connection_payload,get_or_create_user_api
 
@@ -52,7 +53,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         response = self.client.get(self.url_to_test_authorization, format='json', **headers)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(self.get_response_details(response_json), "Error decoding signature")
+        self.assertEqual(self.get_response_details(response_json), _('INCORRECT_CREDENTIALS'))
 
     def test_post_should_raise_lack_of_bearer_prefix(self):
         response = self.client.post(self.base_url + 'login/', data=get_connection_payload(), format='json')
