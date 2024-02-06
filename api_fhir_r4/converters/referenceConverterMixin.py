@@ -70,7 +70,7 @@ class ReferenceConverterMixin(object):
         if cls._get_reference_type(id_type) == cls.CODE_REFERENCE_TYPE:
             id_parameters[code_keyword_name] = resource_id
         else:
-            id_parameters['uuid__iexact'] = resource_id
+            id_parameters['uuid'] = resource_id.lower()
         return id_parameters
 
     @classmethod

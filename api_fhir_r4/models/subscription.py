@@ -21,8 +21,8 @@ class Subscription(HistoryBusinessModel):
     status = models.SmallIntegerField(db_column='Status', null=False, choices=SubscriptionStatus.choices)
     channel = models.SmallIntegerField(db_column='Channel', null=False, choices=SubscriptionChannel.choices)
     endpoint = models.CharField(db_column='Endpoint', max_length=255, null=False)
-    headers = encrypt(models.TextField(db_column='Headers', max_length=255, null=True))
-    criteria = models.JSONField(db_column='Criteria', null=True)
+    headers = encrypt(models.TextField(db_column='Headers', max_length=255,  blank=True, null=True))
+    criteria = models.JSONField(db_column='Criteria',  blank=True, null=True)
     expiring = models.DateTimeField(db_column='Expiring', null=False)
 
     class Meta:
@@ -44,7 +44,7 @@ class SubscriptionNotificationResult(models.Model):
         Subscription, on_delete=models.CASCADE, related_name='notifications_sent', null=False)
     notified_successfully = models.BooleanField(blank=False, null=False)
     notification_time = DateTimeField(db_column='Expiring', null=False, default=ad_datetime.AdDatetime.now)
-    error = models.TextField(blank=False, null=True, default=None)
+    error = models.TextField(blank=True, null=True, default=None)
 
     objects = SubscriptionNotificationResultManager()
 

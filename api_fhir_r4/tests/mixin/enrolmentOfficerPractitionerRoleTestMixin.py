@@ -14,11 +14,11 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
     test_village = None
     test_substitution_officer = None
     _TEST_SUBSTITUTION_OFFICER_UUID = "f4bf924a-e2c9-46dc-9fa3-d54a1a67ea86"
-    _TEST_OFFICER_UUID = "f4bf924a-e2c9-46dc-9fa3-d54a1a67ea85"
+    _TEST_OFFICER_UUID = "b578a621-0b11-4889-9454-a8e498c35dee"
     _TEST_SUBSTITUTION_OFFICER_CODE = "EOTESB"
     _TEST_OFFICER_CODE = "EOTEST"
     _TEST_PRACTITIONER_REFERENCE = None
-    _TEST_VILLAGE_REFERENCE = None
+    _TEST_VILLAGE_REFERENCE = 'Location/20fcfa89-149a-429e-bd26-b014b95fbb2d'
     _TEST_VILLAGE_UUID = "041890f3-d90b-46ca-8b25-56c3f8d60615"
     sub_str = {}
     
@@ -42,12 +42,12 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
                 'location':self.test_village.parent.parent})
         
         self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + str(self.test_officer.uuid)
-        self._TEST_VILLAGE_REFERENCE = "Location/" + str(self.test_village.uuid)
+
         self.sub_str[self._TEST_SUBSTITUTION_OFFICER_UUID]=self.test_substitution_officer.uuid
         self.sub_str[self._TEST_OFFICER_UUID]=self.test_officer.uuid
         self.sub_str[self._TEST_VILLAGE_UUID]=self.test_village.uuid
-
-
+        self.sub_str[self._TEST_VILLAGE_REFERENCE]="Location/" + str(self.test_village.uuid)
+        self._TEST_VILLAGE_REFERENCE = "Location/" + str(self.test_village.uuid)
 
 
 

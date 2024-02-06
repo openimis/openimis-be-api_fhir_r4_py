@@ -18,7 +18,7 @@ from insuree.test_helpers import create_test_insuree
 from location.models import HealthFacility
 from medical.models import Diagnosis
 from medical.test_helpers import create_test_item, create_test_service
-from location.test_helpers import create_test_village
+from location.test_helpers import create_test_village, create_test_health_facility
 
 
 class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
@@ -105,7 +105,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.get_or_create_user_api()
         self.test_insuree = create_test_insuree()
         self.test_village = self.test_insuree.current_village or self.test_insuree.family.location
-        self.test_hf = self.create_test_health_facility()
+        self.test_hf = self.create_test_hf()
         self.test_claim_admin = create_test_claim_admin( custom_props={'health_facility_id': self.test_hf.id})
         self.test_claim = self.create_test_claim()
         self.test_item = self.create_test_claim_item()
@@ -116,7 +116,8 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
         self.sub_str[self._TEST_CLAIM_UUID]=self.test_claim.uuid
         self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
-
+        self._TEST_HF_UUID=self.test_hf.uuid
+        self._TEST_HF_ID=self.test_hf.id
 
 
 
@@ -156,22 +157,20 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         service.save()
         return service
 
-    def create_test_health_facility(self):
-        hf = HealthFacility()
-        hf.id = self._TEST_HF_ID
-        hf.uuid = self._TEST_HF_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location = self.test_village.parent.parent
-        hf.offline = False
-        hf.audit_user_id = -1
-        hf.save()
+    def create_test_hf(self):
+        hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_village.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }
+        )
         return hf
 
     def create_test_claim(self):
@@ -185,7 +184,7 @@ class CommunicationAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         imis_claim.rejection_reason = self._TEST_REJECTION_REASON
         imis_claim.insuree = self.test_insuree
         imis_claim.health_facility = self.test_hf
-        imis_claim.icd = Diagnosis(code='ICD00I')
+        imis_claim.icd = Diagnosis(code='ICD00I', name="test icd")
         imis_claim.icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
         imis_claim.icd.save()
         imis_claim.audit_user_id = self._ADMIN_AUDIT_USER_ID

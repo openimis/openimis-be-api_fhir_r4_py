@@ -14,7 +14,7 @@ from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUs
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
 from location.models import HealthFacility
-from location.test_helpers import create_test_village
+from location.test_helpers import create_test_village, create_test_health_facility
 from claim.test_helpers import create_test_claim_admin
 
 class ClaimAdminPractitionerTestMixin(GenericTestMixin):
@@ -44,8 +44,8 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
     
     def setUp(self):
         super(ClaimAdminPractitionerTestMixin, self).setUp()
-        self.village = create_test_village()
-        self.test_hf=self.create_test_health_facility()
+        self.test_village = create_test_village()
+        self.test_hf=self.create_test_hf()
         self.test_claim_admin = create_test_claim_admin( custom_props={
             'health_facility_id': self.test_hf.id, 
             'code':self._TEST_CLAIM_ADMIN_CODE,
@@ -58,23 +58,19 @@ class ClaimAdminPractitionerTestMixin(GenericTestMixin):
         self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
         self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
 
-    def create_test_health_facility(self):
-        hf = HealthFacility()
-        hf.id = self._TEST_HF_ID
-        hf.uuid = self._TEST_HF_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_CLAIM_ADMIN_ADDRESS
-        hf.phone = self._TEST_CLAIM_ADMIN_PHONE
-        hf.fax = self._TEST_CLAIM_ADMIN_FAX
-        hf.email = self._TEST_CLAIM_ADMIN_EMAIL
-        hf.location = self.village .parent.parent
-        hf.offline = False
-        hf.audit_user_id = -1
-        hf.save()
-        return hf
+    def create_test_hf(self):
+        self.test_hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_village.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+            }
+        )
+        self._TEST_HF_ID = self.test_hf.id
+        self._TEST_HF_UUID = self.test_hf.uuid
+        return self.test_hf
 
     def create_test_imis_instance(self, location=None, hf = None):
         return self.test_claim_admin

@@ -54,6 +54,7 @@ class BillInvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
         imis_bill.currency_code = self._TEST_BILL_CURRENCY
 
         imis_bill_line_item = BillItem()
+        imis_bill_line_item.bill = imis_bill
         imis_bill_line_item.line_type = self._TEST_LINE_ITEM_CHARGE_ITEM
         imis_bill_line_item.quantity = self._TEST_LiNE_ITEM_QUANTITY
         imis_bill_line_item.unit_price = self._TEST_LINE_ITEM_UNIT_PRICE

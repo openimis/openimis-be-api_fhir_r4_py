@@ -33,6 +33,7 @@ class PaymentNoticeToImisConverter(BaseFHIRConverter, ReferenceConverterMixin):
         imis_payment = PaymentInvoice()
         imis_payment_detail = DetailPaymentInvoice()
         cls.build_imis_payment_date_created(imis_payment, imis_payment_detail, fhir_payment_notice)
+        cls.build_imis_payment_payer_ref(imis_payment,fhir_payment_notice)
         cls.build_imis_payment_reconciliation_status(imis_payment, fhir_payment_notice, errors)
         cls.build_imis_payment_amount(imis_payment, imis_payment_detail, fhir_payment_notice)
         cls.build_imis_payment_date_payment(imis_payment, fhir_payment_notice)
@@ -46,6 +47,9 @@ class PaymentNoticeToImisConverter(BaseFHIRConverter, ReferenceConverterMixin):
         imis_payment.imis_payment_detail = imis_payment_detail
         imis_payment.invoice_status = invoice_status
         return imis_payment
+    @classmethod
+    def build_imis_payment_payer_ref(cls, imis_payment, fhir_payment_notice):
+        imis_payment.payer_ref = fhir_payment_notice.payment.reference
 
     @classmethod
     def build_imis_payment_date_created(cls, imis_payment, imis_payment_detail, fhir_payment_notice):
@@ -99,6 +103,7 @@ class PaymentNoticeToImisConverter(BaseFHIRConverter, ReferenceConverterMixin):
             imis_payment_detail.subject_id = subject_id
         else:
             errors.append(ERROR_BAD_TYPE_REQUEST)
+        
 
     @classmethod
     def _convert_content_type(cls, subject_type):

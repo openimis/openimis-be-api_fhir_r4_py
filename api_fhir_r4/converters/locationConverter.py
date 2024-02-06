@@ -171,22 +171,12 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_imis_parent_location_id(cls, imis_location, fhir_location, errors):
         if fhir_location.partOf:
-            resource, reference = fhir_location.partOf.reference.split('/')
-            if not reference:
+            resource = cls.get_imis_obj_by_fhir_reference(fhir_location.partOf) 
+            if not resource:
                 errors.append(
-                    _('Invalid Location\'s partOf.reference, has to be in format {resource}/{reference}')
+                    _('Invalid Location\'s partOf.reference')
                 )
 
-            try:
-                if cls._is_code_reference(fhir_location.partOf):
-                    location = Location.objects.get(code=reference, validity_to__isnull=True)
-                else:
-                    location = Location.objects.get(uuid=reference)
-                imis_location.parent = location
-            except Location.DoesNotExist:
-                errors.append(
-                    _('Invalid Location\'s partOf reference, pointing to not existing resource')
-                )
 
     @classmethod
     def _validate_imis_identifiers(cls, identifiers):

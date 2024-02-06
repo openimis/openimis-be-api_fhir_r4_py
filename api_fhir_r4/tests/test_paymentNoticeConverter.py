@@ -25,7 +25,8 @@ class PaymentNoticeConverterTestCase(PaymentNoticeTestMixin, LogInMixin, Convert
             'amount_total': '10000.0',
             'amount_net': '10000.0',
             'user_created': user,
-            'user_updated': user
+            'user_updated': user,
+            'date_created': '2020-01-01'
         })
         return invoice
 
