@@ -1,7 +1,6 @@
-import datetime
 from copy import deepcopy
 from urllib import parse
-
+import datetime
 from fhir.resources.R4B.subscription import Subscription as FHIRSubscription
 
 from api_fhir_r4.configurations import R4SubscriptionConfig
@@ -169,7 +168,7 @@ class SubscriptionConverter(BaseFHIRConverter):
     @classmethod
     def _build_imis_channel_endpoint(cls, imis_subscription, fhir_subscription):
         if fhir_subscription.channel.endpoint:
-            imis_subscription['endpoint'] = fhir_subscription.channel.endpoint
+            imis_subscription['endpoint'] = str(fhir_subscription.channel.endpoint)
         else:
             raise FHIRException(cls._error_invalid_attr % {'attr': 'channel.endpoint'})
 

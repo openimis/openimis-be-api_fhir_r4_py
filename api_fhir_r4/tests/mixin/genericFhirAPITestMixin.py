@@ -94,6 +94,7 @@ class GenericFhirAPITestMixin(object):
         return result
 
     def get_fhir_obj_from_json_response(self, response):
+        fhir_obj = None
         response_json = response.json()
         if 'resourceType' in response_json:
             fhir_obj = construct_fhir_element(response_json['resourceType'], response_json)

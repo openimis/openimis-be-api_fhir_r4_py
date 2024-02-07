@@ -8,7 +8,7 @@ from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
 from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
 from api_fhir_r4.utils import TimeUtils
 from claim.test_helpers import create_test_claim_admin
-from location.test_helpers import create_test_village
+from location.test_helpers import create_test_village, create_test_health_facility
 from medical.models import Diagnosis
 
 
@@ -75,7 +75,8 @@ class CommunicationRequestTestMixin(GenericTestMixin):
         super(CommunicationRequestTestMixin, self).setUp()
         self.test_insuree = create_test_insuree()
         self.test_village = self.test_insuree.family.location
-        self.test_hf = self.create_test_health_facility()
+        self.test_hf = self._create_test_health_facility()
+        self._TEST_HF_ID = self.test_hf.id
         self.test_claim_admin = create_test_claim_admin( custom_props={'health_facility_id': self.test_hf.id})
         self.test_claim = self.create_test_imis_instance()
         self.test_claim_item = self.create_test_claim_item()
@@ -124,23 +125,21 @@ class CommunicationRequestTestMixin(GenericTestMixin):
         service.save()
         return service
 
-    def create_test_health_facility(self):
-    
-        hf = HealthFacility()
-        hf.id = self._TEST_HF_ID
-        hf.uuid = self._TEST_HF_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location = self.test_village.parent.parent
-        hf.offline = False
-        hf.audit_user_id = -1
-        hf.save()
+    def _create_test_health_facility(self):
+        
+        hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_village.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }
+        )
         return hf
 
     def create_test_imis_instance(self):
@@ -156,8 +155,8 @@ class CommunicationRequestTestMixin(GenericTestMixin):
             imis_claim.rejection_reason = self._TEST_REJECTION_REASON
             imis_claim.insuree = self.test_insuree 
             
-            imis_claim.health_facility = self.create_test_health_facility()
-            imis_claim.icd = Diagnosis(code='ICD00I')
+            imis_claim.health_facility = self._create_test_health_facility()
+            imis_claim.icd = Diagnosis(code='ICD00I', name='TEST ICD')
             imis_claim.icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
             imis_claim.icd.save()
             imis_claim.audit_user_id = self._ADMIN_AUDIT_USER_ID

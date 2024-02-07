@@ -121,6 +121,7 @@ class ClaimAPIContainedTestBaseMixin:
 
         self.test_village = self.test_insuree.current_village or self.test_insuree.family.location
         self.test_hf=self.create_test_hf()
+        self._TEST_HF_ID = self.test_hf.id
         if not self.test_claim_admin:
             self.test_claim_admin =create_test_claim_admin(
                 custom_props={'health_facility_id': self.test_hf.id,
@@ -158,19 +159,19 @@ class ClaimAPIContainedTestBaseMixin:
         return service
 
     def create_test_hf(self):
-        hf = HealthFacility()
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location = self.test_village.parent.parent
-        hf.offline = False
-        hf.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        hf.save()
+        hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_village.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }
+        )
         return hf
 
     def assert_response(self, response_json):

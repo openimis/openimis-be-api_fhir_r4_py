@@ -3,6 +3,7 @@ import copy
 from insuree.apps import InsureeConfig
 from insuree.models import Insuree, Family
 
+from core.models import resolve_id_reference
 
 from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.exceptions import FHIRException
@@ -14,6 +15,7 @@ class PatientSerializer(BaseFHIRSerializer):
     fhirConverter = PatientConverter()
 
     def create(self, validated_data):
+        #validated_data = resolve_id_reference(Insuree, validated_data)
         self._validate_data(validated_data.get('chf_id'))
         copied_data = self._clean_data(copy.deepcopy(validated_data))
         obj = InsureeService(self.context.get("request").user)\
@@ -24,15 +26,16 @@ class PatientSerializer(BaseFHIRSerializer):
         return obj
 
     def update(self, instance, validated_data):
+        #validated_data = resolve_id_reference(Insuree, validated_data)
         request = self.context.get("request")
+        validated_data.pop('_state')
         user = request.user
-        chf_id = validated_data.get('chf_id')
+        chf_id = validated_data.get('chf_id', None)
         if Insuree.objects.filter(chf_id=chf_id).count() == 0:
             raise FHIRException('No patients with following chfid `{}`'.format(chf_id))
         insuree = Insuree.objects.get(chf_id=chf_id, validity_to__isnull=True)
         validated_data["id"] = insuree.id
         validated_data["uuid"] = insuree.uuid
-        del validated_data['_state']
         instance = InsureeService(user).create_or_update(validated_data)
         return instance
 

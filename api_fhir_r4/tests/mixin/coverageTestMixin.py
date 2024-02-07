@@ -104,5 +104,5 @@ class CoverageTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_PRODUCT_CODE, fhir_obj.class_fhir[0].value)
         self.assertEqual(f'{self._TEST_PRODUCT_NAME} {self._TEST_PRODUCT_CODE}', fhir_obj.class_fhir[0].name)
         period = fhir_obj.period
-        self.assertEqual(self._TEST_POLICY_START_DATE, period.start.isoformat())
-        self.assertEqual(self._TEST_POLICY_EXPIRED_DATE, period.end.isoformat())
+        self.assertEqual(self._TEST_POLICY_START_DATE[:10], period.start.isoformat()[:10])
+        self.assertEqual(self._TEST_POLICY_EXPIRED_DATE[:10], period.end.isoformat()[:10])

@@ -2,7 +2,7 @@ import inspect
 import logging
 
 from typing import Tuple
-
+import uuid
 from api_fhir_r4.exceptions import FHIRRequestProcessException
 from fhir.resources.R4B.reference import Reference
 
@@ -68,9 +68,14 @@ class ReferenceConverterMixin(object):
         _, resource_id, id_type = cls._get_type_and_id_from_reference(reference)
         id_parameters = {}
         if cls._get_reference_type(id_type) == cls.CODE_REFERENCE_TYPE:
-            id_parameters[code_keyword_name] = resource_id
+            id_parameters[code_keyword_name] = str(resource_id)
         else:
-            id_parameters['uuid__iexact'] = resource_id
+            try:
+                id_parameters['uuid'] = uuid.UUID(resource_id)
+            except:
+                #fall back on code for unvalid uuid
+                id_type=code_keyword_name
+                id_parameters[code_keyword_name]=resource_id
         return id_parameters
 
     @classmethod

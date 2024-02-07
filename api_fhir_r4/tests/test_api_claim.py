@@ -15,7 +15,7 @@ from api_fhir_r4.utils import DbManagerUtils
 from claim.models import Claim, ClaimDetail
 from insuree.test_helpers import create_test_insuree
 from location.models import HealthFacility, UserDistrict
-from location.test_helpers import create_test_village
+from location.test_helpers import create_test_village, create_test_health_facility
 from medical.models import Diagnosis
 from medical.test_helpers import create_test_item, create_test_service
 from claim.test_helpers import create_test_claimservice,create_test_claimitem,create_test_claim_admin
@@ -95,17 +95,17 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.sub_str[self._TEST_SERVICE_UUID]=self._TEST_SERVICE.uuid
         self.sub_str[self._TEST_ITEM_CODE]=self._TEST_ITEM.code
         self.sub_str[self._TEST_SERVICE_CODE]=self._TEST_SERVICE.code
+        self._TEST_HF_ID = self.test_hf.id
+        self._TEST_HF_UUID = self.test_hf.uuid
 
 
 
     def create_dependencies(self):
-        self.test_icd = Diagnosis()
-        self.test_icd.code = self._TEST_MAIN_ICD_CODE
-        self.test_icd.name = self._TEST_MAIN_ICD_NAME
+        self.test_icd = Diagnosis(code=self._TEST_MAIN_ICD_CODE, name =self._TEST_MAIN_ICD_NAME)
         self.test_icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
         self.test_icd.save()
         self.test_insuree = create_test_insuree(custom_props={"chf_id": self._TEST_INSUREE_CODE})
-        self.test_hf = self.create_test_health_facility()
+        self.test_hf = self.create_test_hf()
         if not self.test_claim_admin:
             self.test_claim_admin =create_test_claim_admin(
                 custom_props={'code':'T-CA-API',
@@ -125,24 +125,22 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self._TEST_ITEM = create_test_item(self._TEST_SERVICE_TYPE)
         self._TEST_SERVICE = create_test_service(self._TEST_ITEM_TYPE)
 
-    def create_test_health_facility(self):
-        hf = HealthFacility()
-        hf.id = self._TEST_HF_ID
-        hf.uuid = self._TEST_HF_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location = self.test_insuree.family.location.parent.parent
-        hf.offline = False
-        hf.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        hf.save()
+    def create_test_hf(self):
+        self.test_hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_insuree.family.location.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }
+        )
+        return self.test_hf
 
-        return hf
 
 
     def _post_claim(self, data, headers):
