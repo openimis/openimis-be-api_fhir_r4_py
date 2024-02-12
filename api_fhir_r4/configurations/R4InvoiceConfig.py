@@ -25,3 +25,7 @@ class R4InvoiceConfig(InvoiceConfiguration):
     def get_fhir_bill_charge_item_system(cls):
         return cls.get_config_attribute("R4_fhir_invoice_config").get('fhir_bill_charge_item_system',
                                                                       "CodeSystem/bill-charge-item")
+
+    @classmethod
+    def get_subscribe_invoice_signal(cls):
+        return cls.get_config_attribute("R4_fhir_invoice_config").get('subscribe_invoice_signal', False)

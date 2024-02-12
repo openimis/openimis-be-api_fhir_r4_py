@@ -12,6 +12,7 @@ DEFAULT_CFG = {
     "default_value_of_location_care_type": "B",
     "default_response_page_size": 10,
     "claim_rule_engine_validation": True,
+    "subscribe_insuree_signal": False,
     "R4_fhir_identifier_type_config": {
         "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
         "fhir_code_for_imis_db_uuid_type": "UUID",
@@ -52,6 +53,7 @@ DEFAULT_CFG = {
         "fhir_code_for_active": "active",
         "fhir_code_for_inactive": "inactive",
     },
+    "R4_fhir_location_subscribe_signal": False,
     "R4_fhir_hf_service_type": {
         "system": "http://hl7.org/fhir/valueset-service-type.html",
         "fhir_code_for_in_patient": "I",
@@ -174,7 +176,8 @@ DEFAULT_CFG = {
         "fhir_invoice_type_system": "CodeSystem/invoice-type",
         "fhir_invoice_charge_item_system": "CodeSystem/invoice-charge-item",
         "fhir_bill_type_system": "CodeSystem/bill-type",
-        "fhir_bill_charge_item_system": "CodeSystem/bill-charge-item"
+        "fhir_bill_charge_item_system": "CodeSystem/bill-charge-item",
+        "subscribe_invoice_signal": False,
     },
     "R4_fhir_subscription_config": {
         "fhir_sub_search_perms": ['158001'],

@@ -17,6 +17,7 @@ class GeneralConfiguration(BaseConfiguration):
         config.default_value_of_location_care_type = cfg['default_value_of_location_care_type']
         config.default_response_page_size = cfg['default_response_page_size']
         config.claim_rule_engine_validation = cfg['claim_rule_engine_validation']
+        config.subscribe_insuree_signal = cfg['subscribe_insuree_signal']
 
     @classmethod
     def get_default_audit_user_id(cls):
@@ -84,3 +85,7 @@ class GeneralConfiguration(BaseConfiguration):
             return base_url + MODULE_NAME + '/'
         else:
             return base_url + '/'+MODULE_NAME+'/'
+
+    @classmethod
+    def get_subscribe_insuree_signal(cls):
+        return cls.get_config_attribute("subscribe_insuree_signal")
