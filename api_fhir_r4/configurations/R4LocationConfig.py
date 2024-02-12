@@ -9,6 +9,7 @@ class R4LocationConfig(LocationConfiguration):
         cls.get_config().R4_fhir_location_physical_type = cfg['R4_fhir_location_physical_type']
         cls.get_config().R4_fhir_hf_service_type = cfg['R4_fhir_hf_service_type']
         cls.get_config().R4_fhir_location_status_codes = cfg['R4_fhir_location_status_codes']
+        cls.get_config().R4_fhir_location_subscribe_signal = cfg['R4_fhir_location_subscribe_signal']
 
     @classmethod
     def get_fhir_location_site_type_system(cls):
@@ -87,3 +88,7 @@ class R4LocationConfig(LocationConfiguration):
     @classmethod
     def get_fhir_code_for_inactive(cls):
         return cls.get_config_attribute("R4_fhir_location_status_codes").get('fhir_code_for_inactive', 'inactive')
+
+    @classmethod
+    def get_subscribe_location_signal(cls):
+        return cls.get_config_attribute("R4_fhir_location_subscribe_signal")

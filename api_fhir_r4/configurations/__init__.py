@@ -127,6 +127,10 @@ class LocationConfiguration(BaseConfiguration):  # pragma: no cover
     def get_fhir_code_for_active(cls):
         raise NotImplementedError('`get_fhir_code_for_active()` must be implemented')
 
+    @classmethod
+    def get_subscribe_location_signal(cls):
+        raise NotImplementedError('`get_subscribe_location_signal()` must be implemented')
+
 
 class MaritalConfiguration(BaseConfiguration):  # pragma: no cover
 
@@ -474,6 +478,10 @@ class InvoiceConfiguration(BaseConfiguration):
     @classmethod
     def get_fhir_bill_charge_item_system(cls):
         raise NotImplementedError('`get_fhir_invoice_charge_item_system()` must be implemented.')
+
+    @classmethod
+    def get_subscribe_invoice_signal(cls):
+        raise NotImplementedError('`get_subscribe_invoice_signal()` must be implemented')
 
 
 class OrganisationConfiguration(BaseConfiguration):
