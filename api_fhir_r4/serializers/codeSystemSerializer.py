@@ -16,7 +16,7 @@ class CodeSystemSerializer(BaseFHIRSerializer):
         if 'data' in kwargs:
             self.model['data'] = kwargs.pop('data')
         elif 'model_name' in kwargs:
-            content_type = ContentType.objects.get(model=kwargs.pop('model_name'))
+            content_type = ContentType.objects.get(model__iexact=kwargs.pop('model_name'))
             model_class = content_type.model_class()
             self.model['data'] = model_class.objects.all()
         else:
