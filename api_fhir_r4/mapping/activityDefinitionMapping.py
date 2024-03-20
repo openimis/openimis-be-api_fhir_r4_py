@@ -125,4 +125,14 @@ class WorkflowMapping(object):
             "code": "O",
             "display": "Other",
         },
+        Service.CATEGORY_HOSPITALIZATION: {
+            "system": SYSTEM,
+            "code": "H",
+            "display": "Hospitalization",
+        },
+        Service.CATEGORY_VISIT: {
+            "system": SYSTEM,
+            "code": "V",
+            "display": "Visit",
+        },
     }
