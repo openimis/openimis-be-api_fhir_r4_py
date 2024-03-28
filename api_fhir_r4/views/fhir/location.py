@@ -2,7 +2,7 @@ from rest_framework import viewsets
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
-from api_fhir_r4.permissions import FHIRApiHFPermissions
+from api_fhir_r4.permissions import FHIRApiLocationPermissions
 from api_fhir_r4.serializers import LocationSerializer, LocationSiteSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
@@ -13,7 +13,7 @@ class LocationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
                       viewsets.ModelViewSet, MultiIdentifierUpdateMixin):
     retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]
     serializer_class = LocationSerializer
-    permission_classes = (FHIRApiHFPermissions,)
+    permission_classes = (FHIRApiLocationPermissions,)
 
     def list(self, request, *args, **kwargs):
         identifier = request.GET.get("identifier")

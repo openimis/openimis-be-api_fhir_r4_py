@@ -136,6 +136,8 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
             severity = response_json["issue"][0]['details']['severity']
         elif 'detail' in response_json and response_json['detail'] == 'Patient code not provided.':
             severity = 'error'
+        else:
+            severity =  f"no error in {response.content}"
         self.assertTrue(response.status_code, 500)
         self.assertEqual(severity, 'error')
 

@@ -104,7 +104,7 @@ class OperationOutcomeConverter(BaseFHIRConverter):
 
     @classmethod
     def get_last_message(cls, obj):
-        return obj.args[len(obj.args) - 1]
+        return obj.args[len(obj.args) - 1] or str(obj)
 
     @classmethod
     def build_for_key_api_exception(cls, obj):

@@ -3,6 +3,7 @@ from core.apps import CoreConfig
 from claim.apps import ClaimConfig
 from insuree.apps import InsureeConfig
 from location.apps import LocationConfig
+from location.models import Location, HealthFacility
 from policy.apps import PolicyConfig
 from policyholder.apps import PolicyholderConfig
 from product.apps import ProductConfig
@@ -18,8 +19,10 @@ class FHIRApiPermissions(DjangoModelPermissions):
     permissions_put = []
     permissions_patch = []
     permissions_delete = []
+    base_class = None
 
     def __init__(self):
+        self.base_class
         self.perms_map['GET'] = self.permissions_get
         self.perms_map['POST'] = self.permissions_post
         self.perms_map['PUT'] = self.permissions_put
@@ -82,13 +85,23 @@ class FHIRApiCoverageRequestPermissions(FHIRApiPermissions):
 
 
 class FHIRApiHFPermissions(FHIRApiPermissions):
+    base_class = HealthFacility
     permissions_get = LocationConfig.gql_query_health_facilities_perms
     permissions_post = LocationConfig.gql_mutation_create_health_facilities_perms
     permissions_put = LocationConfig.gql_mutation_create_health_facilities_perms
-    permissions_patch = LocationConfig.gql_mutation_create_health_facilities_perms
+    permissions_patch = LocationConfig.gql_mutation_edit_health_facilities_perms
     permissions_delete = LocationConfig.gql_mutation_delete_health_facilities_perms
 
 
+
+class FHIRApiLocationPermissions(FHIRApiPermissions):
+    base_class = Location
+    permissions_get = LocationConfig.gql_query_locations_perms
+    permissions_post = LocationConfig.gql_mutation_create_health_facilities_perms
+    permissions_put = LocationConfig.gql_mutation_create_health_facilities_perms
+    permissions_patch = LocationConfig.gql_mutation_edit_locations_perms
+    permissions_delete = LocationConfig.gql_mutation_delete_health_facilities_perms   
+    
 class FHIRApiInsuranceOrganizationPermissions(FHIRApiPermissions):
     permissions_get = LocationConfig.gql_query_health_facilities_perms
     permissions_post = []
@@ -130,11 +143,11 @@ class FHIRApiActivityDefinitionPermissions(FHIRApiPermissions):
 
 
 class FHIRApiHealthServicePermissions(FHIRApiPermissions):
-    permissions_get = LocationConfig.gql_query_health_facilities_perms
+    permissions_get = LocationConfig.gql_mutation_edit_locations_perms
     permissions_post = LocationConfig.gql_mutation_create_health_facilities_perms
-    permissions_put = LocationConfig.gql_mutation_edit_health_facilities_perms
-    permissions_patch = LocationConfig.gql_mutation_edit_health_facilities_perms
-    permissions_delete = LocationConfig.gql_mutation_delete_health_facilities_perms
+    permissions_put = LocationConfig.gql_mutation_edit_locations_perms
+    permissions_patch = LocationConfig.gql_mutation_edit_locations_perms
+    permissions_delete = LocationConfig.gql_mutation_delete_locations_perms
 
 
 class FHIRApiGroupPermissions(FHIRApiPermissions):

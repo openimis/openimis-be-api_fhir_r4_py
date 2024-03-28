@@ -32,7 +32,16 @@ def _MultiserializerPermissionClassWrapper(PermissionClass):
 
         if not request.user or (not request.user.is_authenticated and self.authenticated_users_only):
             return False
-
+        
+        #read access can be defined by the ability to get a queryset
+        if request.method == 'GET' and self.base_class:
+            qs =  self.base_class.get_queryset()
+            if qs is None:
+                return False
+            filter_values = qs.filter_values()
+            # filter(id=-1) is used to return an empty qs
+            if filter_values.get('id') == -1:
+                return False
         perms = self.get_required_permissions(request.method, queryset.model)
         return request.user.has_perms(perms)
 
