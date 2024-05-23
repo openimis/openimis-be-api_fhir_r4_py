@@ -40,17 +40,19 @@ _TEST_DATA_USER = {
     "roles": [1, 3, 5, 9],
 }
 
-def get_connection_payload(userdata= _TEST_DATA_USER):
+def get_connection_payload(userdata=_TEST_DATA_USER):
     return {
-  "username": userdata['username'],
-  "password": userdata['password']
-}
+        "username": userdata['username'],
+        "password": userdata['password']
+    }
 
 
-def get_or_create_user_api( userdata =_TEST_DATA_USER ):
+def get_or_create_user_api(userdata=_TEST_DATA_USER):
     user = DbManagerUtils.get_object_or_none(User, username=userdata['username'])
     if user is None:
         user = __create_user_interactive_core(userdata)
+    user.set_password(userdata['password'])
+    user.save()
     return user
 
 def __create_user_interactive_core(userdata):

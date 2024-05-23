@@ -25,12 +25,14 @@ class LoginAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin, APITestCase
         self._test_request_data_wrong_credentials = json.loads(json_representation)
         json_representation = open(dir_path + self._test_json_path_wrong_payload).read()
         self._test_request_data_bad_payload = json.loads(json_representation)
+        # User
+        self.get_or_create_user_api()
+
 
     def get_bundle_from_json_response(self, response):
         pass
 
     def test_post_should_create_correctly(self):
-        self.get_or_create_user_api()
         response = self.client.post(self.base_url, data=self._test_request_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
