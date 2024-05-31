@@ -84,16 +84,6 @@ class FHIRApiCoverageRequestPermissions(FHIRApiPermissions):
     permissions_delete = []
 
 
-class FHIRApiHFPermissions(FHIRApiPermissions):
-    base_class = HealthFacility
-    permissions_get = LocationConfig.gql_query_health_facilities_perms
-    permissions_post = LocationConfig.gql_mutation_create_health_facilities_perms
-    permissions_put = LocationConfig.gql_mutation_create_health_facilities_perms
-    permissions_patch = LocationConfig.gql_mutation_edit_health_facilities_perms
-    permissions_delete = LocationConfig.gql_mutation_delete_health_facilities_perms
-
-
-
 class FHIRApiLocationPermissions(FHIRApiPermissions):
     base_class = Location
     permissions_get = LocationConfig.gql_query_locations_perms
@@ -135,7 +125,7 @@ class FHIRApiConditionPermissions(FHIRApiPermissions):
 
 
 class FHIRApiActivityDefinitionPermissions(FHIRApiPermissions):
-    permissions_get = MedicalConfig.gql_query_medical_services_perms
+    permissions_get = [*MedicalConfig.gql_query_medical_services_perms, *ClaimConfig.get_required_permissions]
     permissions_post = MedicalConfig.gql_mutation_medical_services_add_perms
     permissions_put = MedicalConfig.gql_mutation_medical_services_update_perms
     permissions_patch = MedicalConfig.gql_mutation_medical_services_update_perms
