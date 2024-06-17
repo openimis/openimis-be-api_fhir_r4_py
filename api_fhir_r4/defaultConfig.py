@@ -1,4 +1,4 @@
-DEFAULT_CFG = {
+DEFAULT_CFG = { 
     "default_audit_user_id": 1,
     "gender_codes": {
         "male": "M",
