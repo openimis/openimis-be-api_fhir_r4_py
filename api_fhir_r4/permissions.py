@@ -61,11 +61,11 @@ class FHIRApiPractitionerPermissions(FHIRApiPermissions):
 
 
 class FHIRApiPractitionerOfficerPermissions(FHIRApiPermissions):
-    permissions_get = CoreConfig.gql_query_enrolment_officers_perms + ClaimConfig.gql_query_claims_perms
-    permissions_post = CoreConfig.gql_mutation_create_enrolment_officers_perms
-    permissions_put = CoreConfig.gql_mutation_update_enrolment_officers_perms
-    permissions_patch = CoreConfig.gql_mutation_update_enrolment_officers_perms
-    permissions_delete = CoreConfig.gql_mutation_delete_enrolment_officers_perms
+    permissions_get = ClaimConfig.gql_query_claim_admins_perms + ClaimConfig.gql_query_claims_perms
+    permissions_post = []
+    permissions_put = []
+    permissions_patch = []
+    permissions_delete = []
 
 
 class FHIRApiCoverageEligibilityRequestPermissions(FHIRApiPermissions):
