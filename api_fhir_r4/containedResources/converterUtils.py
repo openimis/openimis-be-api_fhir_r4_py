@@ -1,3 +1,4 @@
+import json
 from fhir.resources.R4B.fhirtypes import ReferenceType
 from typing import Iterable, List
 
@@ -69,6 +70,6 @@ def get_from_contained_or_by_reference(fhir_reference, contained, converter, aud
         if value is None:
             raise FHIRException(
             "Failed to find the resource based on reference(with contain: {}, converter: {}): {}".format(
-                (contained is not None), converter.__name__, str(json.dumps(fhir_reference)))
+                (contained is not None), converter.__name__, str(fhir_reference))
             )
     return value

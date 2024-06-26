@@ -2,6 +2,8 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from api_fhir_r4.apps import ApiFhirConfig
+from api_fhir_r4.configurations import R4LocationConfig, R4InvoiceConfig, GeneralConfiguration
 from api_fhir_r4.converters import PatientConverter, BillInvoiceConverter, InvoiceConverter, \
     HealthFacilityOrganisationConverter
 from api_fhir_r4.mapping.invoiceMapping import InvoiceTypeMapping, BillTypeMapping
@@ -17,7 +19,7 @@ imis_modules = openimis_apps()
 
 
 def bind_service_signals():
-    if 'insuree' in imis_modules:
+    if 'insuree' in imis_modules and GeneralConfiguration.get_subscribe_insuree_signal():
         def on_insuree_create_or_update(**kwargs):
             try:
                 model = kwargs.get('result', None)
@@ -32,7 +34,7 @@ def bind_service_signals():
             bind_type=ServiceSignalBindType.AFTER
         )
 
-    if 'location' in imis_modules:
+    if 'location' in imis_modules and R4LocationConfig.get_subscribe_location_signal():
         def on_hf_create_or_update(**kwargs):
             try:
                 model = kwargs.get('result', None)
@@ -46,7 +48,7 @@ def bind_service_signals():
             on_hf_create_or_update,
             bind_type=ServiceSignalBindType.AFTER
         )
-    if 'invoice' in imis_modules:
+    if 'invoice' in imis_modules and R4InvoiceConfig.get_subscribe_invoice_signal():
         from invoice.models import Bill, Invoice
 
         def on_bill_create(**kwargs):

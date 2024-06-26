@@ -70,8 +70,10 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
 
     @classmethod
     def build_fhir_extensions(cls, fhir_organisation, imis_organisation):
-        cls.build_fhir_legal_form_extension(fhir_organisation, imis_organisation)
-        cls.build_fhir_activity_extension(fhir_organisation, imis_organisation)
+        if imis_organisation.legal_form:
+            cls.build_fhir_legal_form_extension(fhir_organisation, imis_organisation)
+        if imis_organisation.activity_code:
+            cls.build_fhir_activity_extension(fhir_organisation, imis_organisation)
 
     @classmethod
     def build_fhir_legal_form_extension(cls, fhir_organisation, imis_organisation):

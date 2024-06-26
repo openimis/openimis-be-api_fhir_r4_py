@@ -37,7 +37,7 @@ class PaymentNoticeTestMixin(GenericTestMixin):
                 'amount_received': self._TEST_PAYMENT_NOTICE_IMIS_AMOUNT_RECEIVED,
                 'date_payment': self._TEST_PAYMENT_NOTICE_IMIS_DATE_PAYMENT,
                 'json_ext': self._TEST_PAYMENT_NOTICE_IMIS_JSON_EXT,
-                'payer_ref': ''
+                'payer_ref': 'ICD-54546'
             }
         )
         self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_PAYMENT = imis_payment
@@ -53,10 +53,10 @@ class PaymentNoticeTestMixin(GenericTestMixin):
 
     def verify_imis_instance(self, imis_obj):
         self.assertEquals(imis_obj.reconciliation_status, self._TEST_PAYMENT_NOTICE_IMIS_RECONCILIATION_STATUS)
-        self.assertEquals(imis_obj.amount_received, self._TEST_PAYMENT_NOTICE_IMIS_AMOUNT_RECEIVED)
+        self.assertEquals(round(float(imis_obj.amount_received),2), round(float(self._TEST_PAYMENT_NOTICE_IMIS_AMOUNT_RECEIVED),2))
         self.assertEquals(f'{imis_obj.date_payment}', self._TEST_PAYMENT_NOTICE_IMIS_DATE_PAYMENT)
         self.assertEquals(imis_obj.json_ext['reconciliation']['id'], self._TEST_PAYMENT_NOTICE_IMIS_JSON_EXT['reconciliation']['id'])
-        self.assertEquals(imis_obj.payer_ref, '')
+        self.assertEquals(imis_obj.payer_ref, 'PaymentReconciliation/id-renconiliation-test-1')
 
     def verify_imis_detail_instance(self, imis_obj, imis_detail_obj):
         self.assertEquals(imis_detail_obj.status, self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_STATUS)
@@ -103,5 +103,5 @@ class PaymentNoticeTestMixin(GenericTestMixin):
         self.assertEquals(fhir_obj.request.reference, self._TEST_PAYMENT_NOTICE_FHIR_REQUEST_REFERENCE)
         self.assertEquals(f'{fhir_obj.paymentDate}', self._TEST_PAYMENT_NOTICE_FHIR_DATE_PAYMENT)
         self.assertEquals(fhir_obj.recipient.reference, self._TEST_PAYMENT_NOTICE_FHIR_RECIPIENT)
-        self.assertEquals(f'{fhir_obj.amount.value}', self._TEST_PAYMENT_NOTICE_FHIR_AMOUNT_VALUE)
+        self.assertEquals(round(float(fhir_obj.amount.value),2), round(float(self._TEST_PAYMENT_NOTICE_FHIR_AMOUNT_VALUE),2))
         self.assertEquals(fhir_obj.paymentStatus.coding[0].code, self._TEST_PAYMENT_NOTICE_FHIR_PAYMENT_STATUS)

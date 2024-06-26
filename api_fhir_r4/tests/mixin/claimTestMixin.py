@@ -11,7 +11,7 @@ from api_fhir_r4.models import ClaimV2 as FHIRClaim
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.money import Money
 from location.models import HealthFacility
-from location.test_helpers import create_test_village
+from location.test_helpers import create_test_village, create_test_health_facility
 from medical.models import Item, Service
 from medical.test_helpers import create_test_item, create_test_service
 from claim.test_helpers import create_test_claimservice,create_test_claimitem,create_test_claim_admin
@@ -87,10 +87,10 @@ class ClaimTestMixin(GenericTestMixin):
         self.test_icd.save()
 
         self.test_claim_admin= create_test_claim_admin()
-
-        self.test_hf = self.create_test_health_facility()
-
         self.test_insuree = create_test_insuree()
+
+        self.create_test_hf()
+
         self.test_claim=self.create_test_claim()
         self.test_claim_item= self.create_test_claim_item()
         self.test_claim_service = self.create_test_claim_service()
@@ -102,25 +102,24 @@ class ClaimTestMixin(GenericTestMixin):
         self.sub_str[self._TEST_SERVICE_CODE]=self.test_claim_service.service.code
         self.sub_str[self._TEST_ITEM_CODE]=self.test_claim_item.item.code
         self.sub_str[self._TEST_UUID]=self.test_claim.uuid
+        self._TEST_HF_ID = self.test_hf.id
+        self._TEST_HF_UUID = self.test_hf.uuid
         
-    def create_test_health_facility(self):
-        location = create_test_village()
-        hf = HealthFacility()
-        hf.id = self._TEST_HF_ID
-        hf.uuid = self._TEST_HF_UUID
-        hf.code = self._TEST_HF_CODE
-        hf.name = self._TEST_HF_NAME
-        hf.level = self._TEST_HF_LEVEL
-        hf.legal_form_id = self._TEST_HF_LEGAL_FORM
-        hf.address = self._TEST_ADDRESS
-        hf.phone = self._TEST_PHONE
-        hf.fax = self._TEST_FAX
-        hf.email = self._TEST_EMAIL
-        hf.location = location.parent.parent
-        hf.offline = False
-        hf.audit_user_id = -1
-        hf.save()
-        return hf
+    def create_test_hf(self):
+        self.test_hf = create_test_health_facility(
+            self._TEST_HF_CODE,
+            self.test_insuree.family.location.parent.parent.id,
+            custom_props = {
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }
+        )
+        return self.test_hf
     def create_test_claim(self):
         imis_claim = Claim()
         imis_claim.uuid = self._TEST_UUID

@@ -7,13 +7,14 @@ from api_fhir_r4.tests.mixin import FhirConverterTestMixin
 from api_fhir_r4.utils.timeUtils import TimeUtils
 from insuree.models import Family
 from invoice.models import Invoice, InvoiceLineItem
+from insuree.test_helpers import create_test_family
 
 
 class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_INVOICE_STATUS = 'active'
     _TEST_INVOICE_CODE = 'TEST-CODE'
     _TEST_INVOICE_SUBJECT_TYPE_CODING = 'contribution'
-    _TEST_INVOICE_THIRD_PARTY = Family()
+    _TEST_INVOICE_THIRD_PARTY = None
     _TEST_INVOICE_THIRD_PARTY_UUID = '43C47D1E-5110-4880-8C53-6871E71BDDE8'
     _TEST_INVOICE_DATE = TimeUtils.str_iso_to_date('2021-01-01')
     _TEST_INVOICE_TOTAL_NET = 10000.0
@@ -31,6 +32,7 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_LINE_ITEM_TAX_PRICE_COMPONENT_TYPE = 'tax'
 
     def create_test_imis_instance(self):
+        self._TEST_INVOICE_THIRD_PARTY =  create_test_family()
         self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model__iexact='Family')
         self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Policy')
 
@@ -45,6 +47,7 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
         imis_invoice.currency_code = self._TEST_INVOICE_CURRENCY
 
         imis_invoice_line_item = InvoiceLineItem()
+        imis_invoice_line_item.code = "1"
         imis_invoice_line_item.line_type = self._TEST_LINE_ITEM_CHARGE_ITEM
         imis_invoice_line_item.quantity = self._TEST_LiNE_ITEM_QUANTITY
         imis_invoice_line_item.unit_price = self._TEST_LINE_ITEM_UNIT_PRICE
@@ -63,7 +66,7 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     def verify_fhir_instance(self, fhir_obj):
         if not (hasattr(self, '_TEST_INVOICE_SUBJECT_TYPE') and hasattr(self, '_TEST_LINE_ITEM_CHARGE_ITEM')):
             self.create_test_imis_instance()
-
+            
         self.assertIs(type(fhir_obj), FHIRInvoice)
         self.assertEqual(fhir_obj.status, self._TEST_INVOICE_STATUS)
         self.verify_fhir_identifier(fhir_obj, R4IdentifierConfig.get_fhir_generic_type_code(), self._TEST_INVOICE_CODE)

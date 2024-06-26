@@ -34,7 +34,9 @@ class _ConverterWrapper:
                 return [method(next_resource, *args) for next_resource in resource]
             else:
                 return [method(resource, *args)]
-        except Exception as e:
+        except BaseException as e:
+            logger.error(f"Failed to process resource ({resource.__class__}/{resource.id if hasattr(resource, 'id') else '' }, "
+                         f"reason: {e}")
             self.__raise_default_exception(resource, e)
 
     def __convert_to_imis(self, method, resource, reference_type, args):
@@ -45,8 +47,8 @@ class _ConverterWrapper:
                 ]
             else:
                 return [self.__convert_single_resource(resource, method, args, reference_type)]
-        except Exception as e:
-            logger.error(f"Failed to process contained resource ({resource.get('resourceType')}/{resource.get('id')}, "
+        except BaseException as e:
+            logger.error(f"Failed to process resource ({resource.get('resourceType')}/{resource.get('id')}, "
                          f"reason: {e}")
             self.__raise_default_exception(resource, e)
 

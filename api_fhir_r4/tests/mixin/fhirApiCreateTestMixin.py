@@ -18,8 +18,8 @@ class FhirApiCreateTestMixin(object):
         self.login()
         self.create_dependencies()
         response = self.client.post(self.base_url, data=self._test_request_data, format='json')
-        #FIXME self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        #self.assertIsNotNone(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(response.content)
 
     def create_dependencies(self):
         pass

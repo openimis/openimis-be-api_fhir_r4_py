@@ -11,3 +11,6 @@ class EnrolmentOfficerPractitionerRoleConverterTestCase(EnrolmentOfficerPractiti
     converter = EnrolmentOfficerPractitionerRoleConverter
     fhir_resource = PractitionerRole
     json_repr = 'test/test_enrolmentOfficerPractitionerRole.json'
+    def setUp(self):
+        super(EnrolmentOfficerPractitionerRoleConverterTestCase, self).setUp()
+        self.sub_str[self._TEST_OFFICER_UUID] = self.test_officer.uuid
