@@ -1,10 +1,7 @@
-
-from collections import OrderedDict
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from rest_framework.routers import DefaultRouter
 from openIMIS.openimisapps import openimis_apps
-
 
 from api_fhir_r4.views import LoginView, fhir as fhir_viewsets
 
@@ -117,5 +114,3 @@ urlpatterns = [
     path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='docs'), name='swagger-ui'),
     path('docs/redoc/', SpectacularRedocView.as_view(url_name='docs'), name='redoc'),
 ]
-
-OrderedDict

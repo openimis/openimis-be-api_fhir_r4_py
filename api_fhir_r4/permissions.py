@@ -3,7 +3,7 @@ from core.apps import CoreConfig
 from claim.apps import ClaimConfig
 from insuree.apps import InsureeConfig
 from location.apps import LocationConfig
-from location.models import Location, HealthFacility
+from location.models import Location
 from policy.apps import PolicyConfig
 from policyholder.apps import PolicyholderConfig
 from product.apps import ProductConfig
@@ -53,7 +53,7 @@ class FHIRApiCommunicationRequestPermissions(FHIRApiPermissions):
 
 
 class FHIRApiPractitionerPermissions(FHIRApiPermissions):
-    permissions_get = CoreConfig.gql_query_claim_administrator_perms + ClaimConfig.gql_query_claims_perms
+    permissions_get = CoreConfig.gql_query_claim_administrator_perms
     permissions_post = CoreConfig.gql_mutation_create_claim_administrator_perms
     permissions_put = CoreConfig.gql_mutation_update_claim_administrator_perms
     permissions_patch = CoreConfig.gql_mutation_update_claim_administrator_perms
@@ -61,15 +61,15 @@ class FHIRApiPractitionerPermissions(FHIRApiPermissions):
 
 
 class FHIRApiPractitionerOfficerPermissions(FHIRApiPermissions):
-    permissions_get = ClaimConfig.gql_query_claim_admins_perms + ClaimConfig.gql_query_claims_perms
-    permissions_post = []
-    permissions_put = []
-    permissions_patch = []
-    permissions_delete = []
+    permissions_get = CoreConfig.gql_query_enrolment_officers_perms
+    permissions_post = CoreConfig.gql_mutation_create_enrolment_officers_perms
+    permissions_put = CoreConfig.gql_mutation_update_enrolment_officers_perms
+    permissions_patch = CoreConfig.gql_mutation_update_enrolment_officers_perms
+    permissions_delete = CoreConfig.gql_mutation_delete_enrolment_officers_perms
 
 
 class FHIRApiCoverageEligibilityRequestPermissions(FHIRApiPermissions):
-    permissions_get = PolicyConfig.gql_query_eligibilities_perms 
+    permissions_get = PolicyConfig.gql_query_eligibilities_perms
     permissions_post = []
     permissions_put = []
     permissions_patch = []
@@ -90,8 +90,9 @@ class FHIRApiLocationPermissions(FHIRApiPermissions):
     permissions_post = LocationConfig.gql_mutation_create_locations_perms
     permissions_put = LocationConfig.gql_mutation_edit_locations_perms
     permissions_patch = LocationConfig.gql_mutation_edit_locations_perms
-    permissions_delete = LocationConfig.gql_mutation_delete_locations_perms   
-    
+    permissions_delete = LocationConfig.gql_mutation_delete_locations_perms
+
+
 class FHIRApiInsuranceOrganizationPermissions(FHIRApiPermissions):
     permissions_get = LocationConfig.gql_query_locations_perms + ClaimConfig.gql_query_claims_perms
     permissions_post = []
