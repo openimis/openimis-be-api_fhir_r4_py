@@ -12,7 +12,7 @@ from api_fhir_r4.model_retrievers import (
 )
 from api_fhir_r4.multiserializer import modelViewset
 from api_fhir_r4.permissions import (
-    FHIRApiPractitionerPermissions,
+    FHIRApiPractitionerClaimAdminPermissions,
     FHIRApiPractitionerOfficerPermissions
 )
 from api_fhir_r4.serializers import (
@@ -39,7 +39,7 @@ class PractitionerViewSet(BaseMultiserializerFHIRView,
     def serializers(self):
         return {
             ClaimAdminPractitionerSerializer:
-                (self._ca_queryset(), self._ca_serializer_validator, (FHIRApiPractitionerPermissions,)),
+                (self._ca_queryset(), self._ca_serializer_validator, (FHIRApiPractitionerClaimAdminPermissions,)),
             EnrolmentOfficerPractitionerSerializer:
                 (self._eo_queryset(), self._eo_serializer_validator, (FHIRApiPractitionerOfficerPermissions,)),
         }
