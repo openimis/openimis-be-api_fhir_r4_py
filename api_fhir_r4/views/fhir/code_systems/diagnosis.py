@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from api_fhir_r4.views import CsrfExemptSessionAuthentication
 from django.core.exceptions import PermissionDenied
 
+from medical.models import Diagnosis
+
 
 class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
 
@@ -20,8 +22,10 @@ class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
         if not request.user.has_perms(FHIRApiClaimPermissions.permissions_get):
             raise PermissionDenied("unauthorized")
+        queryset = Diagnosis.objects.filter(validity_to__isnull=True)
         serializer = CodeSystemSerializer(
             instance=None,
+            queryset=queryset,
             **{
                 "model_name": 'Diagnosis',
                 "code_field": 'code',
@@ -33,5 +37,6 @@ class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
                 "url": self.request.build_absolute_uri()
             }
         )
+
         data = serializer.to_representation(obj=None)
         return Response(data)
