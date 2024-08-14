@@ -85,18 +85,28 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
                         msg="401 Response without error message")
 
     def test_post_should_raise_forbidden(self):
-        response = self.client.post(self.base_url + 'login/', data=get_connection_payload(), format='json')
+        _TEST_DATA_USER_NO_ROLE = {
+            "username": "TestUserTest3",
+            "last_name": "TestUserTest3",
+            "password": "TestPasswordTest3",
+            "other_names": "TestUserTest3",
+            "user_types": "INTERACTIVE",
+            "language": "en",
+            "roles": [1],
+        }
+        get_or_create_user_api(_TEST_DATA_USER_NO_ROLE)
+        response = self.client.post(self.base_url + 'login/', data=get_connection_payload(_TEST_DATA_USER_NO_ROLE), format='json')
         response_json = response.json()
         token = response_json["token"]
         headers = {
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
-        response = self.client.get(self.base_url + 'Organization/', format='json', **headers)
+        response = self.client.get(self.base_url + 'Claim/', format='json', **headers)
         response_json = response.json()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
-            self.get_response_details(response_json), "User unauthorized for any of the resourceType available in the view."
+            self.get_response_details(response_json), "You do not have permission to perform this action."
         )
 
     def test_get_should_required_login(self):
