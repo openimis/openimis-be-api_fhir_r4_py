@@ -194,7 +194,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_diagnosis_by_code(cls, icd_code):
-        return Diagnosis.objects.get(code=icd_code)
+        return Diagnosis.objects.get(code=icd_code, validity_to=None)
 
     @classmethod
     def get_imis_diagnosis_code(cls, diagnosis):
