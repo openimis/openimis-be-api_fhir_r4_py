@@ -171,6 +171,6 @@ class ContractAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCas
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {self.admin_token}"
         }
-        response = self.client.get(self.base_url+ '?page-offset=2', format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.base_url+ '?page-offset=2&page-size=1', format='json', **headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, json.loads(response.content))
         self.assertIsNotNone(response.content)

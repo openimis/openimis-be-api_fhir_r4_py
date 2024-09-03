@@ -19,10 +19,10 @@ from location.test_helpers import create_test_location, create_test_health_facil
 from api_fhir_r4.tests.utils import load_and_replace_json,get_connection_payload,get_or_create_user_api
 from medical.test_helpers import create_test_item, create_test_service
 from insuree.test_helpers import create_test_insuree
-from claim.test_helpers import create_test_claim_admin
+from claim.test_helpers import create_test_claim_admin, create_test_claim_context
 
 from insuree.models import Insuree, Family
-
+from datetime import datetime
 
 class ClaimAPIContainedTestBaseMixin:
     base_url = GeneralConfiguration.get_base_url() + 'Claim/'
@@ -95,38 +95,85 @@ class ClaimAPIContainedTestBaseMixin:
         self.sub_str[self._TEST_CLAIM_ADMIN_UUID] = self.test_claim_admin.uuid
         self.sub_str[self._TEST_HF_UUID] = self.test_hf.uuid
         self.sub_str[self._TEST_HF_CODE] = self.test_hf.code
-        
+        self.sub_str["2021-02-03"] = datetime.now().strftime("%Y-%m-%d")
+
         self._test_request_data = load_and_replace_json(self._test_json_request_path,self.sub_str)
         
         
 
 
     def create_dependencies(self):
+        
+        region = create_test_location('R', custom_props={'code': 'R2', 'name': 'Tahida'})
+        district = create_test_location('D', custom_props={
+            'code': 'R2D2',
+            'name': 'Vida',
+            'parent': region
+        })
+        ward = create_test_location('M', custom_props={
+            'code': 'R2D2M1',
+            'name': 'Majhi',
+            'parent': district
+        })
+        create_test_location('V', custom_props={
+            'code': 'R2D2M1V1',
+            'name': 'Radho',
+            'parent': ward
+        })
+
+        
+        self.test_claim, self.test_insuree, policy, self.test_hf = create_test_claim_context(
+            claim={
+                'icd': {
+                    'code': self._TEST_MAIN_ICD_CODE,
+                    'name': self._TEST_MAIN_ICD_NAME
+                }
+                },
+            claim_admin={
+                'last_name' : self._TEST_DATA_USER['last_name'],
+                'other_names' : self._TEST_DATA_USER['other_names']
+            }, 
+            insuree={}, 
+            product={}, 
+            hf={
+                'name': self._TEST_HF_NAME,
+                'level':self._TEST_HF_LEVEL,
+                'legal_form_id':self._TEST_HF_LEGAL_FORM,
+                'address':self._TEST_ADDRESS,
+                'phone':self._TEST_PHONE,
+                'fax':self._TEST_FAX,
+                'email':self._TEST_EMAIL,
+            }, 
+            items=[
+                {"code": self._TEST_ITEM_CODE}
+                ], 
+            services=[
+                {"code": self._TEST_SERVICE_CODE}
+            ])
+        
         self._TEST_USER = get_or_create_user_api(self._TEST_DATA_USER)
-        if not  self.test_insuree:
-            self.test_insuree = create_test_insuree()
+
+    
         UserDistrict.objects.create(
             **{
-                'user':self._TEST_USER._u,
+                'user': self._TEST_USER._u,
                 'location': self.test_insuree.family.location.parent.parent,
-                'audit_user_id':-1
+                'audit_user_id': -1
             }
         )
-        self.test_icd = Diagnosis()
-        self.test_icd.code = self._TEST_MAIN_ICD_CODE
-        self.test_icd.name = self._TEST_MAIN_ICD_NAME
-        self.test_icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        self.test_icd.save()
+        UserDistrict.objects.create(
+            **{
+                'user': self._TEST_USER._u,
+                'location': district,
+                'audit_user_id': -1
+            }
+        )
 
+        self.test_claim_admin = self.test_claim.admin
 
         self.test_village = self.test_insuree.current_village or self.test_insuree.family.location
-        self.test_hf=self.create_test_hf()
         self._TEST_HF_ID = self.test_hf.id
-        if not self.test_claim_admin:
-            self.test_claim_admin =create_test_claim_admin(
-                custom_props={'health_facility_id': self.test_hf.id,
-                                'last_name' : self._TEST_DATA_USER['last_name'],
-                                'other_names' : self._TEST_DATA_USER['other_names']})
+  
         
 
         ud = UserDistrict()
@@ -136,43 +183,14 @@ class ClaimAPIContainedTestBaseMixin:
         ud.validity_from = TimeUtils.now()
         ud.save()
         
-        self._TEST_USER.claim_admin = self.test_claim_admin
+        self._TEST_USER.claim_admin = self.test_claim.admin
         self._TEST_USER.save()
   
 
-    def create_test_claim_item(self):
-        item = create_test_item(
-            self._TEST_ITEM_TYPE,
-            custom_props={"code": self._TEST_ITEM_CODE}
-        )
-        item.code = self._TEST_ITEM_CODE
-        item.save()
-        return item
 
-    def create_test_claim_service(self):
-        service = create_test_service(
-            self._TEST_SERVICE_TYPE,
-            custom_props={"code": self._TEST_SERVICE_CODE}
-        )
-        service.code = self._TEST_SERVICE_CODE
-        service.save()
-        return service
 
-    def create_test_hf(self):
-        hf = create_test_health_facility(
-            self._TEST_HF_CODE,
-            self.test_village.parent.parent.id,
-            custom_props = {
-                'name': self._TEST_HF_NAME,
-                'level':self._TEST_HF_LEVEL,
-                'legal_form_id':self._TEST_HF_LEGAL_FORM,
-                'address':self._TEST_ADDRESS,
-                'phone':self._TEST_PHONE,
-                'fax':self._TEST_FAX,
-                'email':self._TEST_EMAIL,
-            }
-        )
-        return hf
+
+
 
     def assert_response(self, response_json):
         self.assertEqual(response_json["outcome"], 'complete')
@@ -262,7 +280,6 @@ class ClaimAPIContainedTests(ClaimAPIContainedTestBaseMixin, GenericFhirAPITestM
         self.assert_hf_created()
         self.assert_insuree_created()
         self.assert_claim_admin_created()
-        #self.assert_items_created()
 
     def test_post_should_update_contained_correctly(self):
         response = self.client.post(

@@ -6,7 +6,12 @@ from api_fhir_r4.utils import TimeUtils
 from fhir.resources.R4B.communication import Communication, CommunicationPayload
 from fhir.resources.R4B.extension import Extension
 from claim.models import Claim, ClaimItem, ClaimService, Feedback
-from claim.test_helpers import create_test_claim_admin
+from claim.test_helpers import (
+    create_test_claim_admin,
+    create_test_claimitem,
+    create_test_claimservice,
+    create_test_claim_context
+)
 from core import datetime
 from location.models import HealthFacility
 from location.test_helpers import create_test_village, create_test_health_facility
@@ -63,7 +68,7 @@ class CommunicationTestMixin(GenericTestMixin):
     _TEST_SERVICE_TYPE = 'D'
 
     # insuree and claim admin data
-    _TEST_PATIENT_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
+    _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
     _TEST_CLAIM_ADMIN_UUID = "044c33d1-dbf3-4d6a-9924-3797b461e535"
 
     # hf test data
@@ -81,93 +86,55 @@ class CommunicationTestMixin(GenericTestMixin):
 
     def setUp(self):
         super(CommunicationTestMixin, self).setUp()
-        self._TEST_INSUREE = create_test_insuree()
-        self._TEST_CLAIM = self.create_test_claim()
-        self._TEST_ITEM = self.create_test_claim_item()
-        self._TEST_SERVICE = self.create_test_claim_service()
-
-    def create_test_claim_item(self):
-        item = ClaimItem()
-        item.item = create_test_item(
-            self._TEST_ITEM_TYPE,
-            custom_props={"code": self._TEST_ITEM_CODE}
-        )
-        item.claim = self._TEST_CLAIM
-        item.status = self._TEST_ITEM_STATUS
-        item.qty_approved = self._TEST_ITEM_QUANTITY
-        item.qty_provided = self._TEST_ITEM_QUANTITY
-        item.rejection_reason = self._TEST_ITEM_REJECTED_REASON
-        item.availability = self._TEST_ITEM_AVAILABILITY
-        item.price_asked = self._TEST_ITEM_PRICE
-        item.price_approved = self._TEST_ITEM_PRICE
-        item.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        item.save()
-        return item
-
-    def create_test_claim_service(self):
-        service = ClaimService()
-        service.service = create_test_service(
-            self._TEST_SERVICE_TYPE,
-            custom_props={"code": self._TEST_SERVICE_CODE}
-        )
-        service.claim = self._TEST_CLAIM
-        service.status = self._TEST_SERVICE_STATUS
-        service.qty_approved = self._TEST_SERVICE_QUANTITY
-        service.qty_provided = self._TEST_SERVICE_QUANTITY
-        service.rejection_reason = self._TEST_SERVICE_REJECTED_REASON
-        service.availability = self._TEST_ITEM_AVAILABILITY
-        service.price_asked = self._TEST_SERVICE_PRICE
-        service.price_approved = self._TEST_SERVICE_PRICE
-        service.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        service.save()
-        return service
-
-    def create_test_hf(self):
-        hf = create_test_health_facility(
-            self._TEST_HF_CODE,
-            self._TEST_INSUREE.family.location.parent.parent.id,
-            custom_props = {
+        service_props = {
+            'status': self._TEST_SERVICE_STATUS,
+            'qty_approved': self._TEST_SERVICE_QUANTITY,
+            'qty_provided': self._TEST_SERVICE_QUANTITY,
+            'rejection_reason': self._TEST_SERVICE_REJECTED_REASON,
+            'availability': self._TEST_ITEM_AVAILABILITY,
+            'price_asked': self._TEST_SERVICE_PRICE,
+            'price_approved': self._TEST_SERVICE_PRICE,
+            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+        }
+        item_props = {
+            'status': self._TEST_ITEM_STATUS,
+            'qty_approved': self._TEST_ITEM_QUANTITY,
+            'qty_provided': self._TEST_ITEM_QUANTITY,
+            'rejection_reason': self._TEST_ITEM_REJECTED_REASON,
+            'availability': self._TEST_ITEM_AVAILABILITY,
+            'price_asked': self._TEST_ITEM_PRICE,
+            'price_approved': self._TEST_ITEM_PRICE,
+            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+        }
+        self._TEST_CLAIM, self.test_insuree, policy, self.test_hf = create_test_claim_context(
+            claim={
+                'visit_type': self._TEST_VISIT_TYPE,
+                'code': self._TEST_CLAIM_CODE,
+                'uuid': self._TEST_CLAIM_UUID,
+                'status': self._TEST_STATUS,
+                }, 
+            claim_admin={
+                'uuid': self._TEST_CLAIM_ADMIN_UUID,
+                'feedback_status': Claim.FEEDBACK_SELECTED
+            },
+            insuree={'uuid': self._TEST_INSUREE_UUID}, 
+            product={}, 
+            hf={
                 'name': self._TEST_HF_NAME,
-                'level':self._TEST_HF_LEVEL,
-                'legal_form_id':self._TEST_HF_LEGAL_FORM,
-                'address':self._TEST_ADDRESS,
-                'phone':self._TEST_PHONE,
-                'fax':self._TEST_FAX,
-                'email':self._TEST_EMAIL,
-            }
-        )    
-
-        return hf
-
-    def create_test_claim(self):
-        imis_claim = Claim()
-        imis_claim.id = self._TEST_ID
-        imis_claim.uuid = self._TEST_CLAIM_UUID
-        imis_claim.code = self._TEST_CLAIM_CODE
-        imis_claim.status = self._TEST_STATUS
-        imis_claim.adjustment = self._TEST_ADJUSTMENT
-        imis_claim.date_processed = TimeUtils.str_to_date(self._TEST_DATE_PROCESSED)
-        imis_claim.approved = self._TEST_APPROVED
-        imis_claim.rejection_reason = self._TEST_REJECTION_REASON
-        imis_claim.insuree = self._TEST_INSUREE
-        imis_claim.insuree.uuid = self._TEST_PATIENT_UUID
-        imis_claim.insuree.save()
-        imis_claim.health_facility = self.create_test_hf()
-        imis_claim.icd = Diagnosis(code='ICD00I', name='Test ICD')
-        imis_claim.icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        imis_claim.icd.save()
-        imis_claim.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        imis_claim.icd.date_from = datetime.date(2018, 12, 12)
-        imis_claim.date_from = datetime.date(2018, 12, 12)
-        imis_claim.date_claimed = datetime.date(2018, 12, 14)
-        imis_claim.visit_type = self._TEST_VISIT_TYPE
-        claim_admin = create_test_claim_admin()
-        claim_admin.uuid = self._TEST_CLAIM_ADMIN_UUID
-        claim_admin.save()
-        imis_claim.admin = claim_admin
-        imis_claim.feedback_status = Claim.FEEDBACK_SELECTED
-        imis_claim.save()
-        return imis_claim
+                'level': self._TEST_HF_LEVEL,
+                'legal_form_id': self._TEST_HF_LEGAL_FORM,
+                'address': self._TEST_ADDRESS,
+                'phone': self._TEST_PHONE,
+                'fax': self._TEST_FAX,
+                'email': self._TEST_EMAIL,
+            }, 
+            items=[
+                item_props
+                ], 
+            services=[
+                service_props
+            ])
+ 
 
     def create_test_imis_instance(self):
         imis_feedback = Feedback()
@@ -289,7 +256,7 @@ class CommunicationTestMixin(GenericTestMixin):
 
     def verify_fhir_instance(self, fhir_obj):
         self.assertEqual("completed", fhir_obj.status)
-        self.assertIn(self._TEST_PATIENT_UUID, fhir_obj.subject.reference)
+        self.assertIn(self._TEST_INSUREE_UUID, fhir_obj.subject.reference)
         self.assertIn(self._TEST_CLAIM_UUID, fhir_obj.about[0].reference)
         for payload in fhir_obj.payload:
             code = payload.extension[0].valueCodeableConcept.coding[0].code

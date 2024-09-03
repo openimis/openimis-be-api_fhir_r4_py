@@ -18,7 +18,10 @@ from location.models import HealthFacility, UserDistrict
 from location.test_helpers import create_test_village, create_test_health_facility
 from medical.models import Diagnosis
 from medical.test_helpers import create_test_item, create_test_service
-from claim.test_helpers import create_test_claimservice,create_test_claimitem,create_test_claim_admin
+from claim.test_helpers import create_test_claim_context, full_delete_claim
+from policy.test_helpers import create_test_policy2
+from product.test_helpers import create_test_product
+from datetime import datetime
 
 class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     base_url = GeneralConfiguration.get_base_url() + 'Claim/'
@@ -59,6 +62,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     _TEST_PHONE = "133-996-476"
     _TEST_FAX = "1-408-999 8888"
     _TEST_EMAIL = "TEST@TEST.com"
+    _TEST_DATE = "2021-02-03"
 
     _ADMIN_AUDIT_USER_ID = -1
     _TEST_USER = None
@@ -95,52 +99,58 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.sub_str[self._TEST_SERVICE_UUID]=self._TEST_SERVICE.uuid
         self.sub_str[self._TEST_ITEM_CODE]=self._TEST_ITEM.code
         self.sub_str[self._TEST_SERVICE_CODE]=self._TEST_SERVICE.code
+        self.sub_str[self._TEST_DATE] = datetime.now().strftime("%Y-%m-%d")
+        
         self._TEST_HF_ID = self.test_hf.id
         self._TEST_HF_UUID = self.test_hf.uuid
 
 
 
     def create_dependencies(self):
-        self.test_icd = Diagnosis(code=self._TEST_MAIN_ICD_CODE, name =self._TEST_MAIN_ICD_NAME)
-        self.test_icd.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        self.test_icd.save()
-        self.test_insuree = create_test_insuree(custom_props={"chf_id": self._TEST_INSUREE_CODE})
-        self.test_hf = self.create_test_hf()
-        if not self.test_claim_admin:
-            self.test_claim_admin =create_test_claim_admin(
-                custom_props={'code':'T-CA-API',
-                              'health_facility_id': self.test_hf.id,
-                                'last_name' : self._TEST_DATA_USER['last_name'],
-                                'other_names' : self._TEST_DATA_USER['other_names']})
-        
-        self._TEST_USER.claim_admin = self.test_claim_admin
-        self._TEST_USER.save()
-        ud = UserDistrict()
-        ud.location = self.test_insuree.family.location.parent.parent
-        ud.audit_user_id = self._ADMIN_AUDIT_USER_ID
-        ud.user = self._TEST_USER.i_user
-        ud.validity_from = TimeUtils.now()
-        ud.save()
 
-        self._TEST_ITEM = create_test_item(self._TEST_SERVICE_TYPE)
-        self._TEST_SERVICE = create_test_service(self._TEST_ITEM_TYPE)
-
-    def create_test_hf(self):
-        self.test_hf = create_test_health_facility(
-            self._TEST_HF_CODE,
-            self.test_insuree.family.location.parent.parent.id,
-            custom_props = {
+        self.test_claim, self.test_insuree, self.policy, self.test_hf = create_test_claim_context(
+            claim={
+                'icd':{
+                    'code': self._TEST_MAIN_ICD_CODE,
+                    'name': self._TEST_MAIN_ICD_NAME
+                }
+            },
+            insuree={"chf_id": self._TEST_INSUREE_CODE}, 
+            claim_admin={
+                'code':'T-CA-API',
+                'last_name' : self._TEST_DATA_USER['last_name'],
+                'other_names' : self._TEST_DATA_USER['other_names']
+            },
+            product={}, 
+            hf={
                 'name': self._TEST_HF_NAME,
+                'code': self._TEST_HF_CODE,
                 'level':self._TEST_HF_LEVEL,
                 'legal_form_id':self._TEST_HF_LEGAL_FORM,
                 'address':self._TEST_ADDRESS,
                 'phone':self._TEST_PHONE,
                 'fax':self._TEST_FAX,
                 'email':self._TEST_EMAIL,
-            }
-        )
-        return self.test_hf
+            }, 
+            items=[
+                {"type": self._TEST_ITEM_TYPE}
+                ], 
+            services=[
+                {"type": self._TEST_SERVICE_TYPE}
+            ])
+        #
+        self.test_claim_admin = self.test_claim.admin
+        self._TEST_ITEM = self.test_claim.items.first().item
+        self._TEST_SERVICE = self.test_claim.services.first().service
+        
+        full_delete_claim(self.test_claim.id)
 
+        ud = UserDistrict()
+        ud.location = self.test_insuree.family.location.parent.parent
+        ud.audit_user_id = self._ADMIN_AUDIT_USER_ID
+        ud.user = self._TEST_USER.i_user
+        ud.validity_from = TimeUtils.now()
+        ud.save()
 
 
     def _post_claim(self, data, headers):

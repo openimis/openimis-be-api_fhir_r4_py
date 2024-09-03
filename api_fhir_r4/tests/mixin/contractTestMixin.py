@@ -54,7 +54,7 @@ class ContractTestMixin(GenericTestMixin):
         imis_family.save()
 
         # create mocked product
-        imis_product = create_test_product(self._TEST_PRODUCT_CODE, valid=True, custom_props=None)
+        imis_product = create_test_product(self._TEST_PRODUCT_CODE, valid=True, custom_props={})
         imis_product.uuid = self._TEST_PRODUCT_UUID
         imis_product.save()
 
@@ -113,7 +113,7 @@ class ContractTestMixin(GenericTestMixin):
         imis_family.save()
 
         # create mocked product
-        imis_product = create_test_product(self._TEST_PRODUCT_CODE, valid=True, custom_props=None)
+        imis_product = create_test_product(self._TEST_PRODUCT_CODE, valid=True, custom_props={})
         imis_product.uuid = self._TEST_PRODUCT_UUID
         imis_product.save()
 

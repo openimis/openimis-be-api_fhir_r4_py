@@ -85,11 +85,12 @@ class PatientTestMixin(GenericTestMixin):
             "card_issued" : cls._TEST_CARD_ISSUED,
             }
         )
+        
         cls.sub_str[cls._TEST_INSUREE_CHFID] = cls.test_insuree.chf_id
         cls.sub_str[cls._TEST_INSUREE_UUID] = cls.test_insuree.uuid
         cls.sub_str[cls._TEST_VILLAGE_UUID] = cls.test_village.uuid
         cls.sub_str[cls._TEST_GROUP_UUID] = cls.test_insuree.family.uuid
-        
+        cls._TEST_INSUREE_CHFID = cls.test_insuree.chf_id
 
         
             
@@ -99,7 +100,7 @@ class PatientTestMixin(GenericTestMixin):
     def verify_imis_instance(self, imis_obj):
         self.assertEqual(self._TEST_LAST_NAME, imis_obj.last_name)
         self.assertEqual(self._TEST_OTHER_NAME, imis_obj.other_names)
-        self.assertEqual(self._TEST_INSUREE_CHFID, imis_obj.chf_id)
+        self.assertEqual(self.test_insuree.chf_id, imis_obj.chf_id)
         expected_date = TimeUtils.str_to_date(self._TEST_INSUREE_DOB)
         self.assertEqual(expected_date, imis_obj.dob)
         self.assertEqual("D", imis_obj.marital)
@@ -250,9 +251,9 @@ class PatientTestMixin(GenericTestMixin):
             self.assertTrue(isinstance(identifier, Identifier))
             code = PatientConverter.get_first_coding_from_codeable_concept(identifier.type).code
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
-                self.assertEqual(str(self._TEST_INSUREE_CHFID), identifier.value)
+                self.assertEqual(str(self.test_insuree.chf_id), identifier.value)
             elif code == R4IdentifierConfig.get_fhir_uuid_type_code() and not isinstance(identifier.value, UUID):
-                self.assertEqual(str(self._TEST_INSUREE_UUID), identifier.value)
+                self.assertEqual(str(self.test_insuree.uuid), identifier.value)
         self.assertEqual(self._TEST_INSUREE_DOB, fhir_obj.birthDate.isoformat())
         self.assertEqual("male", fhir_obj.gender)
         marital_code = PatientConverter.get_first_coding_from_codeable_concept(fhir_obj.maritalStatus).code

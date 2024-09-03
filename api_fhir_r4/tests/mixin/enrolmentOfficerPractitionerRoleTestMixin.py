@@ -38,7 +38,7 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
                 "last_name": "Officer",
                 "other_names": "Test",
                 "validity_to": None,
-                "audit_user_id": -1,
+                "audit_user_id": 1,
                 'location':self.test_village.parent.parent})
         
         self._TEST_PRACTITIONER_REFERENCE = "Practitioner/" + str(self.test_officer.uuid)

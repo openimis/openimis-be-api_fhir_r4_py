@@ -10,7 +10,7 @@ class FeedbackStatus(object):
             Claim.FEEDBACK_DELIVERED: "completed",
             Claim.FEEDBACK_BYPASSED: "revoked",
         }
-        return codes[code]
+        return codes.get(code, "unknown")
 
     @classmethod
     def map_code_display(cls, code):
@@ -19,4 +19,4 @@ class FeedbackStatus(object):
             Claim.FEEDBACK_DELIVERED: "Delivered",
             Claim.FEEDBACK_BYPASSED: "Bypassed",
         }
-        return codes[code]
+        return codes.get(code, 'Unknown')

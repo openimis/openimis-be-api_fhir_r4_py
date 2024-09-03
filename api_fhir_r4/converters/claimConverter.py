@@ -446,7 +446,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_fhir_insurance(cls, fhir_claim, imis_claim, reference_type):
         policies = list(imis_claim.insuree.insuree_policies.all())
         if policies:
-            sorted_by_enrol = sorted(list(policies), key=lambda x: x.enrollment_date, reverse=True)
+            sorted_by_enrol = sorted(list(policies), key=lambda x: x.effective_date, reverse=True)
             latest = sorted_by_enrol[0]
             claim_insurance_data = {'focal': True, 'sequence': 1}
             insurance = ClaimInsurance(**claim_insurance_data)

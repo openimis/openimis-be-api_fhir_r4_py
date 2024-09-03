@@ -7,7 +7,7 @@ from api_fhir_r4.tests.mixin import FhirConverterTestMixin
 from api_fhir_r4.utils.timeUtils import TimeUtils
 from insuree.models import Family
 from invoice.models import Invoice, InvoiceLineItem
-from insuree.test_helpers import create_test_family
+from insuree.test_helpers import create_test_insuree
 
 
 class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
@@ -32,7 +32,8 @@ class InvoiceTestMixin(GenericTestMixin, FhirConverterTestMixin):
     _TEST_LINE_ITEM_TAX_PRICE_COMPONENT_TYPE = 'tax'
 
     def create_test_imis_instance(self):
-        self._TEST_INVOICE_THIRD_PARTY =  create_test_family()
+        self.test_insuree = create_test_insuree(is_head=True)
+        self._TEST_INVOICE_THIRD_PARTY = self.test_insuree.family
         self._TEST_INVOICE_SUBJECT_TYPE = ContentType.objects.get(model__iexact='Family')
         self._TEST_LINE_ITEM_CHARGE_ITEM = ContentType.objects.get(model__iexact='Policy')
 

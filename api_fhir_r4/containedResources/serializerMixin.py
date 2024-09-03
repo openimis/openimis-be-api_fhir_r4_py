@@ -17,7 +17,7 @@ class ContainedContentSerializerMixin:
     ALLOWED_RESOURCE_UPDATE_CONTAINED = {
         'Group':('Patient'), 
         'Patient':('Group'),
-        'Claim':('Medication','ActivityDefinition','Organization','Patient','Practitioner','Group'),
+        'Claim':('Medication','ActivityDefinition','Organization','Patient','Practitioner','PractitionerRole','Group'),
         }
 
     #  Used for determining what reference type will be used used in contained value,
