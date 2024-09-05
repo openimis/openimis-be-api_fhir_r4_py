@@ -11,7 +11,7 @@ from fhir.resources.R4B import FHIRAbstractModel
 
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from location.models import HealthFacility
-
+from uuid import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ class ContainedResourceManager:
 
     def _is_saved_in_db(self, obj: models.Model):
         # Checks if given ID is already stored in database
-        return obj.__class__.objects.filter(uuid__iexact=obj.uuid).exists()
+        return obj.__class__.objects.filter(uuid=obj.uuid).exists()
 
     def _model_to_dict(self, instance):
         # Due to how serializers are build simple __dict__ is used instead of builtin model_to_dict

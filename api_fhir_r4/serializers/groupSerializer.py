@@ -6,7 +6,7 @@ from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from insuree.services import FamilyService, InsureeService
 from core.models import resolve_id_reference
-
+from uuid import UUID
 from django.forms.models import model_to_dict
 
 class GroupSerializer(BaseFHIRSerializer):
@@ -22,7 +22,8 @@ class GroupSerializer(BaseFHIRSerializer):
 
         if Family.objects.filter(head_insuree_id=insuree_id).count() > 0:
             raise FHIRException('Exists family with the provided head')
-
+        if 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = UUID(validated_data['uuid'])
         insuree = Insuree.objects.get(id=insuree_id)
         copied_data = copy.deepcopy(validated_data)
         copied_data["head_insuree"] = insuree.__dict__
@@ -46,6 +47,8 @@ class GroupSerializer(BaseFHIRSerializer):
         members_family = validated_data.pop('members_family')
         user = request.user
         head_id = validated_data.get('head_insuree_id', None)
+        if 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = UUID(validated_data['uuid'])
         family_uuid = validated_data.get('uuid', None)
         if head_id:
             family = Family.objects.filter(head_insuree_id=head_id, validity_to__isnull=True).first()

@@ -15,7 +15,9 @@ class ActivityDefinitionSerializer(BaseFHIRSerializer):
             # In serializers using graphql services can't provide uuid. If uuid is provided then
             # resource is updated and not created. This check ensure UUID was provided.
             validated_data['uuid'] = uuid.uuid4()
-
+        elif isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
+            
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
         return Service.objects.create(**copied_data)

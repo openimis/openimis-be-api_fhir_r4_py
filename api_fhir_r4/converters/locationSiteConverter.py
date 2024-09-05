@@ -5,7 +5,7 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from fhir.resources.R4B.location import Location as FHIRLocation
 from api_fhir_r4.models.imisModelEnums import ImisHfLevel
 from api_fhir_r4.utils import DbManagerUtils
-
+from uuid import UUID
 
 class LocationSiteConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
@@ -143,7 +143,7 @@ class LocationSiteConverter(BaseFHIRConverter, ReferenceConverterMixin):
                                        gettext('Missing location `parent id` attribute'), errors):
                 # get the imis location object, check if exists
                 uuid_location = parent_id.identifier.value
-                hf_location = Location.objects.filter(uuid__iexact=uuid_location)
+                hf_location = Location.objects.filter(uuid=UUID(str(uuid_location)))
                 if hf_location:
                     hf_location = hf_location.first()
                     imis_hf.location = hf_location

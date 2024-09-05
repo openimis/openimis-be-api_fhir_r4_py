@@ -19,12 +19,15 @@ class MedicationSerializer(BaseFHIRSerializer):
             # In serializers using graphql services can't provide uuid. If uuid is provided then
             # resource is updated and not created. This check ensure UUID was provided.
             validated_data['uuid'] = uuid.uuid4()
-
+        elif 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
         copied_data = copy.deepcopy(validated_data)
         del copied_data['_state']
         return Item.objects.create(**copied_data)
 
     def update(self, instance, validated_data):
+        if 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
         instance.code = validated_data.get('code', instance.code)
         instance.name = validated_data.get('name', instance.name)
         instance.package = validated_data.get('package', instance.package)

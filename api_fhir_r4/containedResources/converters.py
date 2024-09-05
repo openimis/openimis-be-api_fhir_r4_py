@@ -8,7 +8,7 @@ from fhir.resources.R4B.resource import Resource
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.exceptions import FHIRException
 from fhir.resources.R4B import FHIRAbstractModel
-
+from uuid import UUID
 
 DEFAULT_REF_TYPE = ReferenceConverterMixin.UUID_REFERENCE_TYPE
 logger = logging.getLogger(__name__)
@@ -70,7 +70,10 @@ class _ConverterWrapper:
 
         assert contained_fhir_resource.get('id') is not None, \
             F'Resources created from contained data requires non empty ID field.'
+        
         converted.uuid = contained_fhir_resource['id']
+        if isinstance(converted.uuid, str):
+            converted.uuid = UUID(converted.uuid)
 
     def __raise_default_exception(self, resource, error):
         raise FHIRException(
@@ -136,6 +139,12 @@ class IMISContainedResourceConverter:
         """
         resource = None
         if fhir_dict_repr:
+            if 'id' in fhir_dict_repr and isinstance(fhir_dict_repr['id'], str):
+                try:
+                    fhir_dict_repr['id'] = str(UUID(fhir_dict_repr['id']))
+                except Exception as e:
+                    logger.debug(f"id not UUID {e}")
+                    pass
             if 'resourceType' in fhir_dict_repr and fhir_dict_repr['resourceType'] == self.fhir_resource_type:
                 resource = fhir_dict_repr
             else:

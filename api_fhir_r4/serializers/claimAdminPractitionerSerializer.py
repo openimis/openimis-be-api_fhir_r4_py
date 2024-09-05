@@ -18,7 +18,8 @@ class ClaimAdminPractitionerSerializer(BaseFHIRSerializer):
             # In serializers using graphql services can't provide uuid. If uuid is provided then
             # resource is updated and not created. This check ensure UUID was provided.
             validated_data['uuid'] = uuid.uuid4()
-
+        elif 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
         if ClaimAdmin.objects.filter(code=code).count() > 0:
             raise FHIRException('Exists practitioner with following code `{}`'.format(code))
         copied_data = copy.deepcopy(validated_data)
@@ -26,6 +27,8 @@ class ClaimAdminPractitionerSerializer(BaseFHIRSerializer):
         return ClaimAdmin.objects.create(**copied_data)
 
     def update(self, instance, validated_data):
+        if 'uuid' in validated_data and isinstance(validated_data['uuid'], str):
+            validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
         instance.code = validated_data.get('code', instance.code)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.other_names = validated_data.get('other_names', instance.other_names)
