@@ -594,6 +594,21 @@ class PaymentNoticeConfiguration(BaseConfiguration):
         raise NotImplementedError('`get_fhir_payment_notice_payment_status_cleared()` must be implemented.')
 
 
+class PaymentReconciliationConfiguration(BaseConfiguration):
+    @classmethod
+    def build_configuration(cls, cfg):
+        raise NotImplementedError('`build_configuration()` must be implemented.')
+
+    @classmethod
+    def get_fhir_payment_reconciliation_url(cls):
+        raise NotImplementedError('`get_fhir_payment_reconciliation_url()` must be implemented.')
+
+    @classmethod
+    def get_fhir_payment_reconciliation_token(cls):
+        raise NotImplementedError('`get_fhir_payment_reconcilaition_token()` must be implemented.')
+
+
+
 class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
 
     @classmethod
@@ -609,6 +624,7 @@ class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
         cls.get_organisation_configuration().build_configuration(cfg)
         cls.get_subscription_configuration().build_configuration(cfg)
         cls.get_payment_notice_configuration().build_configuration(cfg)
+        cls.get_payment_reconciliation_configuration().build_configuration(cfg)
 
     @classmethod
     def get_identifier_configuration(cls):
@@ -654,6 +670,10 @@ class BaseApiFhirConfiguration(BaseConfiguration):  # pragma: no cover
     def get_payment_notice_configuration(cls):
         raise NotImplementedError('`get_payment_notice_configuration()` must be implemented.')
 
+    @classmethod
+    def get_payment_reconciliation_configuration(cls):
+        raise NotImplementedError('`get_payment_reconciliation_configuration()` must be implemented.')
+
 
 from api_fhir_r4.configurations.generalConfiguration import GeneralConfiguration
 from api_fhir_r4.configurations.R4IdentifierConfig import R4IdentifierConfig
@@ -668,6 +688,7 @@ from api_fhir_r4.configurations.R4OrganisationConfig import R4OrganisationConfig
 from api_fhir_r4.configurations.R4CoverageConfig import R4CoverageConfig
 from api_fhir_r4.configurations.R4SubscriptionConfig import R4SubscriptionConfig
 from api_fhir_r4.configurations.R4PaymentNoticeConfig import R4PaymentNoticeConfig
+from api_fhir_r4.configurations.R4PaymentReconciliationConfig import R4PaymentReconciliationConfig
 # all specific configurations have to be imported before R4ApiFhirConfig
 from api_fhir_r4.configurations.R4ApiFhirConfig import R4ApiFhirConfig
 from api_fhir_r4.configurations.moduleConfiguration import ModuleConfiguration
