@@ -57,7 +57,7 @@ class MultiIdentifierUpdateMixin(mixins.UpdateModelMixin, GenericMultiIdentifier
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         ref_type, instance = self._get_object_with_first_valid_retriever(kwargs['identifier'])
-        serializer = self.get_serializer(instance, data=request.data, partial=partial, reference_type=ref_type)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial, reference_type=ref_type, user=request.user)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 

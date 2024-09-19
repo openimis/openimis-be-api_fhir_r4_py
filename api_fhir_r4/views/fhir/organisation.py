@@ -120,7 +120,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
 
         page = self.paginate_queryset(list(chain(*filtered_querysets.values())))
         data = self.__dispatch_page_data(page)
-        serialized_data = self._serialize_dispatched_data(data, dict(filtered_querysets.keys()))
+        serialized_data = self._serialize_dispatched_data(data, dict(filtered_querysets.keys()), user=request.user)
         data = self.get_paginated_response(serialized_data)
         return data
 
@@ -137,7 +137,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
             if qs.model is not ModuleConfiguration:
                 ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
                 if instance:
-                    serializer = serializer(instance, reference_type=ref_type)
+                    serializer = serializer(instance, reference_type=ref_type, user=request.user)
                     if serializer.data:
                         retrieved.append(serializer.data)
             else:
@@ -183,9 +183,9 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
                 if identifier == f"{ins['id']}":
                     return ins
 
-    def _get_insurance_organisation_default(self, identifier):
+    def _get_insurance_organisation_default(self, identifier, user=None):
         """method to get chosen insurance organisation from default config if no config in db"""
-        serializer = InsuranceOrganizationSerializer()
+        serializer = InsuranceOrganizationSerializer(user=user)
         default_insurance_organisation = DEFAULT_CFG['R4_fhir_insurance_organisation_config']
         if identifier == f"{default_insurance_organisation['id']}":
             return serializer.to_representation(obj=default_insurance_organisation)
@@ -224,7 +224,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
         except KeyError:
             return None
 
-    def _serialize_dispatched_data(self, data, serializer_models):
+    def _serialize_dispatched_data(self, data, serializer_models, user=None):
         # override this method to support InsuranceOrganisation serializer
         #  solution - model taken from ModuleConfiguration model
         serialized = []
@@ -235,7 +235,7 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
                     serialized.extend(self._get_insurance_organisations())
                 else:
                     # check if we have insurance organisation default config
-                    data_default = self.__check_default_config_insurance_organisation(model_data)
+                    data_default = self.__check_default_config_insurance_organisation(model_data, user=user)
                     if len(data_default) > 0:
                         serialized.extend(data_default)
                     else:
@@ -243,13 +243,13 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
                                      f"any of available serializers {serializer_models}")
                     continue
             else:
-                serializer = serializer_cls(tuple(model_data), many=True)
+                serializer = serializer_cls(tuple(model_data), many=True, user=user)
                 serialized.extend(serializer.data)
 
         return serialized
 
-    def __check_default_config_insurance_organisation(self, model_data):
+    def __check_default_config_insurance_organisation(self, model_data, user=None):
         for md in model_data:
             if md.get('resource_type') == 'insurance_organisation':
                 identifier = DEFAULT_CFG['R4_fhir_insurance_organisation_config']['id']
-                return [self._get_insurance_organisation_default(identifier=identifier)]
+                return [self._get_insurance_organisation_default(identifier=identifier, user=user)]

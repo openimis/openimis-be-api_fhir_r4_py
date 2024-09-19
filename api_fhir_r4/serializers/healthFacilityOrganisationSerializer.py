@@ -7,7 +7,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 import uuid
 class HealthFacilityOrganisationSerializer(BaseFHIRSerializer):
-    fhirConverter = HealthFacilityOrganisationConverter()
+    fhirConverter = HealthFacilityOrganisationConverter
 
     def create(self, validated_data):
         data = copy.deepcopy(validated_data)

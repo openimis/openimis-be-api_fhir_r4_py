@@ -25,9 +25,9 @@ class LocationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
             queryset = queryset.filter(validity_to__isnull=True).order_by('validity_from')
         if physical_type and physical_type == 'si':
             self.serializer_class = LocationSiteSerializer
-            serializer = LocationSiteSerializer(self.paginate_queryset(queryset), many=True)
+            serializer = LocationSiteSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         else:
-            serializer = LocationSerializer(self.paginate_queryset(queryset), many=True)
+            serializer = LocationSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, *args, **kwargs):

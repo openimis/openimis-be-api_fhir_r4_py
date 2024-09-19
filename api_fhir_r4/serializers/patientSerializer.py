@@ -12,7 +12,7 @@ from insuree.services import InsureeService
 
 
 class PatientSerializer(BaseFHIRSerializer):
-    fhirConverter = PatientConverter()
+    fhirConverter = PatientConverter
 
     def create(self, validated_data):
         #validated_data = resolve_id_reference(Insuree, validated_data)

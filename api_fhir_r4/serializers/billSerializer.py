@@ -3,7 +3,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class BillSerializer(BaseFHIRSerializer):
-    fhirConverter = BillInvoiceConverter()
+    fhirConverter = BillInvoiceConverter
 
     def create(self, validated_data):
         pass

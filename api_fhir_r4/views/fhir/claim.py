@@ -44,7 +44,7 @@ class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModel
                 for_patient = Insuree.objects.get(uuid=patient)
                 queryset = queryset.filter(insuree=for_patient)
 
-        serializer = ClaimSerializer(self.paginate_queryset(queryset), many=True, context={'contained': contained})
+        serializer = ClaimSerializer(self.paginate_queryset(queryset), many=True, context={'contained': contained}, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):

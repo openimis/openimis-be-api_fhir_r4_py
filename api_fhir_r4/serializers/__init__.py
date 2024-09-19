@@ -15,10 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 class BaseFHIRSerializer(serializers.Serializer):
-    fhirConverter = BaseFHIRConverter()
-
+    fhirConverter = BaseFHIRConverter
+    user = None
+    
     def __init__(self, *args, **kwargs):
         self._reference_type = kwargs.pop('reference_type', ReferenceConverterMixin.UUID_REFERENCE_TYPE)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
     def to_representation(self, obj):
@@ -27,7 +29,7 @@ class BaseFHIRSerializer(serializers.Serializer):
                 return OperationOutcomeConverter.to_fhir_obj(obj).dict()
             elif isinstance(obj, FHIRAbstractModel):
                 return obj.dict()
-            return self.fhirConverter.to_fhir_obj(obj, self.reference_type).dict()
+            return self.fhirConverter(user=self.user).to_fhir_obj(obj, self.reference_type).dict()
         except Exception as e:
             from django.conf import settings
             if settings.DEBUG:
@@ -36,7 +38,7 @@ class BaseFHIRSerializer(serializers.Serializer):
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()
-        return self.fhirConverter.to_imis_obj(data, audit_user_id).__dict__
+        return self.fhirConverter(user=self.user).to_imis_obj(data, audit_user_id).__dict__
 
     def create(self, validated_data):
         raise NotImplementedError('`create()` must be implemented.')  # pragma: no cover

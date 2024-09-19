@@ -296,7 +296,6 @@ class ClaimAPIContainedTests(ClaimAPIContainedTestBaseMixin, GenericFhirAPITestM
 
         # Confirm HF already exists
         self.assertTrue(HealthFacility.objects.filter(uuid=self.test_hf.uuid).exists())
-
         response = self.client.post(self.base_url, data=self._test_request_data, format='json', **headers)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.content)

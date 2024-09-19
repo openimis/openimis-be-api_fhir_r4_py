@@ -52,7 +52,7 @@ class InsureeViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
                     .annotate(has_claim_in_range=Exists(has_claim_in_range)) \
                     .filter(has_claim_in_range=True)
 
-        serializer = PatientSerializer(self.paginate_queryset(queryset), many=True)
+        serializer = PatientSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def get_queryset(self):

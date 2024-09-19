@@ -3,18 +3,19 @@ from django.utils.translation import gettext as _
 from fhir.resources.R4B.humanname import HumanName
 
 from insuree.models import Insuree, InsureePolicy, Family, FamilyType, ConfirmationType
+from insuree.services import InsureeService
 from policy.models import Policy
 from location.models import Location
 from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
-
+from core.models import InteractiveUser
 from api_fhir_r4.mapping.groupMapping import GroupTypeMapping, ConfirmationTypeMapping
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.group import Group, GroupMember
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.exceptions import FHIRException
-
+from core.utils import filter_validity
 
 class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
@@ -39,15 +40,32 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def to_imis_obj(cls, fhir_family, audit_user_id):
         errors = []
         fhir_family = Group(**fhir_family)
-        imis_family = Family()
-        # set uuid to Null so as to use this family object properly in service
-        imis_family.uuid = None
+        head_code = cls.get_fhir_identifier_by_code(fhir_family.identifier, cls.get_fhir_code_identifier_type())
+        family_uuid = cls.get_fhir_identifier_by_code(fhir_family.identifier, cls.get_fhir_uuid_identifier_type())
+        cls._validate_fhir_family_identifier_code(head_code)
+        imis_family = Family.objects.filter(Q(head_insuree__chf_id=head_code) | Q(uuid=family_uuid), *filter_validity()).first()
+        if imis_family:
+            saved_members = imis_family.members.filter(*filter_validity())
+            if saved_members and all([m.chf_id != head_code for m in saved_members]):
+                raise FHIRException("Group is using an UUID of a group not associated the head")
+        else:
+            imis_family = Family()
         imis_family.audit_user_id = audit_user_id
-        cls.build_family_members(imis_family, fhir_family, errors)
+        cls.build_family_members(imis_family, fhir_family, head_code, audit_user_id, errors)
         cls.build_imis_extentions(imis_family, fhir_family)
         cls.check_errors(errors)
         return imis_family
 
+
+    @classmethod
+    def get_fhir_code_identifier_type(cls):
+        return R4IdentifierConfig.get_fhir_generic_type_code()
+    
+    
+    @classmethod
+    def get_fhir_uuid_identifier_type(cls):
+        return R4IdentifierConfig.get_fhir_uuid_type_code()
+    
     @classmethod
     def get_reference_obj_id(cls, imis_family):
         return imis_family.id
@@ -79,15 +97,24 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             fhir_family.head.append(name)
 
     @classmethod
-    def build_family_members(cls, imis_family, fhir_family, errors):
+    def build_family_members(cls, imis_family, fhir_family, head_code, user_audit_id, errors):
         members = fhir_family.member
         imis_family.members_family = []
         if cls.valid_condition(members is None, _('Missing `member` attribute'), errors) \
                 or cls.valid_condition(members is None, _('Missing member should not be empty'), errors):
             return
-
         for member in members:
-            cls._add_member_to_family(imis_family, member.entity, imis_family.members_family)
+            insuree = cls._insuree_from_reference(member.entity)
+            try:
+                # we are changeing family
+                InsureeService(user=cls.user).change_family(insuree, imis_family)
+
+            except ValueError as e:
+                raise FHIRException(e)
+            if insuree.chf_id == head_code:
+                imis_family.head_insuree = insuree
+            imis_family.members_family.append(insuree)
+        
         
     @classmethod
     def build_fhir_identifiers(cls, fhir_family, imis_family):
@@ -111,16 +138,7 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
         )
         identifiers.append(head_id)
 
-    @classmethod
-    def _add_member_to_family(cls, imis_family, reference, members_family):
-        cls._validate_fhir_family_identifier_code(reference)
-        insuree = cls._insuree_from_reference(reference)
-        if cls._insuree_has_family(insuree):
-            raise FHIRException(F"Insuree {insuree} already asigned to family")
 
-        if len(members_family) == 0:
-            imis_family.head_insuree = insuree
-        members_family.append(imis_family.head_insuree)
 
     @classmethod
     def build_fhir_name(cls, fhir_family, imis_family):
@@ -367,6 +385,4 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
                                 f"Insuree with identifier `{reference}` does not exist")
         return insuree
 
-    @classmethod
-    def _insuree_has_family(cls, insuree):
-        return insuree.family is not None
+

@@ -50,7 +50,7 @@ class ContractViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelM
                     isValidDate = False
                 queryset = queryset.filter(validity_from__lt=datevar)
 
-        serializer = ContractSerializer(self.paginate_queryset(queryset), many=True)
+        serializer = ContractSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def get_queryset(self):

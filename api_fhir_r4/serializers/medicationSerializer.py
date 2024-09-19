@@ -8,7 +8,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class MedicationSerializer(BaseFHIRSerializer):
-    fhirConverter = MedicationConverter()
+    fhirConverter = MedicationConverter
 
     def create(self, validated_data):
         code = validated_data.get('code')

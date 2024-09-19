@@ -3,7 +3,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class InsuranceOrganizationSerializer(BaseFHIRSerializer):
-    fhirConverter = InsuranceOrganisationConverter()
+    fhirConverter = InsuranceOrganisationConverter
 
     def create(self, validated_data):
         pass

@@ -7,7 +7,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class LocationSiteSerializer(BaseFHIRSerializer):
-    fhirConverter = LocationSiteConverter()
+    fhirConverter = LocationSiteConverter
 
     def create(self, validated_data):
         copied_data = copy.deepcopy(validated_data)

@@ -33,7 +33,7 @@ class TestSubscriptionNotificationManager(CommunicationTestMixin, LogInMixin, Te
         self._test_user = self.get_or_create_user_api()
         self._test_subscriptions = self._create_test_subscriptions()
         self._test_resource = self._TEST_CLAIM
-        self._test_converter = ClaimConverter()
+        self._test_converter = ClaimConverter(user=self._test_user)
 
     def test_sending_claim_notification(self):
         mocked_client = MagicMock()

@@ -300,7 +300,7 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
             querysets = self._join_querysets([*filtered_querysets.values()])
             page = self.paginate_queryset(querysets)
             data = self.__dispatch_page_data(page)
-            serialized_data = self._serialize_dispatched_data(data, dict(filtered_querysets.keys()))
+            serialized_data = self._serialize_dispatched_data(data, dict(filtered_querysets.keys()), user=request.user)
             data = self.get_paginated_response(serialized_data)
             return data
         except Exception as e:
@@ -318,7 +318,7 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
             x[type(r)].append(r)
         return x
 
-    def _serialize_dispatched_data(self, data, serializer_models):
+    def _serialize_dispatched_data(self, data, serializer_models, user=None):
         serialized = []
         for model, model_data in data.items():
             serializer_cls = serializer_models.get(model, None)
@@ -327,7 +327,7 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
                              f"any of available serializers {serializer_models}")
                 continue
             else:
-                serializer = serializer_cls(tuple(model_data), many=True)
+                serializer = serializer_cls(tuple(model_data), many=True, user=user)
                 serialized.extend(serializer.data)
 
         return serialized

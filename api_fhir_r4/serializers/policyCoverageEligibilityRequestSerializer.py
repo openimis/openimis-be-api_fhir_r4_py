@@ -15,7 +15,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 """
 class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
-    fhirConverter = PolicyCoverageEligibilityRequestConverter()
+    fhirConverter = PolicyCoverageEligibilityRequestConverter
     logger = logging.getLogger(__name__)
     def create(self, validated_data):
         data = self.context.get("request").data
