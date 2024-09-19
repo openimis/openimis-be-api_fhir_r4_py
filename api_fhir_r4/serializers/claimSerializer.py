@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
-    fhirConverter = ClaimConverter()
+    fhirConverter = ClaimConverter
 
     contained_resources = ClaimContainedResources
 

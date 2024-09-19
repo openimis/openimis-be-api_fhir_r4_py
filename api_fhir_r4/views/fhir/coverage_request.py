@@ -41,7 +41,7 @@ class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.Li
                     isValidDate = False
                 queryset = queryset.filter(validity_from__lt=datevar)
 
-        serializer = CoverageSerializer(self.paginate_queryset(queryset), many=True)
+        serializer = CoverageSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def get_queryset(self):

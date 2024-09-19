@@ -7,7 +7,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class InsurancePlanSerializer(BaseFHIRSerializer):
-    fhirConverter = InsurancePlanConverter()
+    fhirConverter = InsurancePlanConverter
 
     def create(self, validated_data):
         code = validated_data.get('code')

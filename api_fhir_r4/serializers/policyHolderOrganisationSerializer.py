@@ -6,7 +6,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class PolicyHolderOrganisationSerializer(BaseFHIRSerializer):
-    fhirConverter = PolicyHolderOrganisationConverter()
+    fhirConverter = PolicyHolderOrganisationConverter
 
     def create(self, validated_data):
         if PolicyHolder.objects.filter(code=validated_data['code']).count() > 0:

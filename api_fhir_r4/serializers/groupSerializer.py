@@ -10,7 +10,7 @@ from uuid import UUID
 from django.forms.models import model_to_dict
 
 class GroupSerializer(BaseFHIRSerializer):
-    fhirConverter = GroupConverter()
+    fhirConverter = GroupConverter
 
     def create(self, validated_data):
         #validated_data = resolve_id_reference(Family, validated_data)

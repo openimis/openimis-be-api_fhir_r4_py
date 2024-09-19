@@ -8,7 +8,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 class ClaimAdminPractitionerRoleSerializer(BaseFHIRSerializer):
 
-    fhirConverter = ClaimAdminPractitionerRoleConverter()
+    fhirConverter = ClaimAdminPractitionerRoleConverter
 
     def create(self, validated_data):
         claim_admin_id = validated_data.get('id')

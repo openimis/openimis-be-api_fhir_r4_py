@@ -23,7 +23,7 @@ class CommunicationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, viewsets
             return self.retrieve(request, *args, **{**kwargs, 'identifier': identifier})
         else:
             queryset = queryset.filter(validity_to__isnull=True)
-        serializer = CommunicationSerializer(self.paginate_queryset(queryset), many=True)
+        serializer = CommunicationSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, *args, **kwargs):

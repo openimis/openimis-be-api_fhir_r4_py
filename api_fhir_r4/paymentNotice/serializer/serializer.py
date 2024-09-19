@@ -4,7 +4,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class PaymentNoticeSerializer(BaseFHIRSerializer):
-    fhirConverter = PaymentNoticeConverter()
+    fhirConverter = PaymentNoticeConverter
 
     def create(self, validated_data):
         request = self.context.get("request")

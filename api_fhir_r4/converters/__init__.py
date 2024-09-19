@@ -20,6 +20,19 @@ from api_fhir_r4.configurations import GeneralConfiguration
 
 class BaseFHIRConverter(ABC):
 
+    user = None
+    def __init__(self, user=None):
+        if user:
+            self.user = user
+        else:
+            self.user = core.models.InteractiveUser.objects.filter(
+                user_roles=core.models.UserRole.objects.filter(
+                    role__is_system=64,
+                    *core.utils.filter_validity()
+                ),
+                *core.utils.filter_validity()
+            ).first()
+    
     @classmethod
     def to_fhir_obj(cls, obj, reference_type):
         raise NotImplementedError('`toFhirObj()` must be implemented.')  # pragma: no cover

@@ -10,7 +10,7 @@ from api_fhir_r4.converters import OperationOutcomeConverter
 
 class CoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
-    fhirConverter = CoverageEligibilityRequestConverter()
+    fhirConverter = CoverageEligibilityRequestConverter
     logger = logging.getLogger(__name__)
 
     def to_representation(self, obj):

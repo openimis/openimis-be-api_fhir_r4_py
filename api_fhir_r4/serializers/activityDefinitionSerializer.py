@@ -8,7 +8,7 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 
 class ActivityDefinitionSerializer(BaseFHIRSerializer):
-    fhirConverter = ActivityDefinitionConverter()
+    fhirConverter = ActivityDefinitionConverter
 
     def create(self, validated_data):
         if 'uuid' in validated_data.keys() and validated_data.get('uuid') is None:

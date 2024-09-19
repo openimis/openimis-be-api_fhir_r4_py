@@ -4,4 +4,4 @@ from api_fhir_r4.serializers import BaseFHIRSerializer
 
 class EnrolmentOfficerPractitionerRoleSerializer(BaseFHIRSerializer):
 
-    fhirConverter = EnrolmentOfficerPractitionerRoleConverter()
+    fhirConverter = EnrolmentOfficerPractitionerRoleConverter

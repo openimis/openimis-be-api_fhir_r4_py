@@ -28,7 +28,7 @@ class PaymentNoticeViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
             return self.retrieve(request, *args, **{**kwargs, 'identifier': identifier})
         else:
             queryset = queryset.filter(is_deleted=False)
-        serializer = PaymentNoticeSerializer(self.paginate_queryset(queryset), many=True)
+        serializer = PaymentNoticeSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, *args, **kwargs):
