@@ -116,7 +116,7 @@ class MultiIdentifierRetrieveManySerializersMixin(MultiSerializerRetrieveModelMi
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
             if instance:
-                serializer = serializer(instance, reference_type=ref_type)
+                serializer = serializer(instance, reference_type=ref_type, user=request.user)
                 if serializer.data:
                     retrieved.append(serializer.data)
 

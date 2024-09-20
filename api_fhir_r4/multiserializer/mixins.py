@@ -192,7 +192,7 @@ class MultiSerializerCreateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
 
     def _create_for_serializer(self, serializer, request, *args, **kwargs):
         context = self.get_serializer_context()  # Required for audit user id
-        serializer = serializer(data=request.data, context=context)
+        serializer = serializer(data=request.data, context=context, user=request.user)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return serializer.data
@@ -353,7 +353,7 @@ class MultiSerializerRetrieveModelMixin(GenericMultiSerializerViewsetMixin, ABC)
         retrieved = []
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             instance = self.get_object_by_queryset(qs=qs)
-            serializer = serializer(instance)
+            serializer = serializer(instance, user=request.user)
             if serializer.data:
                 retrieved.append(serializer.data)
 
