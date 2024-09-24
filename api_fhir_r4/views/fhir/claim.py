@@ -50,7 +50,7 @@ class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModel
     def retrieve(self, request, *args, **kwargs):
         contained = bool(request.GET.get("contained"))
         ref_type, instance = self._get_object_with_first_valid_retriever(kwargs['identifier'])
-        serializer = self.get_serializer(instance, context={'contained': contained}, reference_type=ref_type)
+        serializer = self.get_serializer(instance, context={'contained': contained}, reference_type=ref_type, user=request.user)
         return Response(serializer.data)
 
     def get_queryset(self):

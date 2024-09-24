@@ -379,15 +379,15 @@ class MultiSerializerUpdateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
         results = []
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             instance = self.get_object_by_queryset(qs=qs)
-            update_result = self._update_for_serializer(serializer, instance, request.data, partial)
+            update_result = self._update_for_serializer(serializer, instance, request.data, partial, user=request.user)
             results.append(update_result)
 
         response = results[0]  # By default there should be only one eligible serializer
         return Response(response)
 
-    def _update_for_serializer(self, serializer, instance, data, partial, *args, **kwargs):
+    def _update_for_serializer(self, serializer, instance, data, partial, user=None, *args, **kwargs):
         context = self.get_serializer_context()  # Required for audit user id
-        serializer = serializer(instance, data=data, partial=partial, context=context, *args, **kwargs)
+        serializer = serializer(instance, data=data, partial=partial, context=context, user=user, *args, **kwargs)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         if getattr(instance, '_prefetched_objects_cache', None):

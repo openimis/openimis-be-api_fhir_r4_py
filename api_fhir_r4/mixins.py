@@ -48,7 +48,7 @@ class MultiIdentifierRetrieverMixin(mixins.RetrieveModelMixin, GenericMultiIdent
 
     def retrieve(self, request, *args, **kwargs):
         ref_type, instance = self._get_object_with_first_valid_retriever(kwargs['identifier'])
-        serializer = self.get_serializer(instance, reference_type=ref_type)
+        serializer = self.get_serializer(instance, reference_type=ref_type, user=request.user)
         return Response(serializer.data)
 
 
@@ -101,7 +101,7 @@ class MultiIdentifierUpdateManySerializersMixin(MultiSerializerUpdateModelMixin,
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
             update_result = self._update_for_serializer(serializer, instance, request.data, partial,
-                                                        reference_type=ref_type)
+                                                        reference_type=ref_type, user=request.user)
             results.append(update_result)
 
         response = results[0]  # By default there should be only one eligible serializer
