@@ -34,7 +34,8 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
             'HTTP_AUTHORIZATION': f"Bearer {token}"
         }
         response = self.client.get(self.url_to_test_authorization, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"{response.content}")
 
     def test_post_should_raise_no_auth_header(self):
         response = self.client.get(self.url_to_test_authorization, format='json')
