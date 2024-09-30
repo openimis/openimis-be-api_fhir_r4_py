@@ -47,15 +47,14 @@ class BaseFHIRSerializer(serializers.Serializer):
         raise NotImplementedError('`update()` must be implemented.')  # pragma: no cover
 
     def get_audit_user_id(self):
-        request = self.context.get("request")
-        # Taking the audit_user_id from the query doesn't seem wise but there might be a use for it
-        # audit_user_id = request.query_params.get('auditUserId', None)
-        audit_user_id = request.user.id_for_audit if request.user else None
-        if audit_user_id is None:
-            audit_user_id = GeneralConfiguration.get_default_audit_user_id()
+        # the audit user is the user
+        if self.user:
+            return self.user.audit_user_id or self.user._u.id
+        audit_user_id = GeneralConfiguration.get_default_audit_user_id()
         if isinstance(audit_user_id, int):
             return audit_user_id
         else:
+            raise ValueError("User not available from the request for audit trail")
             return self.__get_technical_audit_user(audit_user_id)
 
     @property
