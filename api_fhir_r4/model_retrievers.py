@@ -36,6 +36,8 @@ class GenericModelRetriever(ABC):
 
     @classmethod
     def get_model_object(cls, queryset: QuerySet, identifier_value) -> Model:
+        if cls.serializer_reference_type == 'uuid_reference':
+            identifier_value = uuid.UUID(identifier_value)
         return queryset.get(**{cls.identifier_field: identifier_value})
 
 
@@ -50,7 +52,7 @@ class UUIDIdentifierModelRetriever(GenericModelRetriever):
     @classmethod
     def _is_uuid_identifier(cls, identifier):
         try:
-            uuid.UUID(str(identifier))
+            cls.identifier_value = uuid.UUID(str(identifier))
             return True
         except ValueError:
             return False
