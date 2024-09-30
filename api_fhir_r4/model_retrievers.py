@@ -4,7 +4,7 @@ from typing import Union
 
 from django.db.models.query import QuerySet
 from django.db.models import Model
-
+from insuree.services import validate_insuree_number
 from api_fhir_r4.converters import ReferenceConverterMixin
 
 
@@ -36,9 +36,13 @@ class GenericModelRetriever(ABC):
 
     @classmethod
     def get_model_object(cls, queryset: QuerySet, identifier_value) -> Model:
+        filters = {}
         if cls.serializer_reference_type == 'uuid_reference':
-            identifier_value = uuid.UUID(identifier_value)
-        return queryset.get(**{cls.identifier_field: identifier_value})
+            identifier_value = uuid.UUID(str(identifier_value))
+        elif hasattr(queryset.model, 'validity_to'):  
+            filters['validity_to__isnull'] = True
+        filters[cls.identifier_field] = identifier_value
+        return queryset.get(**filters)
 
 
 class UUIDIdentifierModelRetriever(GenericModelRetriever):
@@ -52,7 +56,7 @@ class UUIDIdentifierModelRetriever(GenericModelRetriever):
     @classmethod
     def _is_uuid_identifier(cls, identifier):
         try:
-            cls.identifier_value = uuid.UUID(str(identifier))
+            uuid.UUID(str(identifier))
             return True
         except ValueError:
             return False
@@ -75,10 +79,7 @@ class CodeIdentifierModelRetriever(GenericModelRetriever):
     def identifier_validator(cls, identifier_value):
         return isinstance(identifier_value, str)
 
-    @classmethod
-    def add_retriever_queryset_filtering(cls, queryset):
-        # By default no additional changes are made in queryset
-        return queryset.filter(validity_to__is_null=True)
+    
 
 
 class CHFIdentifierModelRetriever(CodeIdentifierModelRetriever):
@@ -87,11 +88,7 @@ class CHFIdentifierModelRetriever(CodeIdentifierModelRetriever):
     @classmethod
     def identifier_validator(cls, identifier_value):
         # From model specification
-        return isinstance(identifier_value, str) and len(identifier_value) <= 12
-
-    @classmethod
-    def get_model_object(cls, queryset: QuerySet, identifier_value) -> Model:
-        return queryset.get(**{cls.identifier_field: identifier_value, 'validity_to__isnull': True})
+        return isinstance(identifier_value, str) and validate_insuree_number(identifier_value)
 
 
 class GroupIdentifierModelRetriever(CHFIdentifierModelRetriever):
