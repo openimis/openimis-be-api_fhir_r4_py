@@ -133,13 +133,18 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
     def retrieve(self, request, *args, **kwargs):
         self._validate_retrieve_model_request()
         retrieved = []
+        errors = []
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             if qs.model is not ModuleConfiguration:
-                ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
-                if instance:
-                    serializer = serializer(instance, reference_type=ref_type, user=request.user)
-                    if serializer.data:
-                        retrieved.append(serializer.data)
+                try:
+                    ref_type, instance = self._get_object_with_first_valid_retriever(qs, kwargs['identifier'])
+                    if instance:
+                        serializer = serializer(instance, reference_type=ref_type, user=request.user)
+                        if serializer.data:
+                            retrieved.append(serializer.data)
+                except Exception as e:
+                    # we will try with another retriever
+                    errors.append(str(e))
             else:
                 if qs.count() > 0:
                     data = self._get_insurance_organisation(kwargs.get('identifier', None))
@@ -150,8 +155,11 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
 
         if len(retrieved) > 1:
             raise ValueError("Ambiguous retrieve result, object found for multiple serializers.")
-        if len(retrieved) == 0:
-            raise Http404(f"Resource for identifier {kwargs['identifier']} not found")
+        elif len(retrieved) == 0:
+            if len(errors) > 0:
+                raise Http404(f"Resource for identifier {kwargs['identifier']} cannot be reloved:{','.join(errors)}")
+            else:
+                raise Http404(f"Resource for identifier {kwargs['identifier']} not found")
 
         return Response(retrieved[0])
 

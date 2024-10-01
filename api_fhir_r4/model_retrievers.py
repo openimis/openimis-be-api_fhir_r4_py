@@ -6,7 +6,7 @@ from django.db.models.query import QuerySet
 from django.db.models import Model
 from insuree.services import validate_insuree_number
 from api_fhir_r4.converters import ReferenceConverterMixin
-
+from django.core.exceptions import ValidationError
 
 class GenericModelRetriever(ABC):
 
@@ -42,7 +42,10 @@ class GenericModelRetriever(ABC):
         elif hasattr(queryset.model, 'validity_to'):  
             filters['validity_to__isnull'] = True
         filters[cls.identifier_field] = identifier_value
-        return queryset.get(**filters)
+        try:
+            return queryset.get(**filters)
+        except Exception as e:
+            raise ValidationError(f"failed to retrieve {queryset.model.__name__} with the filter {filters}; details {e}")
 
 
 class UUIDIdentifierModelRetriever(GenericModelRetriever):
