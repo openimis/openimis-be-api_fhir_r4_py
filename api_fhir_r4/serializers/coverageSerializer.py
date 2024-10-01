@@ -14,7 +14,8 @@ class CoverageSerializer(BaseFHIRSerializer):
         if Policy.objects.filter(family_id=family).count() > 0:
             raise FHIRException('Exists coverage with the family  provided')
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         return Policy.objects.create(**copied_data)
         
     def update(self, instance, validated_data):

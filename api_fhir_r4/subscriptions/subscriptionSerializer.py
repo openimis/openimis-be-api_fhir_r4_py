@@ -28,7 +28,10 @@ class SubscriptionSerializer(BaseFHIRSerializer):
         self.check_resource_rights(user, validated_data)
         service = SubscriptionService(user)
         copied_data = deepcopy(validated_data)
-        del copied_data['_state'], copied_data['_original_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
+        if '_original_state' in copied_data:
+            del copied_data['_original_state']
         result = service.create(copied_data)
         return self.get_result_object(result)
 
@@ -40,7 +43,10 @@ class SubscriptionSerializer(BaseFHIRSerializer):
         service = SubscriptionService(user)
         copied_data = {key: value for key, value in deepcopy(validated_data).items() if value is not None}
         copied_data['id'] = instance.id
-        del copied_data['_state'], copied_data['_original_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
+        if '_original_state' in copied_data:
+            del copied_data['_original_state']
         result = service.update(copied_data)
         return self.get_result_object(result)
 

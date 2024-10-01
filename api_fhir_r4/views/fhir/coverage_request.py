@@ -1,8 +1,8 @@
 import datetime
 
-from rest_framework import mixins
+from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.viewsets import GenericViewSet
-
+from api_fhir_r4.mixins import ListModelMixin
 from api_fhir_r4.permissions import FHIRApiCoverageRequestPermissions
 from api_fhir_r4.serializers.coverageSerializer import CoverageSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
@@ -10,8 +10,7 @@ from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from policy.models import Policy
 
 
-class CoverageRequestQuerySet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.UpdateModelMixin,
-                              mixins.CreateModelMixin, GenericViewSet):
+class CoverageRequestQuerySet(BaseFHIRView, RetrieveModelMixin, ListModelMixin, GenericViewSet):
     lookup_field = 'uuid'
     serializer_class = CoverageSerializer
     permission_classes = (FHIRApiCoverageRequestPermissions,)

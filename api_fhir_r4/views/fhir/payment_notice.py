@@ -15,8 +15,12 @@ from api_fhir_r4.views.filters import DateUpdatedRequestParameterFilter
 from invoice.models import PaymentInvoice
 
 
-class PaymentNoticeViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin,
-                   MultiIdentifierUpdateMixin, viewsets.ModelViewSet):
+class PaymentNoticeViewSet(
+    BaseFHIRView,
+    MultiIdentifierRetrieverMixin,
+    MultiIdentifierUpdateMixin,
+    viewsets.ModelViewSet
+):
     retrievers = [UUIDIdentifierModelRetriever, GroupIdentifierModelRetriever]
     serializer_class = PaymentNoticeSerializer
     permission_classes = (FHIRApiPaymentPermissions,)

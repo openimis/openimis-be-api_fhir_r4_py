@@ -1,9 +1,8 @@
 import datetime
 
 from django.db.models import Prefetch
-from rest_framework import mixins
+from rest_framework.mixins import  RetrieveModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
-
 from api_fhir_r4.permissions import FHIRApiCoverageRequestPermissions
 from api_fhir_r4.serializers import ContractSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
@@ -12,8 +11,12 @@ from insuree.models import InsureePolicy
 from policy.models import Policy
 
 
-class ContractViewSet(BaseFHIRView, mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.CreateModelMixin,
-                      GenericViewSet):
+class ContractViewSet(
+    BaseFHIRView,
+    RetrieveModelMixin,
+    ListModelMixin,
+    GenericViewSet
+):
     lookup_field = 'uuid'
     serializer_class = ContractSerializer
     permission_classes = (FHIRApiCoverageRequestPermissions,)

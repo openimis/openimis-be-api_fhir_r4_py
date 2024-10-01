@@ -61,7 +61,9 @@ class ContainedContentSerializerMixin:
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()
-        return self.fhirConverter.to_imis_obj(data, audit_user_id).__dict__
+        imis_obj = self.fhirConverter(user=self.user).to_imis_obj(data, audit_user_id)
+        # Filter out special attributes
+        return {k: v for k, v in imis_obj.__dict__.items() if not k.startswith('_') and v is not None}
 
     def create(self, validated_data):
         self._create_or_update_contained(validated_data)

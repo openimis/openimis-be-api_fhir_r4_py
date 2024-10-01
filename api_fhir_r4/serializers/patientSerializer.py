@@ -28,7 +28,7 @@ class PatientSerializer(BaseFHIRSerializer):
     def update(self, instance, validated_data):
         #validated_data = resolve_id_reference(Insuree, validated_data)
         request = self.context.get("request")
-        validated_data.pop('_state')
+        validated_data.pop('_state', None)
         user = request.user
         chf_id = validated_data.get('chf_id', None)
         if Insuree.objects.filter(chf_id=chf_id).count() == 0:

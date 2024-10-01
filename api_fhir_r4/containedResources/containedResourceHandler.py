@@ -111,4 +111,4 @@ class ContainedResourceManager:
 
     def _model_to_dict(self, instance):
         # Due to how serializers are build simple __dict__ is used instead of builtin model_to_dict
-        return instance.__dict__
+        return {k: v for k, v in instance.__dict__.items() if not k.startswith('_')} 

@@ -1,12 +1,11 @@
 import datetime
 
 from django.db.models import Prefetch
-from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.viewsets import GenericViewSet
 
-from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin
+from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, ListModelMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiClaimPermissions
 from api_fhir_r4.serializers import ClaimSerializer
@@ -16,8 +15,7 @@ from claim.models import Claim, ClaimItem, ClaimService
 from insuree.models import Insuree, InsureePolicy
 
 
-class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModelMixin,
-                   mixins.CreateModelMixin, GenericViewSet):
+class ClaimViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, ListModelMixin, GenericViewSet):
     retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]
     serializer_class = ClaimSerializer
     permission_classes = (FHIRApiClaimPermissions,)

@@ -1,18 +1,75 @@
 import logging
 from abc import abstractmethod, ABC
+from collections.abc import Iterable
+
 from typing import List
+from rest_framework import status
 
 from django.core.exceptions import ObjectDoesNotExist, FieldError
 from django.http import Http404
 
-from rest_framework import mixins
-
+from rest_framework.mixins import RetrieveModelMixin
 from api_fhir_r4.model_retrievers import GenericModelRetriever
 from rest_framework.response import Response
 
 from api_fhir_r4.multiserializer.mixins import MultiSerializerUpdateModelMixin, MultiSerializerRetrieveModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin as RestCreateModelMixin,
+    UpdateModelMixin as RestUpdateModelMixin,
+    ListModelMixin as RestListModelMixin
+)
 
 logger = logging.getLogger(__name__)
+
+
+class CreateModelMixin(RestCreateModelMixin):
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, user=request.user)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
+
+class UpdateModelMixin(RestUpdateModelMixin):
+    """
+    Update a model instance.
+    """
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial, user=request.user)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+    
+    
+class ListModelMixin(RestListModelMixin):
+    """
+    List a queryset.
+    """
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not isinstance(queryset, Iterable):
+            queryset = queryset.all().order_by('code' if hasattr(queryset.model, 'code') else 'id')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, user=request.user)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class GenericMultiIdentifierMixin(ABC):
@@ -44,7 +101,7 @@ class GenericMultiIdentifierMixin(ABC):
         raise Http404(f"Resource for identifier {identifier} not found")
 
 
-class MultiIdentifierRetrieverMixin(mixins.RetrieveModelMixin, GenericMultiIdentifierMixin, ABC):
+class MultiIdentifierRetrieverMixin(RetrieveModelMixin, GenericMultiIdentifierMixin, ABC):
 
     def retrieve(self, request, *args, **kwargs):
         ref_type, instance = self._get_object_with_first_valid_retriever(kwargs['identifier'])
@@ -52,7 +109,7 @@ class MultiIdentifierRetrieverMixin(mixins.RetrieveModelMixin, GenericMultiIdent
         return Response(serializer.data)
 
 
-class MultiIdentifierUpdateMixin(mixins.UpdateModelMixin, GenericMultiIdentifierMixin, ABC):
+class MultiIdentifierUpdateMixin(UpdateModelMixin, GenericMultiIdentifierMixin, ABC):
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -126,3 +183,4 @@ class MultiIdentifierRetrieveManySerializersMixin(MultiSerializerRetrieveModelMi
             raise Http404(f"Resource for identifier {kwargs['identifier']} not found")
 
         return Response(retrieved[0])
+
