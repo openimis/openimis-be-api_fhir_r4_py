@@ -1,11 +1,11 @@
 import datetime
 
 from django.db.models import Prefetch
-from rest_framework.mixins import  RetrieveModelMixin, ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 from api_fhir_r4.permissions import FHIRApiCoverageRequestPermissions
 from api_fhir_r4.serializers import ContractSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
+from api_fhir_r4.mixins import RetrieveModelMixin, ListModelMixin
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from insuree.models import InsureePolicy
 from policy.models import Policy

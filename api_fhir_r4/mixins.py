@@ -8,15 +8,16 @@ from rest_framework import status
 from django.core.exceptions import ObjectDoesNotExist, FieldError
 from django.http import Http404
 
-from rest_framework.mixins import RetrieveModelMixin
 from api_fhir_r4.model_retrievers import GenericModelRetriever
 from rest_framework.response import Response
-
+from core.models import HistoryModel
 from api_fhir_r4.multiserializer.mixins import MultiSerializerUpdateModelMixin, MultiSerializerRetrieveModelMixin
 from rest_framework.mixins import (
     CreateModelMixin as RestCreateModelMixin,
     UpdateModelMixin as RestUpdateModelMixin,
-    ListModelMixin as RestListModelMixin
+    ListModelMixin as RestListModelMixin,
+    DestroyModelMixin as RestDestroyModelMixin,
+    RetrieveModelMixin as RestRetrieveModelMixin,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,33 @@ class ListModelMixin(RestListModelMixin):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+class DestroyModelMixin(RestDestroyModelMixin):
+    """
+    Destroy a model instance.
+    """
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.user = request.user
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        if issubclass(instance.__class__, HistoryModel):
+            instance.delete(user=self.user)
+        else:
+            instance.delete()
+            
+            
+class RetrieveModelMixin(RestRetrieveModelMixin):
+    """
+    Retrieve a model instance.
+    """
+    def retrieve(self, request, *args, **kwargs):
+        self.user = request.user
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, user=self.user)
         return Response(serializer.data)
 
 

@@ -10,7 +10,7 @@ from api_fhir_r4.services import SubscriptionService
 from api_fhir_r4.subscriptions.subscriptionSerializer import SubscriptionSerializerSchema
 from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import DateUpdatedRequestParameterFilter
-from api_fhir_r4.mixins import ListModelMixin
+from api_fhir_r4.mixins import ListModelMixin, RetrieveModelMixin
 
 @extend_schema_view(
     list=extend_schema(responses={(200, 'application/json'): SubscriptionSerializerSchema()}),
@@ -28,7 +28,7 @@ from api_fhir_r4.mixins import ListModelMixin
     ),
     destroy=extend_schema(responses={204: None})
 )
-class SubscriptionViewSet(BaseFHIRView, ListModelMixin, ModelViewSet):
+class SubscriptionViewSet(BaseFHIRView, ListModelMixin, RetrieveModelMixin, ModelViewSet):
     _error_while_deleting = 'Error while deleting a subscription: %(msg)s'
     serializer_class = SubscriptionSerializer
     http_method_names = ('get', 'post', 'put', 'delete')

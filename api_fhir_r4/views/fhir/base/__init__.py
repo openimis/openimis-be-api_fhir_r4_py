@@ -7,16 +7,19 @@ from api_fhir_r4.views import CsrfExemptSessionAuthentication
 from api_fhir_r4.mixins import (
     UpdateModelMixin,
     ListModelMixin,
-    CreateModelMixin
+    CreateModelMixin,
+    DestroyModelMixin
 )
 
 
 class BaseFHIRView(
     CreateModelMixin,
     UpdateModelMixin,
+    DestroyModelMixin,
     APIView,
 
 ):
+    user = None
     pagination_class = FhirBundleResultsSetPagination
     permission_classes = (FHIRApiPermissions,)
     authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES

@@ -1,8 +1,7 @@
 import datetime
-
-from rest_framework.mixins import RetrieveModelMixin
+ 
 from rest_framework.viewsets import GenericViewSet
-from api_fhir_r4.mixins import ListModelMixin
+from api_fhir_r4.mixins import ListModelMixin, RetrieveModelMixin
 from api_fhir_r4.permissions import FHIRApiCoverageRequestPermissions
 from api_fhir_r4.serializers.coverageSerializer import CoverageSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
