@@ -17,6 +17,7 @@ class CodeSystemOrganizationHFLevelViewSet(viewsets.ViewSet):
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
         serializer = CodeSystemSerializer(
+            user=request.user,
             instance=None,
             **{
                 'data': HealthFacilityLevel(request.user).get_all()['data'],

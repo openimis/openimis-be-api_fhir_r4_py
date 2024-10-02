@@ -11,9 +11,9 @@ from api_fhir_r4.permissions import FHIRApiInsureePermissions, FHIRApiInvoicePer
     FHIRApiHealthServicePermissions
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from api_fhir_r4.services import SubscriptionService
+from api_fhir_r4.mixins import RetrieveModelMixin
 
-
-class SubscriptionSerializer(BaseFHIRSerializer):
+class SubscriptionSerializer(BaseFHIRSerializer, RetrieveModelMixin):
     fhirConverter = SubscriptionConverter
     _error_while_saving = 'Error while saving a subscription: %(msg)s'
 
@@ -24,23 +24,29 @@ class SubscriptionSerializer(BaseFHIRSerializer):
     }
 
     def create(self, validated_data):
-        user = self.context['request'].user
+        user = self.user or self.context['request'].user
         self.check_resource_rights(user, validated_data)
         service = SubscriptionService(user)
         copied_data = deepcopy(validated_data)
-        del copied_data['_state'], copied_data['_original_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
+        if '_original_state' in copied_data:
+            del copied_data['_original_state']
         result = service.create(copied_data)
         return self.get_result_object(result)
 
     def update(self, instance, validated_data):
-        user = self.context['request'].user
+        user = self.user or self.context['request'].user
         self.check_instance_id(instance, validated_data)
         self.check_object_owner(user, instance)
         self.check_resource_rights(user, validated_data)
         service = SubscriptionService(user)
         copied_data = {key: value for key, value in deepcopy(validated_data).items() if value is not None}
         copied_data['id'] = instance.id
-        del copied_data['_state'], copied_data['_original_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
+        if '_original_state' in copied_data:
+            del copied_data['_original_state']
         result = service.update(copied_data)
         return self.get_result_object(result)
 

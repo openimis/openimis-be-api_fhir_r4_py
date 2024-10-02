@@ -18,6 +18,7 @@ from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.configurations import GeneralConfiguration
 import core
 import re
+from uuid import UUID
 
 
 class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
@@ -44,7 +45,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         imis_medication = Item()
         imis_medication.audit_user_id = audit_user_id
         cls.build_imis_identifier(imis_medication, fhir_medication, errors)
-        cls.build_imis_item_code(imis_medication, fhir_medication, errors)
+        #cls.build_imis_item_code(imis_medication, fhir_medication, errors)
         cls.build_imis_item_name(imis_medication, fhir_medication, errors)
         cls.build_imis_item_package(imis_medication, fhir_medication, errors)
         cls.build_imis_item_extension(imis_medication, fhir_medication, errors)
@@ -85,11 +86,11 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_identifier(cls, imis_medication, fhir_medication, errors):
-        value = cls.get_fhir_identifier_by_code(fhir_medication.identifier,
-                                                R4IdentifierConfig.get_fhir_uuid_type_code())
-        if value:
-            imis_medication.code = value
-        cls.valid_condition(imis_medication.code is None, gettext('Missing the item code'), errors)
+        super().build_imis_identifier(imis_medication, fhir_medication, errors)
+        cls.valid_condition(
+            not imis_medication.code,
+            gettext('Missing medication `item_code` attribute'), errors
+        )
 
     @classmethod
     def build_fhir_package_form(cls, fhir_medication, imis_medication):

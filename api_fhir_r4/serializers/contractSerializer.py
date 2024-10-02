@@ -22,7 +22,8 @@ class ContractSerializer(BaseFHIRSerializer):
             raise FHIRException('Contract exists for this patient')
 
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         #TODO should we implement a way to create a resource with a given uuid
         del copied_data['uuid']
 

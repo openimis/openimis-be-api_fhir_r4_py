@@ -21,6 +21,7 @@ class CodeSystemOpenIMISPatientIdentificationTypeViewSet(viewsets.ViewSet):
         if not request.user.has_perms(FHIRApiInsureePermissions.permissions_get):
             raise PermissionDenied("unauthorized")
         serializer = CodeSystemSerializer(
+            user=request.user,
             instance=None,
             **{
                 "model_name": 'IdentificationType',

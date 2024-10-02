@@ -5,6 +5,15 @@ class MultiSerializerSerializerClass(Serializer):
     """
      Serves as base serializer class for instances using multiserializer mixin.
      """
+    user = None
+    
+    def __init__(self, user=None, **kwargs):
+        if user:
+            self.user = user
+        else:
+            context = kwargs.get('context', None)
+            if context and hasattr(context, 'user'):
+                self.user = context.user
 
     def update(self, instance, validated_data):
         raise NotImplementedError("MultiSerializerSerializerClass `update` not supported. Should be"

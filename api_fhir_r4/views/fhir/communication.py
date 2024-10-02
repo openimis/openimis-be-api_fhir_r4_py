@@ -11,7 +11,12 @@ from claim.models import Feedback
 import logging
 logger = logging.getLogger(__name__)
 
-class CommunicationViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, viewsets.ModelViewSet):
+
+class CommunicationViewSet(
+    BaseFHIRView,
+    MultiIdentifierRetrieverMixin,
+    viewsets.ModelViewSet
+):
     retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]
     serializer_class = CommunicationSerializer
     permission_classes = (FHIRApiCommunicationRequestPermissions,)

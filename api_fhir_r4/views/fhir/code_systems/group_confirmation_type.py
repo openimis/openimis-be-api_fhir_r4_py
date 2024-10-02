@@ -21,6 +21,7 @@ class CodeSystemOpenIMISGroupConfirmationTypeViewSet(viewsets.ViewSet):
         if not request.user.has_perms(FHIRApiGroupPermissions.permissions_get):
             raise PermissionDenied("unauthorized")
         serializer = CodeSystemSerializer(
+            user=request.user,
             instance=None,
             **{
                 "model_name": 'ConfirmationType',

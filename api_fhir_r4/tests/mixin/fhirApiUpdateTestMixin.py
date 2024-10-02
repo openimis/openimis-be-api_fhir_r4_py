@@ -1,5 +1,5 @@
 import copy
-
+import json
 from rest_framework import status
 
 
@@ -33,7 +33,8 @@ class FhirApiUpdateTestMixin(object):
         # create
         self.create_dependencies()
         response = self.client.post(self.base_url, data=self._test_request_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"{response.content}")
         resource_id = self.get_id_for_created_resource(response)
         # update
         updated_data = copy.deepcopy(self._test_request_data)

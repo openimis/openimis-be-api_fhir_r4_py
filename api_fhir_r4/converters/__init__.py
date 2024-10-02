@@ -16,7 +16,7 @@ from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.reference import Reference
 from fhir.resources.R4B.identifier import Identifier
 from api_fhir_r4.configurations import GeneralConfiguration
-
+from uuid import UUID
 
 class BaseFHIRConverter(ABC):
 
@@ -25,13 +25,8 @@ class BaseFHIRConverter(ABC):
         if user:
             self.user = user
         else:
-            self.user = core.models.InteractiveUser.objects.filter(
-                user_roles=core.models.UserRole.objects.filter(
-                    role__is_system=64,
-                    *core.utils.filter_validity()
-                ),
-                *core.utils.filter_validity()
-            ).first()
+            raise Exception("Converter init need a valid user")
+            
     
     @classmethod
     def to_fhir_obj(cls, obj, reference_type):
@@ -275,7 +270,34 @@ class BaseFHIRConverter(ABC):
         id_from_reference = splited_reference_string.pop()
         return id_from_reference
 
-
+    @classmethod
+    def build_imis_identifier(cls, imis_obj, fhir_obj, errors):
+        history_model = issubclass(imis_obj.__class__, core.models.HistoryModel)
+        code = cls.get_fhir_identifier_by_code(
+            fhir_obj.identifier,
+            R4IdentifierConfig.get_fhir_generic_type_code()
+        )
+        uuid_str = cls.get_fhir_identifier_by_code(
+            fhir_obj.identifier,
+            R4IdentifierConfig.get_fhir_uuid_type_code()
+        )
+        id_str = None
+        if not history_model:
+            id_str = cls.get_fhir_identifier_by_code(
+                fhir_obj.identifier,
+                R4IdentifierConfig.get_fhir_acsn_type_code()
+            )
+            if id_str:
+                imis_obj.id = id_str
+        if uuid_str:
+            if history_model:
+                imis_obj.id = UUID(uuid_str)
+            else:
+                imis_obj.uuid = UUID(uuid_str)
+            # if we have the id th uuid in not used
+        if code:
+            imis_obj.code = code
+        
 from api_fhir_r4.converters.personConverterMixin import PersonConverterMixin
 from api_fhir_r4.converters.referenceConverterMixin import ReferenceConverterMixin
 from api_fhir_r4.converters.medicationConverter import MedicationConverter

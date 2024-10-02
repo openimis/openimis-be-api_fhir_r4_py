@@ -16,7 +16,8 @@ class CommunicationSerializer(BaseFHIRSerializer):
         if Feedback.objects.filter(claim__id=claim, validity_to__isnull=True).count() > 0:
             raise FHIRException('Feedback exists for this claim')
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         from core import datetime
         copied_data['feedback_date'] = datetime.datetime.now()
         obj = Feedback.objects.create(**copied_data)
