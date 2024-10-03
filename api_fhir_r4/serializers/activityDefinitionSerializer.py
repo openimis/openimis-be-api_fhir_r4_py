@@ -19,7 +19,8 @@ class ActivityDefinitionSerializer(BaseFHIRSerializer):
             validated_data['uuid'] = uuid.UUID(validated_data['uuid'])
             
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         return Service.objects.create(**copied_data)
 
     def update(self, instance, validated_data):

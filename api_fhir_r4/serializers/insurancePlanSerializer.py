@@ -14,7 +14,8 @@ class InsurancePlanSerializer(BaseFHIRSerializer):
         if Product.objects.filter(code=code).count() > 0:
             raise FHIRException('Exists product with following code `{}`'.format(code))
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         # TODO services in product hasn't been developed yet.
         return Product.objects.create(**copied_data)
 

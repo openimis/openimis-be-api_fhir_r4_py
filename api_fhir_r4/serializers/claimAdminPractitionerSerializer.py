@@ -23,7 +23,8 @@ class ClaimAdminPractitionerSerializer(BaseFHIRSerializer):
         if ClaimAdmin.objects.filter(code=code).count() > 0:
             raise FHIRException('Exists practitioner with following code `{}`'.format(code))
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         return ClaimAdmin.objects.create(**copied_data)
 
     def update(self, instance, validated_data):

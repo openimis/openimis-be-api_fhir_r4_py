@@ -1,4 +1,3 @@
-from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
 from api_fhir_r4.permissions import FHIRApiCoverageEligibilityRequestPermissions
@@ -8,7 +7,7 @@ from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from insuree.models import Insuree
 
 
-class CoverageEligibilityRequestViewSet(BaseFHIRView, mixins.CreateModelMixin, GenericViewSet):
+class CoverageEligibilityRequestViewSet(BaseFHIRView, GenericViewSet):
     queryset = Insuree.filter_queryset()
     serializer_class = CoverageEligibilityRequestSerializer
     permission_classes = (FHIRApiCoverageEligibilityRequestPermissions,)

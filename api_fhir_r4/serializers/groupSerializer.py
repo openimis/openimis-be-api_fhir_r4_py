@@ -33,7 +33,8 @@ class GroupSerializer(BaseFHIRSerializer):
         # assign members of family (insuree) to the family
         for mf in members_family:
             mf = mf.__dict__
-            del mf['_state']
+            if '_state' in mf:
+                del mf['_state']
             mf['family_id'] = new_family.id
             InsureeService(user).create_or_update(mf)
 
@@ -43,7 +44,7 @@ class GroupSerializer(BaseFHIRSerializer):
         #validated_data = resolve_id_reference(validated_data)
         # TODO: This doesn't work
         request = self.context.get("request")
-        validated_data.pop('_state')
+        validated_data.pop('_state', None)
         members_family = validated_data.pop('members_family')
         user = request.user
         head_id = validated_data.get('head_insuree_id', None)
@@ -64,7 +65,7 @@ class GroupSerializer(BaseFHIRSerializer):
         instance = FamilyService(user).create_or_update(validated_data)
         for mf in members_family:
             mf = mf.__dict__
-            mf.pop('_state')
+            mf.pop('_state', None)
             mf['family_id'] = instance.id
             InsureeService(user).create_or_update(mf)
             

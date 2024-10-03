@@ -1,4 +1,5 @@
 from rest_framework.request import Request
+from django.utils.functional import cached_property
 
 from api_fhir_r4.mapping.invoiceMapping import InvoiceTypeMapping, BillTypeMapping
 from api_fhir_r4.mixins import (
@@ -31,7 +32,7 @@ class InvoiceViewSet(BaseMultiserializerFHIRView,
     retrievers = [UUIDIdentifierModelRetriever, DatabaseIdentifierModelRetriever, CodeIdentifierModelRetriever]
     lookup_field = 'identifier'
 
-    @property
+    @cached_property
     def serializers(self):
         return {
             InvoiceSerializer:

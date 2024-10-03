@@ -11,7 +11,8 @@ class LocationSerializer(BaseFHIRSerializer):
 
     def create(self, validated_data):
         copied_data = copy.deepcopy(validated_data)
-        del copied_data['_state']
+        if '_state' in copied_data:
+            del copied_data['_state']
         return Location.objects.create(**copied_data)
 
     def update(self, instance, validated_data):

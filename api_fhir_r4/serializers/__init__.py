@@ -18,9 +18,14 @@ class BaseFHIRSerializer(serializers.Serializer):
     fhirConverter = BaseFHIRConverter
     user = None
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
         self._reference_type = kwargs.pop('reference_type', ReferenceConverterMixin.UUID_REFERENCE_TYPE)
-        self.user = kwargs.pop('user', None)
+        if user:
+            self.user = user
+        else:
+            context = kwargs.get('context', None)
+            if context and hasattr(context, 'user'):
+                self.user = context.user
         super().__init__(*args, **kwargs)
 
     def to_representation(self, obj):
@@ -38,7 +43,9 @@ class BaseFHIRSerializer(serializers.Serializer):
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()
-        return self.fhirConverter(user=self.user).to_imis_obj(data, audit_user_id).__dict__
+        imis_obj = self.fhirConverter(user=self.user).to_imis_obj(data, audit_user_id)
+        # Filter out special attributes
+        return {k: v for k, v in imis_obj.__dict__.items() if not k.startswith('_') and v is not None}
 
     def create(self, validated_data):
         raise NotImplementedError('`create()` must be implemented.')  # pragma: no cover
@@ -47,16 +54,15 @@ class BaseFHIRSerializer(serializers.Serializer):
         raise NotImplementedError('`update()` must be implemented.')  # pragma: no cover
 
     def get_audit_user_id(self):
-        request = self.context.get("request")
-        # Taking the audit_user_id from the query doesn't seem wise but there might be a use for it
-        # audit_user_id = request.query_params.get('auditUserId', None)
-        audit_user_id = request.user.id_for_audit if request.user else None
-        if audit_user_id is None:
-            audit_user_id = GeneralConfiguration.get_default_audit_user_id()
+        # the audit user is the user
+        if self.user:
+            return self.user.audit_user_id or self.user._u.id
+        audit_user_id = GeneralConfiguration.get_default_audit_user_id()
         if isinstance(audit_user_id, int):
             return audit_user_id
         else:
-            return self.__get_technical_audit_user(audit_user_id)
+            raise ValueError("User not available from the request for audit trail")
+            #return self.__get_technical_audit_user(audit_user_id)
 
     @property
     def reference_type(self):

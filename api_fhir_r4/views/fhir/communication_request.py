@@ -1,7 +1,6 @@
-from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
-from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin
+from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, ListModelMixin
 from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever
 from api_fhir_r4.permissions import FHIRApiCommunicationRequestPermissions
 from api_fhir_r4.serializers import CommunicationRequestSerializer
@@ -10,7 +9,12 @@ from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from claim.models import Claim
 
 
-class CommunicationRequestViewSet(BaseFHIRView, MultiIdentifierRetrieverMixin, mixins.ListModelMixin, GenericViewSet):
+class CommunicationRequestViewSet(
+    BaseFHIRView,
+    MultiIdentifierRetrieverMixin,
+    ListModelMixin,
+    GenericViewSet
+):
     retrievers = [UUIDIdentifierModelRetriever]
     serializer_class = CommunicationRequestSerializer
     permission_classes = (FHIRApiCommunicationRequestPermissions,)

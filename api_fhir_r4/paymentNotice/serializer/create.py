@@ -13,8 +13,10 @@ class PaymentNoticeSerializerCreate(object):
         invoice_status = validated_data.pop('invoice_status')
 
         payment_invoice = copy.deepcopy(validated_data)
-        del payment_invoice['_state']
-        del payment_invoice['_original_state']
+        if '_state' in payment_invoice:
+            del payment_invoice['_state']
+        if '_original_state' in payment_invoice:
+            del payment_invoice['_original_state']
 
         payment_invoice_service = PaymentInvoiceService(user)
         result = payment_invoice_service.create_with_detail(payment_invoice, imis_payment_detail)

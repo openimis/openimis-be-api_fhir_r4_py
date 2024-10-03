@@ -12,7 +12,7 @@ class PolicyHolderOrganisationSerializer(BaseFHIRSerializer):
         if PolicyHolder.objects.filter(code=validated_data['code']).count() > 0:
             raise FHIRException('Exists Organization with following code `{}`'.format(validated_data['code']))
         validated_data.pop('_original_state')
-        validated_data.pop('_state')
+        validated_data.pop('_state', None)
         request = self.context.get('request', None)
         if request:
             validated_data['user_created_id']=request.user.id
