@@ -146,14 +146,14 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
             matching_locations = Location.objects \
                 .filter(
                     validity_to__isnull=True,
-                    name=fhir_patient_address.address.district,
-                    parent__name=fhir_patient_address.address.state,
+                    name=fhir_patient_address.district,
+                    parent__name=fhir_patient_address.state,
                     type="D"  # HF is expected to be at district level
                 ).distinct()\
                 .all()
         
             if matching_locations.count() != 1:
-                raise FHIRException(cls.__get_invalid_location_msg(fhir_patient_address.address, matching_locations))
+                raise FHIRException(cls.__get_invalid_location_msg(fhir_patient_address, matching_locations))
             else:
                 location = matching_locations.first()
         return location
