@@ -139,21 +139,21 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         location_reference_ext = next((
             ext for ext in fhir_patient_address.extension if 'address-location-reference' in ext.url
         ))
-        location =  cls.get_imis_obj_by_fhir_reference(location_reference_ext.valueReference)
+        location = cls.get_imis_obj_by_fhir_reference(location_reference_ext.valueReference)
         if location is None and location_reference_ext:
             raise FHIRException(f"Invalid location reference, {location_reference_ext.valueReference} doesn't match any location.")
         if location is None:
             matching_locations = Location.objects \
                 .filter(
                     validity_to__isnull=True,
-                    name=address.district,
-                    parent__name=address.state,
+                    name=fhir_patient_address.address.district,
+                    parent__name=fhir_patient_address.address.state,
                     type="D"  # HF is expected to be at district level
                 ).distinct()\
                 .all()
         
             if matching_locations.count() != 1:
-                raise FHIRException(cls.__get_invalid_location_msg(address, matching_locations))
+                raise FHIRException(cls.__get_invalid_location_msg(fhir_patient_address.address, matching_locations))
             else:
                 location = matching_locations.first()
         return location

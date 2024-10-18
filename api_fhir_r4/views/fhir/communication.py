@@ -7,7 +7,7 @@ from api_fhir_r4.serializers import CommunicationSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from claim.models import Feedback
-
+from core.utils import filter_validity
 import logging
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class CommunicationViewSet(
         if identifier:
             return self.retrieve(request, *args, **{**kwargs, 'identifier': identifier})
         else:
-            queryset = queryset.filter(validity_to__isnull=True)
+            queryset = queryset.filter(*filter_validity())
         serializer = CommunicationSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
         return self.get_paginated_response(serializer.data)
 
@@ -36,5 +36,5 @@ class CommunicationViewSet(
         return response
 
     def get_queryset(self):
-        queryset = Feedback.objects.filter(validity_to=None).order_by('validity_from')
+        queryset = Feedback.objects.filter(*filter_validity()).order_by('validity_from')
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

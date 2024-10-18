@@ -2,7 +2,7 @@ from claim.models import Feedback, ClaimItem, ClaimService, Claim, ClaimAdmin
 from django.db.models import Subquery
 from medical.models import Item, Service
 import core
-
+from core.utils import filter_validity 
 from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig
 from api_fhir_r4.converters import BaseFHIRConverter, CommunicationRequestConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.claimConverter import ClaimConverter
@@ -234,14 +234,14 @@ class ClaimResponseConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_items_for_imis_services(cls, fhir_claim_response, imis_claim, reference_type):
-        for claim_service in imis_claim.services.filter(validity_to=None).all():
+        for claim_service in imis_claim.services.filter(*filter_validity()):
             if claim_service:
                 item_type = R4ClaimConfig.get_fhir_claim_service_code()
                 cls.build_fhir_item(fhir_claim_response, claim_service, item_type, claim_service.rejection_reason, imis_claim, reference_type)
 
     @classmethod
     def build_fhir_items_for_imis_items(cls, fhir_claim_response, imis_claim, reference_type):
-        for claim_item in imis_claim.items.filter(validity_to=None).all():
+        for claim_item in imis_claim.items.filter(*filter_validity()):
             if claim_item:
                 item_type = R4ClaimConfig.get_fhir_claim_item_code()
                 cls.build_fhir_item(fhir_claim_response, claim_item, item_type, claim_item.rejection_reason, imis_claim, reference_type)
