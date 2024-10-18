@@ -39,7 +39,7 @@ from policy.services import (
 )
 from product.models import Product, ProductService, ProductItem
 from uuid import UUID
-
+from core.utils import filter_validity
 class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
@@ -80,7 +80,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_patient(cls, chf_id):
-        insuree = Insuree.objects.filter(chf_id=chf_id, validity_to__isnull=True)
+        insuree = Insuree.objects.filter(chf_id=chf_id, *filter_validity())
         if insuree.count() == 1:
             insuree = insuree.first()
             reference = PatientConverter.build_fhir_resource_reference(
@@ -169,9 +169,9 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         cls.build_fhir_benefit_item_element(result, response_eligibility_sp)
         # check services and items etc
         prod_service = ProductService.objects\
-            .filter(product=prod_id, validity_to=None, service__code=request.service_code).first()
+            .filter(product=prod_id, service__code=request.service_code, *filter_validity()).first()
         prod_item = ProductItem.objects\
-            .filter(product=prod_id, validity_to=None, item__code=request.item_code).first()
+            .filter(product=prod_id, item__code=request.item_code, *filter_validity()).first()
         # build coverage item - service
         if prod_service:
             cls.build_fhir_benefit_item_service_element(result, response_eligibility_sp, prod_service.service)
@@ -187,7 +187,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
     def build_fhir_coverage(cls, insurance, policy_uuid):
         # Due to circular dependency import has to be done inside of method
         from api_fhir_r4.converters import CoverageConverter
-        policy = Policy.objects.filter(uuid=UUID(str(policy_uuid)), validity_to__isnull=True).first()
+        policy = Policy.objects.filter(uuid=UUID(str(policy_uuid)), *filter_validity()).first()
         reference_coverage = CoverageConverter.build_fhir_resource_reference(
             policy,
             type='Coverage',
@@ -422,13 +422,13 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
     def __get_coverage_data(cls, response):
         policy = InsureePolicy.objects.filter(
             insuree__chf_id=response.eligibility_request.chf_id,
-            validity_to__isnull=True).first().policy
-        product = Product.objects.get(id=response.prod_id, validity_to__isnull=True)
+            *filter_validity()).first().policy
+        product = Product.objects.get(id=response.prod_id, *filter_validity())
         return policy, product
 
     @classmethod
     def __build_item_product_name(cls, fhir_item, prod_id):
-        product_queryset = Product.objects.all().filter(id=prod_id, validity_to=None)
+        product_queryset = Product.objects.all().filter(id=prod_id, *filter_validity())
         product = product_queryset.first()
         fhir_item.name = product.name
         fhir_item.description = product.code

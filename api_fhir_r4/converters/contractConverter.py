@@ -20,6 +20,7 @@ from insuree.models import Insuree, InsureePolicy
 from insuree.models import Family
 from contribution.models import Premium
 from core.models import Officer
+from core.utils import filter_validity
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 
 
@@ -123,8 +124,8 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_contract_asset_premium(cls, contract_term_asset, imis_policy):
         asset_extensions = Extension.construct()
         asset_extensions.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/contract-premium"
-        if Premium.objects.filter(policy=imis_policy, validity_to__isnull=True).count() > 0:
-            imis_premium = Premium.objects.get(policy=imis_policy, validity_to__isnull=True)
+        if Premium.objects.filter(policy=imis_policy, *filter_validity()).count() > 0:
+            imis_premium = Premium.objects.get(policy=imis_policy, *filter_validity())
             fhir_premium = cls.build_contract_asset_premium_extension(asset_extensions, imis_premium)
             if type(contract_term_asset.extension) is not list:
                 contract_term_asset.extension = [fhir_premium]
@@ -279,8 +280,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
         list_insuree_policy = InsureePolicy.objects.filter(
             Q(policy=imis_policy),
-            Q(validity_from__lte=now),
-            Q(validity_to__isnull=True) | Q(validity_to__gte=now),
+            *filter_validity(validity=now),
         ).only('insuree')
 
         for insuree_policy in list_insuree_policy:

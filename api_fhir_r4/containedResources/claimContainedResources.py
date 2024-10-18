@@ -1,5 +1,5 @@
 from typing import Dict, Type
-
+from core.utils import filter_validity
 from api_fhir_r4.containedResources.containedResources import AbstractContainedResourceCollection, \
     ContainedResourceDefinition
 from api_fhir_r4.serializers import BaseFHIRSerializer, PatientSerializer, GroupSerializer, \
@@ -22,13 +22,13 @@ class ClaimContainedResources(AbstractContainedResourceCollection):
             MedicationSerializer: ContainedResourceDefinition(
                 'items', 'Medication',
                 lambda model, field: [
-                    item.item for item in model.__getattribute__(field).filter(validity_to=None).all()
+                    item.item for item in model.__getattribute__(field).filter(*filter_validity())
                 ]
             ),
             ActivityDefinitionSerializer: ContainedResourceDefinition(
                 'services', 'ActivityDefinition',
                 lambda model, field: [
-                    service.service for service in model.__getattribute__(field).filter(validity_to=None).all()
+                    service.service for service in model.__getattribute__(field).filter(*filter_validity())
                 ]
             ),
         }

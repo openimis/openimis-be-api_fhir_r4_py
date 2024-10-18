@@ -15,7 +15,7 @@ from api_fhir_r4.converters import ClaimResponseConverter, OperationOutcomeConve
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.R4B import FHIRAbstractModel
 from api_fhir_r4.serializers import BaseFHIRSerializer
-
+from core.utils import filter_validity
 import logging
 logger = logging.getLogger(__name__)
 
@@ -39,11 +39,11 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         return self.create_claim_response(claim.code)
 
     def create_claim_response(self, claim_code):
-        claim = get_object_or_404(Claim, code=claim_code, validity_to=None)
+        claim = get_object_or_404(Claim, code=claim_code, *filter_validity())
         return ClaimResponseConverter.to_fhir_obj(claim)
 
     def create_claim_attachments(self, claim_code, attachments):
-        claim = get_object_or_404(Claim, code=claim_code, validity_to=None)
+        claim = get_object_or_404(Claim, code=claim_code, *filter_validity())
         create_attachments(claim.id, attachments)
 
     def to_representation(self, obj):
