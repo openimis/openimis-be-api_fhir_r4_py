@@ -24,7 +24,7 @@ from api_fhir_r4.models import ClaimV2 as FHIRClaim, ClaimInsuranceV2 as ClaimIn
 from fhir.resources.R4B.attachment import Attachment
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.claim import ClaimDiagnosis, ClaimSupportingInfo, ClaimItem as FHIRClaimItem
-
+from core.utils import filter_validity
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 
 import logging
@@ -196,7 +196,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_diagnosis_by_code(cls, icd_code):
-        return Diagnosis.objects.get(code=icd_code)
+        return Diagnosis.objects.get(code=icd_code, *filter_validity())
 
     @classmethod
     def get_imis_diagnosis_code(cls, diagnosis):
@@ -284,7 +284,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_items_for_imis_items(cls, fhir_claim, imis_claim, reference_type):
-        for claim_item in imis_claim.items.filter(validity_to=None).all():
+        for claim_item in imis_claim.items.filter(*filter_validity()):
             if claim_item:
                 item_type = R4ClaimConfig.get_fhir_claim_item_code()
                 cls.build_fhir_item(fhir_claim, claim_item.item.code, item_type, claim_item, reference_type)
@@ -318,7 +318,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_items_for_imis_services(cls, fhir_claim, imis_claim, reference_type):
-        for claim_service in imis_claim.services.filter(validity_to=None).all():
+        for claim_service in imis_claim.services.filter(*filter_validity()):
             if claim_service:
                 item_type = R4ClaimConfig.get_fhir_claim_service_code()
                 cls.build_fhir_item(fhir_claim, claim_service.service.code, item_type, claim_service, reference_type)

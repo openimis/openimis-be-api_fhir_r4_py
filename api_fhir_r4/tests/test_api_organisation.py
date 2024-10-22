@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from core.models import User
 from rest_framework import status
 from policyholder.tests.helpers import create_test_policy_holder
+from django.core.exceptions import ValidationError
 
 @dataclass
 class DummyContext:
@@ -34,7 +35,7 @@ class OrganisationAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITes
             "Content-Type": "application/json",
             'HTTP_AUTHORIZATION': f"Bearer {self.admin_token}"
         }
-        response = self.client.get(self.base_url+ '?page-offset=2', format='json', **headers)
+        response = self.client.get(self.base_url + '?page-offset=2', format='json', **headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(response.content)
     
@@ -44,7 +45,7 @@ class OrganisationAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITes
             'HTTP_AUTHORIZATION': f"Bearer {self.admin_token}"
         }
         #
-        response = self.client.get(self.base_url+ str(self.test_policy_holder.uuid).upper()+ '/' , format='json', **headers)
+        response = self.client.get(self.base_url + str(self.test_policy_holder.uuid).upper()+ '/' , format='json', **headers)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(response.content)        
         

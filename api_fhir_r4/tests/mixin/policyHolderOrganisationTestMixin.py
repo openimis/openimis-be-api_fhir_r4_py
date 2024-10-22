@@ -10,7 +10,6 @@ class PolicyHolderOrganisationTestMixin(GenericTestMixin):
     _TEST_ACTIVITY_CODE = 3
     _TEST_CODE = "ABCD"
     _TEST_TRADE_NAME = "Test test"
-    _TEST_LOCATION_ID = 22
     _TEST_REGION = 'Tahida'
     _TEST_DISTRICT = 'Rajo'
     _TEST_MUNICIPALITY = 'Jaber'
@@ -83,7 +82,7 @@ class PolicyHolderOrganisationTestMixin(GenericTestMixin):
         NotImplementedError('PH Organization to_imis_obj() not implemented.')
 
     def create_test_imis_instance(self):
-        location = DbManagerUtils.get_object_or_none(Location, id=self._TEST_LOCATION_ID)
+        location = DbManagerUtils.get_object_or_none(Location, name=self._TEST_VILLAGE, validity_to__isnull=True)
 
         return PolicyHolder(**{
             "uuid": self._TEST_UUID,

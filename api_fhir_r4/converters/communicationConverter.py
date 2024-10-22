@@ -9,7 +9,7 @@ from insuree.models import Insuree
 from django.utils.translation import gettext as _
 from fhir.resources.R4B.communication import Communication, CommunicationPayload
 from fhir.resources.R4B.extension import Extension
-
+from django.core.exceptions import ValidationError
 
 class CommunicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 

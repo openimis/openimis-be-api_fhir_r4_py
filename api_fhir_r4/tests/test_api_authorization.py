@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests import GenericFhirAPITestMixin
-from gettext import gettext as _
+from django.utils.translation import gettext as _
 
 from api_fhir_r4.tests.utils import get_connection_payload,get_or_create_user_api
 
