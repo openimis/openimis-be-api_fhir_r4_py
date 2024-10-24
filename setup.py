@@ -25,7 +25,7 @@ setup(
         'djangorestframework',
         'fhir.resources==6.2.0b3',
         'pydantic==1.10.12',
-        'aiohttp~=3.8.5',
+        'aiohttp~=3.9.5',
         'asynctest==0.13.0',
         'openimis-be-core',
         'openimis-be-insuree',
