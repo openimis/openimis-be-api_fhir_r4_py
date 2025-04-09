@@ -1,8 +1,8 @@
 from claim.services import ClaimSubmitService, ClaimSubmit, ClaimConfig
 from claim.gql_mutations import create_attachments
-from claim.models import Claim, ClaimAdmin, ClaimItem, ClaimService
+from claim.models import Claim, ClaimItem, ClaimService
 from typing import List, Union
-
+from core.models.user import ClaimAdmin
 from api_fhir_r4.containedResources.claimContainedResources import ClaimContainedResources
 from api_fhir_r4.containedResources.serializerMixin import ContainedContentSerializerMixin
 from api_fhir_r4.models import ClaimV2 as FHIRClaim

@@ -1,4 +1,5 @@
-from claim.models import Feedback, ClaimItem, ClaimService, Claim, ClaimAdmin
+from claim.models import Feedback, ClaimItem, ClaimService, Claim
+from core.models.user import ClaimAdmin
 from django.db.models import Subquery
 from medical.models import Item, Service
 import core

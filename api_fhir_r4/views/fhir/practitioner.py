@@ -21,7 +21,7 @@ from api_fhir_r4.serializers import (
 )
 from api_fhir_r4.views.fhir.base import BaseMultiserializerFHIRView
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 from core.models import Officer
 
 

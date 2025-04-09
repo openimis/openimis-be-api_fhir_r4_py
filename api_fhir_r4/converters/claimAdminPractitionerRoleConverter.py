@@ -2,7 +2,7 @@ from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
 from api_fhir_r4.converters import BaseFHIRConverter, ClaimAdminPractitionerConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFacilityOrganisationConverter, PersonConverterMixin
 from api_fhir_r4.utils import DbManagerUtils
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 from django.utils.translation import gettext as _
 from fhir.resources.R4B.practitionerrole import PractitionerRole
 
