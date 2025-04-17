@@ -1,4 +1,4 @@
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 from django.utils.translation import gettext as _
 
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig

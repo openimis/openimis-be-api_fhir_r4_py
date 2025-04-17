@@ -1,4 +1,4 @@
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 from django.utils.translation import gettext
 
 from api_fhir_r4.converters import ClaimAdminPractitionerRoleConverter

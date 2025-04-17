@@ -12,7 +12,8 @@ from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests import LocationTestMixin, ClaimAdminPractitionerTestMixin
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
-from claim.models import Claim, ClaimAdmin
+from claim.models import Claim
+from core.models.user import ClaimAdmin
 from location.models import HealthFacility, UserDistrict
 from medical.models import Diagnosis, Item, Service
 from location.test_helpers import create_test_location, create_test_health_facility, create_test_village

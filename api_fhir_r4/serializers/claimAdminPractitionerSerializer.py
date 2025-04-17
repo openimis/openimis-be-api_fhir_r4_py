@@ -1,7 +1,7 @@
 import copy
 import uuid
 
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 
 from api_fhir_r4.converters import ClaimAdminPractitionerConverter
 from api_fhir_r4.exceptions import FHIRException

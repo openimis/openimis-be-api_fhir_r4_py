@@ -2,7 +2,7 @@ import logging
 
 from django.core.exceptions import MultipleObjectsReturned
 from location.models import HealthFacility, Location, HealthFacilityLegalForm
-from claim.models import ClaimAdmin
+from core.models.user import ClaimAdmin
 from fhir.resources.R4B.address import Address
 from api_fhir_r4.exceptions import FHIRException
 
