@@ -86,7 +86,7 @@ class BaseFHIRSerializer(serializers.Serializer):
 
     def _print_debug_log(self, e):
         import traceback
-        debug_log = "FHIR Mapping for Serializer {self} has failed with exception {e}. Traceback: \n" \
+        debug_log = f"FHIR Mapping for Serializer {self} has failed with exception {e}. Traceback: \n" \
                     + str(traceback.format_stack())
         logger.debug(debug_log)
 
