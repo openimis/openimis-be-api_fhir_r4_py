@@ -53,7 +53,7 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
             try:
                 bundle_entry = BundleEntry(**entry)
             except:
-                bundle.entry.append(bundle_entry)
+                bundle.entry.append(entry)
             bundle.entry.append(bundle_entry)
 
     def build_full_url_for_resource(self, fhir_object):
