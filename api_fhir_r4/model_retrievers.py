@@ -91,8 +91,11 @@ class CHFIdentifierModelRetriever(CodeIdentifierModelRetriever):
     @classmethod
     def identifier_validator(cls, identifier_value):
         # From model specification
-        return isinstance(identifier_value, str) and validate_insuree_number(identifier_value)
-
+        # Fix: Modified condition to check if validate_insuree_number returns an empty array
+        # Original condition incorrectly evaluated validate_insuree_number as False when it returned an empty array []
+        # New condition explicitly checks for an empty array using len(validate_insuree_number(identifier_value)) == 0
+        # This ensures that a valid insuree number (returning empty array) is correctly evaluated as True
+        return isinstance(identifier_value, str) and len(validate_insuree_number(identifier_value)) == 0
 
 class GroupIdentifierModelRetriever(CHFIdentifierModelRetriever):
     identifier_field = 'head_insuree_id__chf_id'
