@@ -91,7 +91,7 @@ class RestSubscriptionNotificationClient(AbstractAsyncSubscriptionNotificationCl
     async def _send_notification_async(self, content: CLIENT_ACCEPTABLE_CONTENT_TYPE, subscriber: Subscription,
                                        client_session: aiohttp.ClientSession) -> NOTIFICATION_OUTPUT_TYPE:
         try:
-            post_args = self._post_args(content, subscriber)
+            post_args = self._post_args(content.decode('utf-8'), subscriber)
             async with client_session.post(**post_args) as post:
                 response = await post.json()
                 status = post.status

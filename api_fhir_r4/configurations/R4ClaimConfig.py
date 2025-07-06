@@ -112,3 +112,10 @@ class R4ClaimConfig(ClaimConfiguration):
             'fhir_claim_allowed_mime_types_regex',
             '|'.join(['text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
         )
+
+    @classmethod
+    def get_subscribe_claim_signal(cls):
+        """
+        Configuration flag to enable/disable notifications for the Claim resource.
+        """
+        return cls.get_config_attribute("R4_fhir_claim_config").get('subscribe_claim_signal', True)

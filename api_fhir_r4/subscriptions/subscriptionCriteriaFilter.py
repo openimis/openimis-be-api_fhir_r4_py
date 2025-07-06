@@ -23,7 +23,7 @@ class SubscriptionCriteriaFilter:
         queryset = Subscription.objects.filter(status=Subscription.SubscriptionStatus.ACTIVE.value,
                                                expiring__gt=datetime.now(), is_deleted=False)
         if self.fhir_resource_name:
-            queryset = queryset.filter(criteria__jsoncontains={
+            queryset = queryset.filter(criteria__contains={
                 R4SubscriptionConfig.get_fhir_sub_criteria_key_resource(): self.fhir_resource_name})
         if self.fhir_resource_type_name:
             queryset = queryset.filter(
