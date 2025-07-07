@@ -110,5 +110,5 @@ class R4ClaimConfig(ClaimConfiguration):
     def get_allowed_fhir_claim_attachment_mime_types_regex(cls):
         return cls.get_config_attribute("R4_fhir_claim_config").get(
             'fhir_claim_allowed_mime_types_regex',
-            '|'.join(['text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
+            '|'.join(['text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*', 'application/pdf'])
         )
