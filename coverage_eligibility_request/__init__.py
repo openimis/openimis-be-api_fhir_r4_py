@@ -1,0 +1,2 @@
+# coverageeligibilityrequest FHIR Resource Module
+default_app_config = 'coverage_eligibility_request.apps.coverageeligibilityrequestConfig'
