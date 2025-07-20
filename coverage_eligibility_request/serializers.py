@@ -1,0 +1,3 @@
+from api_fhir_r4.serializers.coverageEligibilityRequestSerializer import CoverageEligibilityRequestSerializer
+
+__all__ = ['CoverageEligibilityRequestSerializer']
