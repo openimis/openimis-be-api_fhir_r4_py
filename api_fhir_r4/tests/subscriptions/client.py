@@ -1,25 +1,19 @@
 import asyncio
 import datetime
-
-from asynctest import CoroutineMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch, call
 from asgiref.sync import async_to_sync
 from django.test import TestCase
-
 from api_fhir_r4.models import Subscription
 from api_fhir_r4.subscriptions.notificationClient import RestSubscriptionNotificationClient, \
     SubscriberNotificationOutput
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 from aiohttp import web
 
-
 class AsyncContextManagerMock(MagicMock):
-
     async def __aenter__(self):
         return self.aenter
-
     async def __aexit__(self, *args):
         pass
-
 
 class TestSubscriptionNotificationClient(LogInMixin, TestCase):
     TEST_HEADERS_1 = """{"test-header": "123", "Authentication": "Bearer ABF13816"}"""
@@ -36,16 +30,14 @@ class TestSubscriptionNotificationClient(LogInMixin, TestCase):
     @async_to_sync
     @patch("api_fhir_r4.subscriptions.notificationClient.aiohttp.ClientSession.post")
     async def test_post_should_propagate_correctly(self, session):
-        session.return_value.__aenter__.return_value.json = CoroutineMock(side_effect=
+        session.return_value.__aenter__.return_value.json = AsyncMock(side_effect=
             [{'Notification': 'Thanks for notification'}, {'Notification': 'Thanks for notification'}])
         session.return_value.__aenter__.return_value.status = 200
         sub_client = RestSubscriptionNotificationClient()
         response = await sub_client.propagate_notifications_async(self.NOTIFICATION_CONTENT, self._test_subscriptions)
-
         expected = [SubscriberNotificationOutput(self._test_subscriptions[0], True, None),
                     SubscriberNotificationOutput(self._test_subscriptions[1], True, None)]
         self.assertListEqual(expected, list(response))
-
         session.assert_any_call(
             url='http://test-subscription-endpoint.io/post_uri/',
             headers=self.EXPECTED_HEADER_1, data=b'{"notification_content":"content"}')
@@ -58,16 +50,13 @@ class TestSubscriptionNotificationClient(LogInMixin, TestCase):
     async def test_post_server_unavailable(self, session):
         server_response = {'Notification': 'Server offline'}
         session.return_value.__aenter__.return_value.json = \
-            CoroutineMock(side_effect=[server_response, server_response])
+            AsyncMock(side_effect=[server_response, server_response])
         session.return_value.__aenter__.return_value.status = 503
-
         sub_client = RestSubscriptionNotificationClient()
         response = await sub_client.propagate_notifications_async(self.NOTIFICATION_CONTENT, self._test_subscriptions)
         expected = [SubscriberNotificationOutput(self._test_subscriptions[0], False, server_response),
                     SubscriberNotificationOutput(self._test_subscriptions[1], False, server_response)]
-
         self.assertListEqual(expected, list(response))
-
         session.assert_any_call(
             url='http://test-subscription-endpoint.io/post_uri/',
             headers=self.EXPECTED_HEADER_1, data=b'{"notification_content":"content"}')
