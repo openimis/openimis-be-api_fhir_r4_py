@@ -1,6 +1,6 @@
 import datetime
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 from django.test import TestCase
 
 from api_fhir_r4.converters import ClaimConverter, ReferenceConverterMixin
