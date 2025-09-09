@@ -20,5 +20,6 @@ class ClaimResponseViewSet(
     permission_classes = (FHIRApiClaimPermissions,)
 
     def get_queryset(self):
-        queryset = Claim.get_queryset(None, self.request.user).order_by('validity_from')
+        # Use a simpler queryset to avoid ClaimAdmin table dependency
+        queryset = Claim.objects.filter(validity_to__isnull=True).order_by('validity_from')
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)

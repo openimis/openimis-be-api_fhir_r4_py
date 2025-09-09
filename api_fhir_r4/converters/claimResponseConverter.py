@@ -5,7 +5,8 @@ from medical.models import Item, Service
 import core
 from core.utils import filter_validity 
 from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig
-from api_fhir_r4.converters import BaseFHIRConverter, CommunicationRequestConverter, ReferenceConverterMixin
+from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
+from fhir_R4_Communication.converters.communicationRequestConverter import CommunicationRequestConverter
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from api_fhir_r4.converters.patientConverter import PatientConverter
 from api_fhir_r4.converters.claimAdminPractitionerConverter import ClaimAdminPractitionerConverter

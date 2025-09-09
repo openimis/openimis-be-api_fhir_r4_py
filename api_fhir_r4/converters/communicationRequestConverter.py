@@ -131,10 +131,11 @@ class CommunicationRequestConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_recipient(cls, fhir_communication_request, imis_claim, reference_type):
         fhir_communication_request.recipient = []
-        reference = cls.build_fhir_resource_reference(
-            imis_claim.admin,
-            reference_type=reference_type,
-            type="Practitioner",
-            display=imis_claim.admin.code
-        )
-        fhir_communication_request.recipient.append(reference)
+        if imis_claim.admin and hasattr(imis_claim.admin, 'code'):
+            reference = cls.build_fhir_resource_reference(
+                imis_claim.admin,
+                reference_type=reference_type,
+                type="Practitioner",
+                display=imis_claim.admin.code
+            )
+            fhir_communication_request.recipient.append(reference)

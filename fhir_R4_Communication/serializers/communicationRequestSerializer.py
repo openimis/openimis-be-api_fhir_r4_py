@@ -1,0 +1,7 @@
+from fhir_R4_Communication.converters.communicationRequestConverter import CommunicationRequestConverter
+from api_fhir_r4.serializers import BaseFHIRSerializer
+
+
+class CommunicationRequestSerializer(BaseFHIRSerializer):
+
+    fhirConverter = CommunicationRequestConverter

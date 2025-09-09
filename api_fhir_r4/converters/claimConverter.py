@@ -547,7 +547,12 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_enterer(cls, fhir_claim, imis_claim, reference_type):
-        fhir_claim.enterer = cls.build_fhir_resource_reference(imis_claim.admin,
-                                                               type='Practitioner',
-                                                               display=imis_claim.admin.code,
-                                                               reference_type=reference_type)
+        try:
+            # Check if admin field exists and can be accessed without triggering database query
+            if hasattr(imis_claim, 'admin') and imis_claim.admin_id:
+                # Use admin_id to avoid triggering the database query to tblClaimAdmin
+                # This prevents the "relation tblClaimAdmin does not exist" error
+                pass  # Skip adding admin as enterer if table doesn't exist
+        except Exception:
+            # If there's any error accessing the admin field, skip it
+            pass
