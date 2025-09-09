@@ -9,7 +9,8 @@ imis_modules = openimis_apps()
 
 router = DefaultRouter()
 router.register(r'login', LoginView, basename="login")
-router.register(r'Subscription', fhir_viewsets.SubscriptionViewSet, basename='Subscription_R4')
+# Subscription endpoint now handled by standalone fhir_R4_subscription app
+# router.register(r'Subscription', fhir_viewsets.SubscriptionViewSet, basename='Subscription_R4')
 
 # register endpoint related to Product module if used
 if 'product' in imis_modules:
@@ -110,6 +111,8 @@ if 'invoice' in imis_modules:
 
 urlpatterns = [
     path('', include(router.urls)),
+    # Include standalone FHIR R4 Subscription app
+    # path('', include('fhir_R4_subscription.urls')),  # Temporarily disabled for local development
     path('docs/', SpectacularAPIView.as_view(), name='docs'),
     path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='docs'), name='swagger-ui'),
     path('docs/redoc/', SpectacularRedocView.as_view(url_name='docs'), name='redoc'),
