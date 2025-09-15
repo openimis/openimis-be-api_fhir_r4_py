@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openimis-be-fhir_r4_subscription"
+version = "1.4.0"
+requires-python = ">=3.8"
+description = "The openIMIS Backend FHIR R4 Subscription module."
+license = "AGPL-3.0-or-later"
+authors = [
+    {name = "Faris Ahmetasevic", email = "faris.ahmetasevic@hotmail.com"}
+]
+dependencies = [
+    "django",
+    "djangorestframework",
+    "openimis-be-core",
+    "openimis-be-api_fhir_r4",
+]
+
+[project.urls]
+Homepage = "https://openimis.org/"
+
+[tool.setuptools]
+packages = ["fhir_R4_subscription"]

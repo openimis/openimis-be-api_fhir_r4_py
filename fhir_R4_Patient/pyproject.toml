@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fhir_R4_Patient"
+version = "0.1.0"
+requires-python = ">=3.8"
+description = "The openIMIS Backend FHIR R4 Patient module."
+license = "AGPL-3.0-or-later"
+dependencies = [
+    "django",
+    "djangorestframework", 
+    "openimis-be-core",
+    "openimis-be-api_fhir_r4",
+]
+
+[tool.setuptools]
+packages = ["fhir_R4_Patient"]
