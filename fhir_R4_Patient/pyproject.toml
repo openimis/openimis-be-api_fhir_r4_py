@@ -3,17 +3,34 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fhir_R4_Patient"
-version = "0.1.0"
+name = "openimis-be-fhir_r4_patient"
+version = "1.0.0"
 requires-python = ">=3.8"
 description = "The openIMIS Backend FHIR R4 Patient module."
+readme = {file = "README.md", content-type = "text/markdown"}
 license = "AGPL-3.0-or-later"
+authors = [
+    {name = "openIMIS", email = "info@openimis.org"}
+]
 dependencies = [
     "django",
     "djangorestframework", 
     "openimis-be-core",
     "openimis-be-api_fhir_r4",
 ]
+classifiers = [
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://openimis.org/"
 
 [tool.setuptools]
-packages = ["fhir_R4_Patient"]
+py-modules = ["apps", "urls"]
+packages = ["views"]
+include-package-data = true
