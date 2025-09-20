@@ -14,3 +14,4 @@ from api_fhir_r4.models.subscription import (
     Subscription,
     SubscriptionNotificationResult
 )
+from api_fhir_r4.models.async_task import AsyncTask, TaskStatus

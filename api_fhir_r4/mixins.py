@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod, ABC
 from collections.abc import Iterable
 
-from typing import List
+from typing import List, Dict, Any
 from rest_framework import status
 
 from django.core.exceptions import ObjectDoesNotExist, FieldError
@@ -211,4 +211,207 @@ class MultiIdentifierRetrieveManySerializersMixin(MultiSerializerRetrieveModelMi
             raise Http404(f"Resource for identifier {kwargs['identifier']} not found")
 
         return Response(retrieved[0])
+
+
+class AsyncOperationMixin:
+    """
+    Mixin to add async operation capabilities to FHIR viewsets.
+    """
+    
+    def get_resource_type(self) -> str:
+        """Get the FHIR resource type name"""
+        return self.__class__.__name__.replace('ViewSet', '')
+    
+    def create_async_task(self, operation: str, request_data: Dict[str, Any] = None) -> str:
+        """
+        Create a new async task.
+        
+        Args:
+            operation: The operation type (e.g., 'read', 'search')
+            request_data: Optional request data to store
+        
+        Returns:
+            Task ID as string
+        """
+        from api_fhir_r4.models.async_task import AsyncTask, TaskStatus
+        task = AsyncTask.objects.create(
+            resource_type=self.get_resource_type(),
+            operation=operation,
+            request_data=request_data,
+            status=TaskStatus.REQUESTED.value
+        )
+        return str(task.id)
+    
+    def handle_async_request(self, operation: str, operation_func, request_data: Dict[str, Any] = None, *args, **kwargs) -> 'JsonResponse':
+        """
+        Handle an async request by creating a task and executing it in background.
+        
+        Args:
+            operation: The operation type
+            operation_func: Function to execute asynchronously
+            request_data: Optional request data
+            *args: Positional arguments for the function
+            **kwargs: Keyword arguments for the function
+        
+        Returns:
+            JsonResponse with OperationOutcome containing task ID
+        """
+        from api_fhir_r4.utils.async_operations import create_async_response, execute_async_task
+        
+        # Get the base URL from the request
+        request = args[0] if args else None
+        base_url = None
+        if request and hasattr(request, 'build_absolute_uri'):
+            base_url = request.build_absolute_uri('/').rstrip('/')
+        
+        task_id = self.create_async_task(operation, request_data)
+        
+        # Execute the task in background
+        execute_async_task(task_id, operation_func, *args, **kwargs)
+        
+        return create_async_response(task_id, base_url=base_url)
+    
+    def get_async_status(self, task_id: str) -> Response:
+        """
+        Get the status of an async task.
+        
+        Args:
+            task_id: The task ID
+        
+        Returns:
+            Response with Task resource or 404 if not found
+        """
+        from api_fhir_r4.utils.async_operations import get_task_status
+        task_status = get_task_status(task_id)
+        if task_status is None:
+            return Response(
+                {"error": "Task not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response(task_status)
+    
+    def get_async_result(self, task_id: str) -> Response:
+        """
+        Get the result of a completed async task.
+        
+        Args:
+            task_id: The task ID
+        
+        Returns:
+            Response with result data or appropriate error
+        """
+        from api_fhir_r4.utils.async_operations import get_task_result
+        task_result = get_task_result(task_id)
+        if task_result is None:
+            return Response(
+                {"error": "Task not found or not completed"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        return Response(task_result)
+    
+    def async_list(self, request, *args, **kwargs):
+        """
+        Async version of list operation.
+        """
+        def list_operation():
+            # Call the original list method directly
+            response = self.list(request, *args, **kwargs)
+            # Return the complete response data (Bundle format)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'GET',
+            'query_params': dict(request.query_params),
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('search', list_operation, request_data)
+    
+    def async_retrieve(self, request, *args, **kwargs):
+        """
+        Async version of retrieve operation.
+        """
+        def retrieve_operation():
+            # Call the original retrieve method directly
+            response = self.retrieve(request, *args, **kwargs)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'GET',
+            'pk': kwargs.get('pk'),
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('read', retrieve_operation, request_data)
+    
+    def async_create(self, request, *args, **kwargs):
+        """
+        Async version of create operation.
+        """
+        def create_operation():
+            # Call the original create method directly
+            response = self.create(request, *args, **kwargs)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'POST',
+            'data': request.data,
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('create', create_operation, request_data)
+    
+    def async_update(self, request, *args, **kwargs):
+        """
+        Async version of update operation.
+        """
+        def update_operation():
+            # Call the original update method directly
+            response = self.update(request, *args, **kwargs)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'PUT',
+            'pk': kwargs.get('pk'),
+            'data': request.data,
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('update', update_operation, request_data)
+    
+    def async_partial_update(self, request, *args, **kwargs):
+        """
+        Async version of partial_update operation.
+        """
+        def partial_update_operation():
+            response = self.partial_update(request, *args, **kwargs)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'PATCH',
+            'pk': kwargs.get('pk'),
+            'data': request.data,
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('update', partial_update_operation, request_data)
+    
+    def async_destroy(self, request, *args, **kwargs):
+        """
+        Async version of destroy operation.
+        """
+        def destroy_operation():
+            # Call the original destroy method directly
+            response = self.destroy(request, *args, **kwargs)
+            return response.data if hasattr(response, 'data') else response
+        
+        request_data = {
+            'method': 'DELETE',
+            'pk': kwargs.get('pk'),
+            'user': str(request.user.id) if request.user.is_authenticated else None
+        }
+        
+        return self.handle_async_request('delete', destroy_operation, request_data)
 
