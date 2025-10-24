@@ -6,6 +6,7 @@ from django.http import Http404
 from itertools import chain
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework import status
 
 from api_fhir_r4.defaultConfig import DEFAULT_CFG
 from api_fhir_r4.mixins import MultiIdentifierRetrieveManySerializersMixin, MultiIdentifierRetrieverMixin
@@ -261,3 +262,20 @@ class OrganisationViewSet(BaseMultiserializerFHIRView,
             if md.get('resource_type') == 'insurance_organisation':
                 identifier = DEFAULT_CFG['R4_fhir_insurance_organisation_config']['id']
                 return [self._get_insurance_organisation_default(identifier=identifier, user=user)]
+
+    def create(self, request, *args, **kwargs):
+        """
+        Override to ensure MultiSerializerCreateModelMixin.create() is used instead of 
+        BaseFHIRView's CreateModelMixin.create(). The base CreateModelMixin calls 
+        get_serializer() which returns MultiSerializerSerializerClass (a placeholder 
+        that doesn't accept data), causing the "no data=" error.
+        """
+        self._validate_create_request()
+        results = []
+        for serializer, _ in self.get_eligible_serializers_iterator():
+            data = self._create_for_serializer(serializer, request, *args, **kwargs)
+            results.append(data)
+
+        headers = self.get_success_headers(results)
+        response = results[0]  # By default there should be only one eligible serializer
+        return Response(response, status=status.HTTP_201_CREATED, headers=headers)
