@@ -25,5 +25,13 @@ class BaseFHIRView(
     authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
 
-class BaseMultiserializerFHIRView(BaseFHIRView):
+class BaseMultiserializerFHIRView(
+    UpdateModelMixin,
+    DestroyModelMixin,
+    APIView,
+):
+    user = None
+    pagination_class = FhirBundleResultsSetPagination
+    permission_classes = (FHIRApiPermissions,)
+    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
     serializer_class = MultiSerializerSerializerClass

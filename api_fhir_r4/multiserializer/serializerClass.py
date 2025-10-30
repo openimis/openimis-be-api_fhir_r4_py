@@ -14,6 +14,7 @@ class MultiSerializerSerializerClass(Serializer):
             context = kwargs.get('context', None)
             if context and hasattr(context, 'user'):
                 self.user = context.user
+        super().__init__(**kwargs)
 
     def update(self, instance, validated_data):
         raise NotImplementedError("MultiSerializerSerializerClass `update` not supported. Should be"
