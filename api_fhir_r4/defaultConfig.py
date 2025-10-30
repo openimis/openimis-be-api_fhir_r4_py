@@ -89,7 +89,7 @@ DEFAULT_CFG = {
         'fhir_claim_item_category_system': 'CodeSystem/claim-item-category',
         'fhir_claim_diagnosis_system': 'CodeSystem/diagnosis-ICD10-level1',
         "fhir_claim_allowed_mime_types_regex":
-            '|'.join(['text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
+            '|'.join(['application\/pdf','text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
     },
     "R4_fhir_coverage_eligibility_config": {
         "fhir_serializer": "PolicyCoverageEligibilityRequestSerializer",
