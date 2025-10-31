@@ -9,6 +9,8 @@ from api_fhir_r4.converters import PatientConverter, BillInvoiceConverter, Invoi
 from api_fhir_r4.mapping.invoiceMapping import InvoiceTypeMapping, BillTypeMapping
 from api_fhir_r4.subscriptions.notificationManager import RestSubscriptionNotificationManager
 from api_fhir_r4.subscriptions.subscriptionCriteriaFilter import SubscriptionCriteriaFilter
+from api_fhir_r4.configurations import R4ClaimConfig
+from api_fhir_r4.converters import ClaimResponseConverter
 from core.service_signals import ServiceSignalBindType
 from core.signals import bind_service_signal
 
@@ -16,7 +18,9 @@ from openIMIS.openimisapps import openimis_apps
 
 logger = logging.getLogger('openIMIS')
 imis_modules = openimis_apps()
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
 def bind_service_signals():
     if 'insuree' in imis_modules and GeneralConfiguration.get_subscribe_insuree_signal():
@@ -81,6 +85,39 @@ def bind_service_signals():
         bind_service_signal(
             'signal_after_invoice_module_invoice_create_service',
             on_invoice_create,
+            bind_type=ServiceSignalBindType.AFTER
+        )
+
+    if 'claim' in imis_modules and R4ClaimConfig.get_subscribe_claim_signal():
+        def on_claim_create_or_update(**kwargs):
+            """
+            Handles notifications when a Claim is created or updated.
+            """      
+            try:
+                model = kwargs.get('result', None)
+                audit_user_id = None
+                try:
+                    user = User.objects.get(claim_admin_id=kwargs.get('data')[0][0].get('admin_id'))
+                except User.DoesNotExist:
+                    logger.error(f"User with id {audit_user_id} not found. Aborting notification.")
+                    return
+
+                #Instantiate the correct converter (ClaimResponseConverter) with the user
+                logger.info(f"Processing subscription for claim {model.uuid} on behalf of user {user.username}")
+                converter_instance = ClaimResponseConverter(user=user)                
+                logger.debug(f"Processing subscription for created/updated claim: {model.uuid}")
+                notify_subscribers(
+                    model,
+                    converter_instance, # The specific converter for Claims
+                    'Claim',          
+                    None              
+                )
+            except Exception as e:
+                logger.error("Error while processing Claim Subscription", exc_info=e)
+
+        bind_service_signal(
+            'claim.enter_and_submit_claim',
+            on_claim_create_or_update,
             bind_type=ServiceSignalBindType.AFTER
         )
 

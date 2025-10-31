@@ -8,7 +8,7 @@ from api_fhir_r4.configurations import R4SubscriptionConfig
 from api_fhir_r4.subscriptions import SubscriptionConverter
 from api_fhir_r4.models import Subscription
 from api_fhir_r4.permissions import FHIRApiInsureePermissions, FHIRApiInvoicePermissions, \
-    FHIRApiHealthServicePermissions
+    FHIRApiHealthServicePermissions, FHIRApiClaimPermissions
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from api_fhir_r4.services import SubscriptionService
 from api_fhir_r4.mixins import RetrieveModelMixin
@@ -20,7 +20,9 @@ class SubscriptionSerializer(BaseFHIRSerializer, RetrieveModelMixin):
     resource_permissions = {
         'patient': FHIRApiInsureePermissions.permissions_get,
         'invoice': FHIRApiInvoicePermissions.permissions_get,
-        'organisation': FHIRApiHealthServicePermissions.permissions_get
+        'organisation': FHIRApiHealthServicePermissions.permissions_get,
+        'claim': FHIRApiClaimPermissions.permissions_get
+
     }
 
     def create(self, validated_data):

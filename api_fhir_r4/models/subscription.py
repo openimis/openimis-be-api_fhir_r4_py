@@ -16,7 +16,7 @@ class Subscription(HistoryBusinessModel):
         ACTIVE = 1, _('active')
 
     class SubscriptionChannel(models.IntegerChoices):
-        REST_HOOK = 0, _("rest-hook")
+        REST_HOOK = 1, _("rest-hook")
 
     status = models.SmallIntegerField(db_column='Status', null=False, choices=SubscriptionStatus.choices)
     channel = models.SmallIntegerField(db_column='Channel', null=False, choices=SubscriptionChannel.choices)
