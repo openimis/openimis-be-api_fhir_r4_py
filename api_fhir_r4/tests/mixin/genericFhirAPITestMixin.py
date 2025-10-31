@@ -28,8 +28,8 @@ class GenericFhirAPITestMixin(object):
     def _test_json_path_credentials(self):
         return None
     
-    _TEST_SUPERUSER_NAME = 'admin_api'
-    _TEST_SUPERUSER_PASS = 'adminadmin'#'Admin123'
+    _TEST_SUPERUSER_NAME = 'Admin'
+    _TEST_SUPERUSER_PASS = 'admin123'#'Admin123'
     _test_request_data = None
     _test_json_path_credentials = None
 

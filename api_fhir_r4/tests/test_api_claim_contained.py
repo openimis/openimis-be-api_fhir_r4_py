@@ -69,8 +69,8 @@ class ClaimAPIContainedTestBaseMixin:
     _ADMIN_AUDIT_USER_ID = -1
 
     _test_json_path_credentials = "/test/test_login.json"
-    _TEST_USER_NAME = "TestUserTest2"
-    _TEST_USER_PASSWORD = "TestPasswordTest2"
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
     _TEST_DATA_USER = {
         "username": _TEST_USER_NAME,
         "last_name": _TEST_USER_NAME,

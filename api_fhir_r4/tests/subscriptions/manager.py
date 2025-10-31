@@ -54,7 +54,7 @@ class TestSubscriptionNotificationManager(CommunicationTestMixin, LogInMixin, Te
 
     def _create_valid(self, headers):
         sub = Subscription(
-            status=1, channel=0, endpoint='http://test-subscription-endpoint.io/post_uri/',
+            status=1, channel=1, endpoint='http://test-subscription-endpoint.io/post_uri/',
             headers=headers, expiring=datetime.datetime.now() + datetime.timedelta(days=10)
         )
         sub.save(username=self._test_user.username)
@@ -62,7 +62,7 @@ class TestSubscriptionNotificationManager(CommunicationTestMixin, LogInMixin, Te
 
     def _assert_mock_call(self, mocked_client):
         mocked_client.propagate_notifications.assert_called_with(
-            self._test_converter.to_fhir_obj(self._test_resource, ReferenceConverterMixin.UUID_REFERENCE_TYPE),
+            self._test_converter.to_fhir_obj(self._test_resource, ReferenceConverterMixin.UUID_REFERENCE_TYPE).dict(),
             self._test_subscriptions
         )
 

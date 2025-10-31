@@ -28,8 +28,8 @@ def load_and_replace_json(path=None,sub_str={}):
 #        self.sub_str[self._TEST_HF_UUID] = self.test_hf.uuid
 #        
 #        self.json_representation = load_and_replace_json(_test_json_request_path,self.sub_str)
-_TEST_USER_NAME = "TestUserTest2"
-_TEST_USER_PASSWORD = "TestPasswordTest2"
+_TEST_USER_NAME = "Admin"
+_TEST_USER_PASSWORD = "admin123"
 _TEST_DATA_USER = {
     "username": _TEST_USER_NAME,
     "last_name": _TEST_USER_NAME,

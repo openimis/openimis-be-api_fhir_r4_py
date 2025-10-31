@@ -36,12 +36,15 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
         fhir_org = Organization(**fhir_organisation)
         imis_ph = PolicyHolder()
         imis_ph.audit_user_id = audit_user_id
+        
         cls.build_imis_ph_identifier(imis_ph, fhir_org, errors)
         cls.build_imis_ph_name(imis_ph, fhir_org, errors)
+        cls.build_imis_ph_legal_form(imis_ph, fhir_org, errors)
+        cls.build_imis_ph_activity(imis_ph, fhir_org, errors)
         cls.build_imis_ph_telecom(imis_ph, fhir_org, errors)
         cls.build_imis_ph_address(imis_ph, fhir_org, errors)
-        cls.build_imis_ph_legal_form(imis_ph, fhir_org, errors)
-        cls.build_imis_ph_activity_code(imis_ph, fhir_org, errors)
+        cls.build_imis_ph_contact(imis_ph, fhir_org, errors)
+        
         cls.check_errors(errors)
         return imis_ph
 
@@ -204,57 +207,60 @@ class PolicyHolderOrganisationConverter(BaseFHIRConverter, ReferenceConverterMix
         )
         if value:
             imis_ph.code = value
-        cls.valid_condition(imis_ph.code is None, _('Missing PH Organization code'), errors)
+        cls.valid_condition(imis_ph.code is None, _('Missing PolicyHolder code'), errors)
 
     @classmethod
     def build_imis_ph_name(cls, imis_ph, fhir_org, errors):
         imis_ph.trade_name = fhir_org.name
-        cls.valid_condition(imis_ph.trade_name is None, _('Missing PH Name'), errors)
-
-    @classmethod
-    def build_imis_ph_telecom(cls, imis_ph, fhir_org, errors):
-        if not fhir_org.telecom:
-            return
-        for telecom in fhir_org.telecom:
-            if telecom.system == ContactPointSystem.EMAIL.value:
-                imis_ph.email = telecom.value
-            elif telecom.system == ContactPointSystem.PHONE.value:
-                imis_ph.phone = telecom.value
-            elif telecom.system == ContactPointSystem.FAX.value:
-                imis_ph.fax = telecom.value
-
-    @classmethod
-    def build_imis_ph_address(cls, imis_ph, fhir_org, errors):
-        if fhir_org.address:
-            address = fhir_org.address[0]
-            imis_ph.address = {
-                "address": address.text or "",
-                "city": address.city or "",
-                "district": address.district or "",
-                "state": address.state or ""
-            }
+        cls.valid_condition(imis_ph.trade_name is None, _('Missing PolicyHolder name'), errors)
 
     @classmethod
     def build_imis_ph_legal_form(cls, imis_ph, fhir_org, errors):
-        ext_url_suffix = R4OrganisationConfig.get_fhir_ph_organisation_legal_form_extension_system()
-        value = cls.__get_extension_by_url_suffix(fhir_org.extension, ext_url_suffix)
-        if value:
-            imis_ph.legal_form = value
+        if fhir_org.extension:
+            ext_url_suffix = 'organization-legal-form'
+            legal_form_ext = next((x for x in fhir_org.extension if ext_url_suffix in x.url), None)
+            if legal_form_ext and hasattr(legal_form_ext, 'valueCodeableConcept'):
+                coding = cls.get_first_coding_from_codeable_concept(legal_form_ext.valueCodeableConcept)
+                if coding and coding.code:
+                    imis_ph.legal_form = int(coding.code)
 
     @classmethod
-    def build_imis_ph_activity_code(cls, imis_ph, fhir_org, errors):
-        ext_url_suffix = R4OrganisationConfig.get_fhir_ph_organisation_activity_extension_system()
-        value = cls.__get_extension_by_url_suffix(fhir_org.extension, ext_url_suffix)
-        if value:
-            imis_ph.activity_code = int(value)
+    def build_imis_ph_activity(cls, imis_ph, fhir_org, errors):
+        if fhir_org.extension:
+            ext_url_suffix = 'organization-activity'
+            activity_ext = next((x for x in fhir_org.extension if ext_url_suffix in x.url), None)
+            if activity_ext and hasattr(activity_ext, 'valueCodeableConcept'):
+                coding = cls.get_first_coding_from_codeable_concept(activity_ext.valueCodeableConcept)
+                if coding and coding.code:
+                    imis_ph.activity_code = int(coding.code)
 
     @classmethod
-    def __get_extension_by_url_suffix(cls, extensions, ext_url_suffix):
-        if not extensions:
-            return None
-        level_ext = next((x for x in extensions if x.url.endswith(ext_url_suffix)), None)
-        if level_ext:
-            return cls.get_first_coding_from_codeable_concept(
-                level_ext.valueCodeableConcept).code
-        else:
-            return None
+    def build_imis_ph_telecom(cls, imis_ph, fhir_org, errors):
+        if fhir_org.telecom:
+            for telecom in fhir_org.telecom:
+                if telecom.system == ContactPointSystem.EMAIL.value:
+                    imis_ph.email = telecom.value
+                elif telecom.system == ContactPointSystem.PHONE.value:
+                    imis_ph.phone = telecom.value
+                elif telecom.system == ContactPointSystem.FAX.value:
+                    imis_ph.fax = telecom.value
+
+    @classmethod
+    def build_imis_ph_address(cls, imis_ph, fhir_org, errors):
+        if fhir_org.address and len(fhir_org.address) > 0:
+            address = fhir_org.address[0]
+            if address.line and len(address.line) > 0:
+                imis_ph.address = {"address": address.line[0]}
+
+    @classmethod
+    def build_imis_ph_contact(cls, imis_ph, fhir_org, errors):
+        if fhir_org.contact and len(fhir_org.contact) > 0:
+            contact = fhir_org.contact[0]
+            if hasattr(contact, 'name') and contact.name:
+                # Parse "FirstName LastName" format
+                name_text = contact.name.text if hasattr(contact.name, 'text') else str(contact.name)
+                name_parts = name_text.split(' ', 1)
+                if len(name_parts) == 2:
+                    imis_ph.contact_name = {"name": name_parts[0], "surname": name_parts[1]}
+                else:
+                    imis_ph.contact_name = {"name": name_text, "surname": ""}

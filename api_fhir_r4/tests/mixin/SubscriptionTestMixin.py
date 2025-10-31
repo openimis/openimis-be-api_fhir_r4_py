@@ -15,7 +15,7 @@ class SubscriptionTestMixin(GenericTestMixin):
         'chfid__startswith': '0'
     }
     _TEST_SUB_IMIS_STATUS = 1
-    _TEST_SUB_IMIS_CHANNEL = 0
+    _TEST_SUB_IMIS_CHANNEL = 1
 
     _TEST_SUB_FHIR_STATUS = 'active'
     _TEST_SUB_FHIR_REASON = 'Patient'

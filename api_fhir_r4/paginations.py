@@ -36,7 +36,7 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
 
     def build_bundle_link(self, bundle, relation, url):
         self_link = {}
-        self_link['url'] = urllib.parse.quote_plus(url)
+        self_link['url'] = url  # urllib.parse.quote_plus(url)
         self_link['relation'] = relation
         bundle_link = BundleLink(**self_link)
         if type(bundle.link) is not list:

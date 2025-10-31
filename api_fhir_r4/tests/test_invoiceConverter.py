@@ -7,7 +7,8 @@ from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 
 
 class InvoiceConverterTestCase(InvoiceTestMixin, LogInMixin, ConvertJsonToFhirTestMixin):
-    _TEST_USER_NAME = "TestUserTest2"
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
 
     converter = InvoiceConverter
     fhir_resource = Invoice

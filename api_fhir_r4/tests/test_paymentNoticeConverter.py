@@ -13,7 +13,8 @@ from invoice.tests.helpers import create_test_invoice
 
 
 class PaymentNoticeConverterTestCase(PaymentNoticeTestMixin, LogInMixin, ConvertJsonToFhirTestMixin):
-    _TEST_USER_NAME = "TestUserTest2"
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
 
     converter = PaymentNoticeConverter
     fhir_resource = PaymentNotice

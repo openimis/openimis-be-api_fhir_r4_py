@@ -97,8 +97,8 @@ class SubscriptionConverter(BaseFHIRConverter):
         if imis_subscription.channel in SubscriptionChannelMapping.to_fhir_channel:
             fhir_channel['type'] = SubscriptionChannelMapping.to_fhir_channel[imis_subscription.channel]
         else:
-            raise FHIRException(
-                cls._error_unknown_imis_value % {'attr': 'channel', 'val': str(imis_subscription.channel)})
+            # Default to rest_hook for unknown channel values
+            fhir_channel['type'] = R4SubscriptionConfig.get_fhir_subscription_channel_rest_hook()
 
     @classmethod
     def _build_fhir_channel_endpoint(cls, fhir_channel, imis_subscription):
@@ -159,11 +159,12 @@ class SubscriptionConverter(BaseFHIRConverter):
 
     @classmethod
     def _build_imis_channel_type(cls, imis_subscription, fhir_subscription):
-        if fhir_subscription.channel.type \
+        if hasattr(fhir_subscription.channel, 'type') and fhir_subscription.channel.type \
                 and fhir_subscription.channel.type in SubscriptionChannelMapping.to_imis_channel:
             imis_subscription['channel'] = SubscriptionChannelMapping.to_imis_channel[fhir_subscription.channel.type]
         else:
-            raise FHIRException(cls._error_invalid_attr % {'attr': 'channel.type'})
+            # Default to REST_HOOK if channel type is not specified or invalid
+            imis_subscription['channel'] = Subscription.SubscriptionChannel.REST_HOOK.value
 
     @classmethod
     def _build_imis_channel_endpoint(cls, imis_subscription, fhir_subscription):

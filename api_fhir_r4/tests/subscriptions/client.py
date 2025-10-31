@@ -39,11 +39,13 @@ class TestSubscriptionNotificationClient(LogInMixin, TestCase):
                     SubscriberNotificationOutput(self._test_subscriptions[1], True, None)]
         self.assertListEqual(expected, list(response))
         session.assert_any_call(
+            headers=self.EXPECTED_HEADER_1,
             url='http://test-subscription-endpoint.io/post_uri/',
-            headers=self.EXPECTED_HEADER_1, data=b'{"notification_content":"content"}')
+            data='{"notification_content":"content"}')
         session.assert_any_call(
+            headers=self.EXPECTED_HEADER_2,
             url='http://test-subscription-endpoint.io/post_uri/',
-            headers=self.EXPECTED_HEADER_2, data=b'{"notification_content":"content"}')
+            data='{"notification_content":"content"}')
 
     @async_to_sync
     @patch("api_fhir_r4.subscriptions.notificationClient.aiohttp.ClientSession.post")
@@ -59,10 +61,10 @@ class TestSubscriptionNotificationClient(LogInMixin, TestCase):
         self.assertListEqual(expected, list(response))
         session.assert_any_call(
             url='http://test-subscription-endpoint.io/post_uri/',
-            headers=self.EXPECTED_HEADER_1, data=b'{"notification_content":"content"}')
+            headers=self.EXPECTED_HEADER_1, data='{"notification_content":"content"}')
         session.assert_any_call(
             url='http://test-subscription-endpoint.io/post_uri/',
-            headers=self.EXPECTED_HEADER_2, data=b'{"notification_content":"content"}')
+            headers=self.EXPECTED_HEADER_2, data='{"notification_content":"content"}')
 
     def _create_test_subscriptions(self):
         _valid_subscription = [self._create_valid(self.TEST_HEADERS_1), self._create_valid(self.TEST_HEADERS_2)]

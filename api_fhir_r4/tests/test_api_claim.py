@@ -66,8 +66,8 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
     _ADMIN_AUDIT_USER_ID = -1
     _TEST_USER = None
-    _TEST_USER_NAME = "TestUserTest2"
-    _TEST_USER_PASSWORD = "TestPasswordTest2"
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
     _TEST_DATA_USER = {
         "username": _TEST_USER_NAME,
         "last_name": _TEST_USER_NAME,

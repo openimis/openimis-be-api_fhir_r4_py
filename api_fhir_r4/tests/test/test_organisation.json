@@ -53,8 +53,8 @@
         "coding": [
           {
             "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/organization-legal-form",
-            "code": "P",
-            "display": "Private organization"
+            "code": "1",
+            "display": "Personal Company"
           }
         ]
       }
