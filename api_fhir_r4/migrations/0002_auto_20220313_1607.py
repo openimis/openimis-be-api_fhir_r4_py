@@ -9,26 +9,52 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_fhir_r4', '0001_initial'),
+        ("api_fhir_r4", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='historicalsubscription',
-            options={'get_latest_by': 'history_date', 'ordering': ('-history_date', '-history_id'), 'verbose_name': 'historical subscription'},
+            name="historicalsubscription",
+            options={
+                "get_latest_by": "history_date",
+                "ordering": ("-history_date", "-history_id"),
+                "verbose_name": "historical subscription",
+            },
         ),
         migrations.CreateModel(
-            name='SubscriptionNotificationResult',
+            name="SubscriptionNotificationResult",
             fields=[
-                ('id', models.UUIDField(db_column='UUID', default=None, editable=False, primary_key=True, serialize=False)),
-                ('notified_successfully', models.BooleanField()),
-                ('notification_time', core.fields.DateTimeField(db_column='Expiring', default=core.datetimes.ad_datetime.AdDatetime.now)),
-                ('error', models.TextField(default=None, null=True)),
-                ('subscription', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications_sent', to='api_fhir_r4.Subscription')),
+                (
+                    "id",
+                    models.UUIDField(
+                        db_column="UUID",
+                        default=None,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("notified_successfully", models.BooleanField()),
+                (
+                    "notification_time",
+                    core.fields.DateTimeField(
+                        db_column="Expiring",
+                        default=core.datetimes.ad_datetime.AdDatetime.now,
+                    ),
+                ),
+                ("error", models.TextField(default=None, null=True)),
+                (
+                    "subscription",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications_sent",
+                        to="api_fhir_r4.Subscription",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'tblSubscriptionNotificationResult',
-                'managed': True,
+                "db_table": "tblSubscriptionNotificationResult",
+                "managed": True,
             },
         ),
     ]

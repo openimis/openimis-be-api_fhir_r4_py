@@ -2,7 +2,7 @@ from claim.models import Claim
 
 
 class FeedbackStatus(object):
-    
+
     @classmethod
     def map_status(cls, code):
         codes = {
@@ -19,4 +19,4 @@ class FeedbackStatus(object):
             Claim.FEEDBACK_DELIVERED: "Delivered",
             Claim.FEEDBACK_BYPASSED: "Bypassed",
         }
-        return codes.get(code, 'Unknown')
+        return codes.get(code, "Unknown")

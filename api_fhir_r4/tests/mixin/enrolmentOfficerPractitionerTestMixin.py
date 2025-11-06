@@ -39,7 +39,7 @@ class EnrolmentOfficerPractitionerTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_LAST_NAME, imis_obj.last_name)
         self.assertEqual(self._TEST_OTHER_NAME, imis_obj.other_names)
         self.assertEqual(self._TEST_OFFICER_CODE, imis_obj.code)
-        self.assertEqual(self._TEST_DOB+"T00:00:00", imis_obj.dob.isoformat())
+        self.assertEqual(self._TEST_DOB + "T00:00:00", imis_obj.dob.isoformat())
         self.assertEqual(self._TEST_PHONE, imis_obj.phone)
         self.assertEqual(self._TEST_EMAIL, imis_obj.email)
 
@@ -54,21 +54,18 @@ class EnrolmentOfficerPractitionerTestMixin(GenericTestMixin):
         code = ClaimAdminPractitionerConverter.build_fhir_identifier(
             self._TEST_OFFICER_CODE,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
-            R4IdentifierConfig.get_fhir_generic_type_code()
+            R4IdentifierConfig.get_fhir_generic_type_code(),
         )
         identifiers.append(code)
         fhir_practitioner.identifier = identifiers
         fhir_practitioner.birthDate = self._TEST_DOB
         telecom = []
         phone = ClaimAdminPractitionerConverter.build_fhir_contact_point(
-            self._TEST_PHONE, ContactPointSystem.PHONE,
-            ContactPointUse.HOME
+            self._TEST_PHONE, ContactPointSystem.PHONE, ContactPointUse.HOME
         )
         telecom.append(phone)
         email = ClaimAdminPractitionerConverter.build_fhir_contact_point(
-            self._TEST_EMAIL,
-            ContactPointSystem.EMAIL,
-            ContactPointUse.HOME
+            self._TEST_EMAIL, ContactPointSystem.EMAIL, ContactPointUse.HOME
         )
         telecom.append(email)
         fhir_practitioner.telecom = telecom
@@ -76,9 +73,7 @@ class EnrolmentOfficerPractitionerTestMixin(GenericTestMixin):
         system = f"{GeneralConfiguration.get_system_base_url()}CodeSystem/practitioner-qualification-type"
         qualification = PractitionerQualification.construct()
         qualification.code = ClaimAdminPractitionerConverter.build_codeable_concept(
-            system=system,
-            code="EO",
-            display=_("Enrolment Officer")
+            system=system, code="EO", display=_("Enrolment Officer")
         )
         fhir_practitioner.qualification = [qualification]
 
@@ -93,7 +88,11 @@ class EnrolmentOfficerPractitionerTestMixin(GenericTestMixin):
         self.assertEqual("usual", human_name.use)
         for identifier in fhir_obj.identifier:
             self.assertTrue(isinstance(identifier, Identifier))
-            code = ClaimAdminPractitionerConverter.get_first_coding_from_codeable_concept(identifier.type).code
+            code = (
+                ClaimAdminPractitionerConverter.get_first_coding_from_codeable_concept(
+                    identifier.type
+                ).code
+            )
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
                 self.assertEqual(self._TEST_OFFICER_CODE, identifier.value)
             elif code == R4IdentifierConfig.get_fhir_uuid_type_code():
@@ -108,4 +107,6 @@ class EnrolmentOfficerPractitionerTestMixin(GenericTestMixin):
                 self.assertEqual(self._TEST_EMAIL, telecom.value)
         self.assertEqual(1, len(fhir_obj.qualification))
         self.assertEqual("EO", fhir_obj.qualification[0].code.coding[0].code)
-        self.assertEqual("Enrolment Officer", fhir_obj.qualification[0].code.coding[0].display)
+        self.assertEqual(
+            "Enrolment Officer", fhir_obj.qualification[0].code.coding[0].display
+        )

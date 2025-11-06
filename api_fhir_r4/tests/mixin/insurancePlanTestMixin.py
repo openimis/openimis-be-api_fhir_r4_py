@@ -10,9 +10,14 @@ from api_fhir_r4.tests import GenericTestMixin
 from django.utils.translation import gettext as _
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.money import Money
-from fhir.resources.R4B.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
-    InsurancePlanCoverageBenefit, InsurancePlanCoverageBenefitLimit, \
-    InsurancePlanPlan, InsurancePlanPlanGeneralCost
+from fhir.resources.R4B.insuranceplan import (
+    InsurancePlan,
+    InsurancePlanCoverage,
+    InsurancePlanCoverageBenefit,
+    InsurancePlanCoverageBenefitLimit,
+    InsurancePlanPlan,
+    InsurancePlanPlanGeneralCost,
+)
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.quantity import Quantity
@@ -62,7 +67,9 @@ class InsurancePlanTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_PERIOD_START, imis_obj.date_from.isoformat())
         self.assertEqual(self._TEST_PERIOD_END, imis_obj.date_to.isoformat())
         self.assertEqual(self._TEST_MAX_INSTALLMENTS, imis_obj.max_installments)
-        self.assertEqual(self._TEST_GRACE_PERIOD_PAYMENT, imis_obj.grace_period_enrolment)
+        self.assertEqual(
+            self._TEST_GRACE_PERIOD_PAYMENT, imis_obj.grace_period_enrolment
+        )
         self.assertEqual(self._TEST_INSURANCE_PERIOD, imis_obj.insurance_period)
         self.assertEqual(self._TEST_MEMBER_COUNT, imis_obj.max_members)
         self.assertEqual(self._TEST_LUMPSUM, imis_obj.lump_sum)
@@ -70,7 +77,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_PREMIUM_ADULT, imis_obj.premium_adult)
 
     def create_test_fhir_instance(self):
-        if hasattr(core, 'currency'):
+        if hasattr(core, "currency"):
             currency = core.currency
         else:
             currency = "EUR"
@@ -80,7 +87,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         code = InsurancePlanConverter.build_fhir_identifier(
             self._TEST_PRODUCT_CODE,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
-            R4IdentifierConfig.get_fhir_generic_type_code()
+            R4IdentifierConfig.get_fhir_generic_type_code(),
         )
         identifiers = [code]
         fhir_insurance_plan.identifier = identifiers
@@ -88,7 +95,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
 
         type = InsurancePlanConverter.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
         if len(type.coding) == 1:
             type.coding[0].display = _("Medical")
@@ -102,14 +109,14 @@ class InsurancePlanTestMixin(GenericTestMixin):
         coverage = InsurancePlanCoverage.construct()
         coverage.type = InsurancePlanConverter.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
 
         # build coverage benefit
         benefit = InsurancePlanCoverageBenefit.construct()
         benefit.type = InsurancePlanConverter.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
 
         # build coverage benefit limit slices
@@ -128,7 +135,9 @@ class InsurancePlanTestMixin(GenericTestMixin):
         quantity.value = self._TEST_MEMBER_COUNT
         quantity.unit = "member"
         limit.value = quantity
-        limit.code = InsurancePlanConverter.build_codeable_concept("memberCount", system)
+        limit.code = InsurancePlanConverter.build_codeable_concept(
+            "memberCount", system
+        )
         limit.code.coding[0].display = _("Member Count")
         benefit.limit.append(limit)
 
@@ -143,7 +152,9 @@ class InsurancePlanTestMixin(GenericTestMixin):
         cost.value = self._TEST_LUMPSUM
         cost.currency = currency
         general_cost.cost = cost
-        general_cost.type = InsurancePlanConverter.build_codeable_concept("lumpsum", system)
+        general_cost.type = InsurancePlanConverter.build_codeable_concept(
+            "lumpsum", system
+        )
         general_cost.type.coding[0].display = _("Lumpsum")
         plan.generalCost = [general_cost]
         plan.generalCost[0].groupSize = self._TEST_THRESHOLD
@@ -153,7 +164,9 @@ class InsurancePlanTestMixin(GenericTestMixin):
         cost.value = self._TEST_PREMIUM_ADULT
         cost.currency = currency
         general_cost.cost = cost
-        general_cost.type = InsurancePlanConverter.build_codeable_concept("premiumAdult", system)
+        general_cost.type = InsurancePlanConverter.build_codeable_concept(
+            "premiumAdult", system
+        )
         general_cost.type.coding[0].display = _("Premium Adult")
         plan.generalCost.append(general_cost)
 
@@ -161,22 +174,25 @@ class InsurancePlanTestMixin(GenericTestMixin):
 
         # extensions
         extension = Extension.construct()
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-max-installments"
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/insurance-plan-max-installments"""
         extension.valueUnsignedInt = self._TEST_MAX_INSTALLMENTS
         fhir_insurance_plan.extension = [extension]
         extension = Extension.construct()
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-period"
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/insurance-plan-period"""
         extension.valueQuantity = Quantity(
-            **{
-                "value": self._TEST_GRACE_PERIOD_PAYMENT,
-                "unit": "months"
-            }
+            **{"value": self._TEST_GRACE_PERIOD_PAYMENT, "unit": "months"}
         )
         fhir_insurance_plan.extension.append(extension)
 
         # discount processing - renewal
         extension = Extension.construct()
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-discount"
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-discount
+            """
         nested_extension = Extension.construct()
 
         # percentage
@@ -188,10 +204,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         nested_extension = Extension.construct()
         nested_extension.url = "Period"
         nested_extension.valueQuantity = Quantity(
-            **{
-                "value": self._TEST_RENEWAL_DISCOUNT_PERIOD,
-                "unit": "months"
-            }
+            **{"value": self._TEST_RENEWAL_DISCOUNT_PERIOD, "unit": "months"}
         )
         extension.extension.append(nested_extension)
         fhir_insurance_plan.extension.append(extension)
@@ -210,10 +223,7 @@ class InsurancePlanTestMixin(GenericTestMixin):
         nested_extension = Extension.construct()
         nested_extension.url = "Period"
         nested_extension.valueQuantity = Quantity(
-            **{
-                "value": self._TEST_ENROLMENT_DISCOUNT_PERIOD,
-                "unit": "months"
-            }
+            **{"value": self._TEST_ENROLMENT_DISCOUNT_PERIOD, "unit": "months"}
         )
         extension.extension.append(nested_extension)
         fhir_insurance_plan.extension.append(extension)
@@ -224,21 +234,37 @@ class InsurancePlanTestMixin(GenericTestMixin):
         self.assertEqual(4, len(fhir_obj.extension))
         extension_max_installment = fhir_obj.extension[0]
         self.assertTrue(isinstance(extension_max_installment, Extension))
-        self.assertEqual(self._TEST_MAX_INSTALLMENTS, extension_max_installment.valueUnsignedInt)
+        self.assertEqual(
+            self._TEST_MAX_INSTALLMENTS, extension_max_installment.valueUnsignedInt
+        )
         extension_grace_period = fhir_obj.extension[1].valueQuantity
         self.assertTrue(isinstance(extension_grace_period, Quantity))
         self.assertEqual(self._TEST_GRACE_PERIOD_PAYMENT, extension_grace_period.value)
         extension_renewal_discounts = fhir_obj.extension[2].extension
-        self.assertAlmostEqual(decimal.Decimal(self._TEST_RENEWAL_DISCOUNT),
-                               extension_renewal_discounts[0].valueDecimal, places=2)
-        self.assertEqual(self._TEST_RENEWAL_DISCOUNT_PERIOD, extension_renewal_discounts[1].valueQuantity.value)
+        self.assertAlmostEqual(
+            decimal.Decimal(self._TEST_RENEWAL_DISCOUNT),
+            extension_renewal_discounts[0].valueDecimal,
+            places=2,
+        )
+        self.assertEqual(
+            self._TEST_RENEWAL_DISCOUNT_PERIOD,
+            extension_renewal_discounts[1].valueQuantity.value,
+        )
         extension_enrolment_discounts = fhir_obj.extension[3].extension
-        self.assertAlmostEqual(decimal.Decimal(self._TEST_ENROLMENT_DISCOUNT),
-                               extension_enrolment_discounts[0].valueDecimal, places=2)
-        self.assertEqual(self._TEST_ENROLMENT_DISCOUNT_PERIOD, extension_enrolment_discounts[1].valueQuantity.value)
+        self.assertAlmostEqual(
+            decimal.Decimal(self._TEST_ENROLMENT_DISCOUNT),
+            extension_enrolment_discounts[0].valueDecimal,
+            places=2,
+        )
+        self.assertEqual(
+            self._TEST_ENROLMENT_DISCOUNT_PERIOD,
+            extension_enrolment_discounts[1].valueQuantity.value,
+        )
         for identifier in fhir_obj.identifier:
             self.assertTrue(isinstance(identifier, Identifier))
-            code = InsurancePlanConverter.get_first_coding_from_codeable_concept(identifier.type).code
+            code = InsurancePlanConverter.get_first_coding_from_codeable_concept(
+                identifier.type
+            ).code
             if code == R4IdentifierConfig.get_fhir_claim_admin_code_type():
                 self.assertEqual(self._TEST_PRODUCT_CODE, identifier.value)
         benefit_limit_period = fhir_obj.coverage[0].benefit[0].limit[0].value

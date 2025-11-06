@@ -14,7 +14,9 @@ class CodeSystemOpenIMISGroupTypeViewSet(viewsets.ViewSet):
 
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -24,15 +26,15 @@ class CodeSystemOpenIMISGroupTypeViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                "model_name": 'FamilyType',
-                "code_field": 'code',
-                "display_field": 'type',
-                "id": 'group-type',
-                "name": 'GroupTypeCS',
-                "title": 'Group Type (Group)',
+                "model_name": "FamilyType",
+                "code_field": "code",
+                "display_field": "type",
+                "id": "group-type",
+                "name": "GroupTypeCS",
+                "title": "Group Type (Group)",
                 "description": "Indicates the type of the Group. "
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                "Values defined by openIMIS. Can be extended.",
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)

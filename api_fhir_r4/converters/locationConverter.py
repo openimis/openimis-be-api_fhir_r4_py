@@ -15,7 +15,9 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     PHYSICAL_TYPES = LocationTypeMapping.PHYSICAL_TYPES_DEFINITIONS
 
     @classmethod
-    def to_fhir_obj(cls, imis_location, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls, imis_location, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
+    ):
         fhir_location = FHIRLocation.construct()
         cls.build_fhir_physical_type(fhir_location, imis_location)
         cls.build_fhir_pk(fhir_location, imis_location, reference_type)
@@ -60,7 +62,9 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
-        return DbManagerUtils.get_object_or_none(Location, **cls.get_database_query_id_parameteres_from_reference(reference))
+        return DbManagerUtils.get_object_or_none(
+            Location, **cls.get_database_query_id_parameteres_from_reference(reference)
+        )
 
     @classmethod
     def build_fhir_location_identifier(cls, fhir_location, imis_location):
@@ -72,20 +76,23 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_location_code_identifier(cls, identifiers, imis_location):
         if imis_location is not None:
-            identifier = cls.build_fhir_identifier(imis_location.code,
-                                                   R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                                   R4IdentifierConfig.get_fhir_location_code_type())
+            identifier = cls.build_fhir_identifier(
+                imis_location.code,
+                R4IdentifierConfig.get_fhir_identifier_type_system(),
+                R4IdentifierConfig.get_fhir_location_code_type(),
+            )
             identifiers.append(identifier)
 
     @classmethod
     def build_imis_location_identiftier(cls, imis_location, fhir_location, errors):
         value = cls.get_fhir_identifier_by_code(
-            fhir_location.identifier,
-            R4IdentifierConfig.get_fhir_location_code_type()
+            fhir_location.identifier, R4IdentifierConfig.get_fhir_location_code_type()
         )
         if value:
             imis_location.code = value
-        cls.valid_condition(imis_location.code is None, gettext('Missing location code'), errors)
+        cls.valid_condition(
+            imis_location.code is None, gettext("Missing location code"), errors
+        )
 
     @classmethod
     def build_fhir_location_name(cls, fhir_location, imis_location):
@@ -95,7 +102,9 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_imis_location_name(cls, imis_location, fhir_location, errors):
         name = fhir_location.name
-        if not cls.valid_condition(name is None, _('Missing location `name` attribute'), errors):
+        if not cls.valid_condition(
+            name is None, _("Missing location `name` attribute"), errors
+        ):
             imis_location.name = name
 
     @classmethod
@@ -110,18 +119,21 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         try:
             code = fhir_location.physicalType.coding[0].code
             imis_code = next(
-                (k for k, v in cls.PHYSICAL_TYPES.items() if v['code'] == code), None
+                (k for k, v in cls.PHYSICAL_TYPES.items() if v["code"] == code), None
             )
             imis_location.type = imis_code
             cls._validate_physical_type(imis_location)
 
         except KeyError:
-            errors.append(_('Missing location physical type'))
+            errors.append(_("Missing location physical type"))
         except FHIRException:
             errors.append(
-                _('Invalid location physical type with code %(code), allowed codes are: %(types)') % {
-                    'code': code,
-                    'types': [v['code'] for v in cls.PHYSICAL_TYPES.values]
+                _(
+                    "Invalid location physical type with code %(code), allowed codes are: %(types)"
+                )
+                % {
+                    "code": code,
+                    "types": [v["code"] for v in cls.PHYSICAL_TYPES.values],
                 }
             )
 
@@ -130,84 +142,115 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if not cls.__is_highers_level_location(imis_location):
             fhir_location.partOf = LocationConverter.build_fhir_resource_reference(
                 imis_location.parent,
-                'Location',
+                "Location",
                 imis_location.parent.code,
-                reference_type=reference_type
+                reference_type=reference_type,
             )
 
     def get_location_from_address(cls, fhir_patient_address):
-        location_reference_ext = next((
-            ext for ext in fhir_patient_address.extension if 'address-location-reference' in ext.url
-        ))
-        location = cls.get_imis_obj_by_fhir_reference(location_reference_ext.valueReference)
+        location_reference_ext = next(
+            (
+                ext
+                for ext in fhir_patient_address.extension
+                if "address-location-reference" in ext.url
+            )
+        )
+        location = cls.get_imis_obj_by_fhir_reference(
+            location_reference_ext.valueReference
+        )
         if location is None and location_reference_ext:
-            raise FHIRException(f"Invalid location reference, {location_reference_ext.valueReference} doesn't match any location.")
+            raise FHIRException(
+                f"Invalid location reference, {location_reference_ext.valueReference} doesn't match any location."
+            )
         if location is None:
-            matching_locations = Location.objects \
-                .filter(
+            matching_locations = (
+                Location.objects.filter(
                     validity_to__isnull=True,
                     name=fhir_patient_address.district,
                     parent__name=fhir_patient_address.state,
-                    type="D"  # HF is expected to be at district level
-                ).distinct()\
+                    type="D",  # HF is expected to be at district level
+                )
+                .distinct()
                 .all()
-        
+            )
+
             if matching_locations.count() != 1:
-                raise FHIRException(cls.__get_invalid_location_msg(fhir_patient_address, matching_locations))
+                raise FHIRException(
+                    cls.__get_invalid_location_msg(
+                        fhir_patient_address, matching_locations
+                    )
+                )
             else:
                 location = matching_locations.first()
         return location
-    
-    
+
     @classmethod
     def __get_invalid_location_msg(cls, address, matching_locations):
         count = matching_locations.count()
         if count == 0:
-            return _(F"No matching location for district {address.district}, state {address.state}.")
+            return _(
+                f"No matching location for district {address.district}, state {address.state}."
+            )
         elif count > 1:
-            return _(F"More than one matching location district {address.district}, state {address.state}:\n"
-                     F"{matching_locations}.")
+            return _(
+                f"More than one matching location district {address.district}, state {address.state}:\n"
+                f"{matching_locations}."
+            )
 
     @classmethod
     def build_imis_parent_location_id(cls, imis_location, fhir_location, errors):
         if fhir_location.partOf:
-            resource = cls.get_imis_obj_by_fhir_reference(fhir_location.partOf) 
+            resource = cls.get_imis_obj_by_fhir_reference(fhir_location.partOf)
             if not resource:
-                errors.append(
-                    _('Invalid Location\'s partOf.reference')
-                )
-
+                errors.append(_("Invalid Location's partOf.reference"))
 
     @classmethod
     def _validate_imis_identifiers(cls, identifiers):
-        code_identifier = cls.get_fhir_identifier_by_code(identifiers, cls.get_fhir_code_identifier_type())
+        code_identifier = cls.get_fhir_identifier_by_code(
+            identifiers, cls.get_fhir_code_identifier_type()
+        )
         if not code_identifier:
-            raise FHIRException(_('Code identifier has to be present in FHIR Location identifiers, '
-                                  '\nidentifiers are: %(identifiers)') % {'identifiers': identifiers})
+            raise FHIRException(
+                _(
+                    "Code identifier has to be present in FHIR Location identifiers, "
+                    "\nidentifiers are: %(identifiers)"
+                )
+                % {"identifiers": identifiers}
+            )
 
     @classmethod
     def _validate_imis_name(cls, imis_location):
         if not imis_location.name:
             raise FHIRException(
-                _('Location  %(location_uuid)s without name') % {'uuid': imis_location.uuid}
+                _("Location  %(location_uuid)s without name")
+                % {"uuid": imis_location.uuid}
             )
 
     @classmethod
     def _validate_physical_type(cls, imis_location):
         allowed_keys = cls.PHYSICAL_TYPES.keys()
         if not imis_location or (imis_location.type not in allowed_keys):
-            
-            error_msg_keys = {
-                'type': imis_location.type, 'location': imis_location.uuid, 'types': allowed_keys
-            } if imis_location else {'type':None,'location':None,'types': allowed_keys}
+
+            error_msg_keys = (
+                {
+                    "type": imis_location.type,
+                    "location": imis_location.uuid,
+                    "types": allowed_keys,
+                }
+                if imis_location
+                else {"type": None, "location": None, "types": allowed_keys}
+            )
             raise FHIRException(
-                _('Invalid Location\'s type %(type) for location %(location), '
-                  'supported types are: %(types)') % error_msg_keys
+                _(
+                    "Invalid Location's type %(type) for location %(location), "
+                    "supported types are: %(types)"
+                )
+                % error_msg_keys
             )
 
     @classmethod
     def build_fhir_mode(cls, fhir_location):
-        fhir_location.mode = 'instance'
+        fhir_location.mode = "instance"
 
     @classmethod
     def build_fhir_status(cls, fhir_location, imis_location):
@@ -231,7 +274,9 @@ class LocationConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 ref_type_code = location_part_of.identifier.type.coding[0].code
                 return ref_type_code == R4IdentifierConfig.get_fhir_location_code_type()
             except KeyError:
-                raise FHIRException(_("Invalid format for Location's partOf identifier."))
+                raise FHIRException(
+                    _("Invalid format for Location's partOf identifier.")
+                )
         else:
             # Default expected reference identifier is uuid
             return False

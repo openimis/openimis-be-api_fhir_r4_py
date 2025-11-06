@@ -34,22 +34,22 @@ class QuerysetNotEqualFilter(QuerysetFilterABC):
 
 class QuerysetGreaterThanFilter(QuerysetFilterABC):
     def apply_filter(self, queryset):
-        return queryset.filter(**{f'{self.field}__gt': self.value})
+        return queryset.filter(**{f"{self.field}__gt": self.value})
 
 
 class QuerysetLesserThanFilter(QuerysetFilterABC):
     def apply_filter(self, queryset):
-        return queryset.filter(**{f'{self.field}__lt': self.value})
+        return queryset.filter(**{f"{self.field}__lt": self.value})
 
 
 class QuerysetGreaterThanEqualFilter(QuerysetFilterABC):
     def apply_filter(self, queryset):
-        return queryset.filter(**{f'{self.field}__gte': self.value})
+        return queryset.filter(**{f"{self.field}__gte": self.value})
 
 
 class QuerysetLesserThanEqualFilter(QuerysetFilterABC):
     def apply_filter(self, queryset):
-        return queryset.filter(**{f'{self.field}__lte': self.value})
+        return queryset.filter(**{f"{self.field}__lte": self.value})
 
 
 class QuerysetApproximateDateFilter(QuerysetFilterABC):
@@ -57,7 +57,7 @@ class QuerysetApproximateDateFilter(QuerysetFilterABC):
         range_size = (datetime.now() - self.value).days * 0.1
         value_start = self.value - timedelta(days=range_size)
         value_end = self.value + timedelta(days=range_size)
-        return queryset.filter(**{f'{self.field}__range': (value_start, value_end)})
+        return queryset.filter(**{f"{self.field}__range": (value_start, value_end)})
 
 
 class QuerysetParameterABC(ABC):
@@ -66,7 +66,9 @@ class QuerysetParameterABC(ABC):
         self.accepted_prefixes = self._get_prefix_filter_mapping().keys()
 
     @abstractmethod
-    def _get_prefix_filter_mapping(self) -> Dict[str, Callable[[str, Any], QuerysetFilterABC]]:
+    def _get_prefix_filter_mapping(
+        self,
+    ) -> Dict[str, Callable[[str, Any], QuerysetFilterABC]]:
         """
         _get_prefix_filter_mapping should return a dict that maps respective prefixes from FHIR specification to lambdas
         capable of creating specific filters taking affected field and parsed parameter value as arguments.
@@ -76,10 +78,19 @@ class QuerysetParameterABC(ABC):
 
     def build_filter(self, request_parameter_value):
         modifier, value = self._get_prefix_and_value(request_parameter_value)
-        return self._get_prefix_filter_mapping()[modifier if modifier else 'eq'](self.output_parameter, value)
+        return self._get_prefix_filter_mapping()[modifier if modifier else "eq"](
+            self.output_parameter, value
+        )
 
     def _get_prefix_and_value(self, parameter):
-        modifier = next((modifier for modifier in self.accepted_prefixes if parameter.startswith(modifier)), '')
+        modifier = next(
+            (
+                modifier
+                for modifier in self.accepted_prefixes
+                if parameter.startswith(modifier)
+            ),
+            "",
+        )
         output_value = self._parse_value(parameter[len(modifier):])
         return modifier, output_value
 
@@ -96,22 +107,22 @@ class QuerysetParameterABC(ABC):
 class QuerysetLastUpdatedParameter(QuerysetParameterABC):
     def _get_prefix_filter_mapping(self):
         return {
-            'eq': lambda field, value: QuerysetEqualFilter(field, value),
-            'ne': lambda field, value: QuerysetNotEqualFilter(field, value),
-            'gt': lambda field, value: QuerysetGreaterThanFilter(field, value),
-            'lt': lambda field, value: QuerysetLesserThanFilter(field, value),
-            'ge': lambda field, value: QuerysetGreaterThanEqualFilter(field, value),
-            'le': lambda field, value: QuerysetLesserThanEqualFilter(field, value),
-            'sa': lambda field, value: QuerysetGreaterThanEqualFilter(field, value),
-            'eb': lambda field, value: QuerysetLesserThanEqualFilter(field, value),
-            'ap': lambda field, value: QuerysetApproximateDateFilter(field, value)
+            "eq": lambda field, value: QuerysetEqualFilter(field, value),
+            "ne": lambda field, value: QuerysetNotEqualFilter(field, value),
+            "gt": lambda field, value: QuerysetGreaterThanFilter(field, value),
+            "lt": lambda field, value: QuerysetLesserThanFilter(field, value),
+            "ge": lambda field, value: QuerysetGreaterThanEqualFilter(field, value),
+            "le": lambda field, value: QuerysetLesserThanEqualFilter(field, value),
+            "sa": lambda field, value: QuerysetGreaterThanEqualFilter(field, value),
+            "eb": lambda field, value: QuerysetLesserThanEqualFilter(field, value),
+            "ap": lambda field, value: QuerysetApproximateDateFilter(field, value),
         }
 
     def _parse_value(self, value):
         try:
-            return datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+            return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
         except Exception:
-            raise ValueError('{request_parameter} value is not a valid datetime')
+            raise ValueError("{request_parameter} value is not a valid datetime")
 
 
 class RequestParameterFilterABC(ABC):
@@ -130,17 +141,23 @@ class RequestParameterFilterABC(ABC):
     def filter_queryset(self, queryset):
         parameter_mapping = self._get_parameter_mapping()
         accepted_parameters = parameter_mapping.keys()
-        request_parameters = {parameter: self.request.GET[parameter]
-                              for parameter in accepted_parameters if parameter in self.request.GET}
+        request_parameters = {
+            parameter: self.request.GET[parameter]
+            for parameter in accepted_parameters
+            if parameter in self.request.GET
+        }
 
         output_queryset = queryset
         for request_parameter in request_parameters:
             output_parameter = parameter_mapping[request_parameter]()
             try:
-                output_queryset = output_parameter.build_filter(self.request.GET[request_parameter]).apply_filter(
-                    output_queryset)
+                output_queryset = output_parameter.build_filter(
+                    self.request.GET[request_parameter]
+                ).apply_filter(output_queryset)
             except ValueError as parsingError:
-                raise ValueError(str(parsingError).format(**{'request_parameter': request_parameter}))
+                raise ValueError(
+                    str(parsingError).format(**{"request_parameter": request_parameter})
+                )
 
         return output_queryset
 
@@ -148,12 +165,12 @@ class RequestParameterFilterABC(ABC):
 class ValidityFromRequestParameterFilter(RequestParameterFilterABC):
     def _get_parameter_mapping(self):
         return {
-            '_lastUpdated': lambda: QuerysetLastUpdatedParameter('validity_from'),
+            "_lastUpdated": lambda: QuerysetLastUpdatedParameter("validity_from"),
         }
 
 
 class DateUpdatedRequestParameterFilter(RequestParameterFilterABC):
     def _get_parameter_mapping(self):
         return {
-            '_lastUpdated': lambda: QuerysetLastUpdatedParameter('date_updated'),
+            "_lastUpdated": lambda: QuerysetLastUpdatedParameter("date_updated"),
         }

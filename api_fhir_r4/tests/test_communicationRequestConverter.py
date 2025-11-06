@@ -4,9 +4,9 @@ from api_fhir_r4.tests import CommunicationRequestTestMixin
 from api_fhir_r4.tests.mixin import ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 
 
-class CommunicationRequestConverterTestCase(CommunicationRequestTestMixin,
-                                            ConvertToFhirTestMixin,
-                                            ConvertJsonToFhirTestMixin):
+class CommunicationRequestConverterTestCase(
+    CommunicationRequestTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
+):
     converter = CommunicationRequestConverter
     fhir_resource = CommunicationRequest
-    json_repr = 'test/test_communicationRequest.json'
+    json_repr = "test/test_communicationRequest.json"

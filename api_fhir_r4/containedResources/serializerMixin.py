@@ -1,10 +1,10 @@
-from typing import List, Type, Dict
+from typing import List, Type
 
 from fhir.resources.R4B import FHIRAbstractModel
 
-from api_fhir_r4.containedResources.containedResourceHandler import ContainedResourceManager
-from api_fhir_r4.containedResources.containedResources import AbstractContainedResourceCollection
-from api_fhir_r4.serializers import BaseFHIRSerializer
+from api_fhir_r4.containedResources.containedResources import (
+    AbstractContainedResourceCollection,
+)
 
 
 class ContainedContentSerializerMixin:
@@ -14,11 +14,20 @@ class ContainedContentSerializerMixin:
     listed contained_resources. The contained values are added only if the 'contained'
     value in the serializer context is set to True.
     """
+
     ALLOWED_RESOURCE_UPDATE_CONTAINED = {
-        'Group':('Patient'), 
-        'Patient':('Group'),
-        'Claim':('Medication','ActivityDefinition','Organization','Patient','Practitioner','PractitionerRole','Group'),
-        }
+        "Group": ("Patient"),
+        "Patient": ("Group"),
+        "Claim": (
+            "Medication",
+            "ActivityDefinition",
+            "Organization",
+            "Patient",
+            "Practitioner",
+            "PractitionerRole",
+            "Group",
+        ),
+    }
 
     #  Used for determining what reference type will be used used in contained value,
     # if None then value from ContainedResourceManager is used
@@ -38,19 +47,23 @@ class ContainedContentSerializerMixin:
 
     @property
     def contained_resources(self) -> Type[AbstractContainedResourceCollection]:
-        """ Collection definition, used to determine which managers will be used for defining contained resources.
+        """Collection definition, used to determine which managers will be used for defining contained resources.
         :return:
         """
-        raise NotImplementedError('Serializer with contained resources require contained_resources implemented')
+        raise NotImplementedError(
+            "Serializer with contained resources require contained_resources implemented"
+        )
 
-    def fhir_object_reference_fields(self, fhir_obj: FHIRAbstractModel) -> List[FHIRAbstractModel]:
+    def fhir_object_reference_fields(
+        self, fhir_obj: FHIRAbstractModel
+    ) -> List[FHIRAbstractModel]:
         """
         When contained resources are used, the references in fhir object fields should
         change to the contained resource reference starting with hash.
         References for values listed in this property will be changed.
         :return: List of fields from fhir_objects with references, which have representation in contained resources
         """
-        raise NotImplementedError('fhir_object_reference_fields not implemented')
+        raise NotImplementedError("fhir_object_reference_fields not implemented")
 
     def _get_converted_resources(self, obj):
         converted_values = []
@@ -63,7 +76,11 @@ class ContainedContentSerializerMixin:
         audit_user_id = self.get_audit_user_id()
         imis_obj = self.fhirConverter(user=self.user).to_imis_obj(data, audit_user_id)
         # Filter out special attributes
-        return {k: v for k, v in imis_obj.__dict__.items() if not k.startswith('_') and v is not None}
+        return {
+            k: v
+            for k, v in imis_obj.__dict__.items()
+            if not k.startswith("_") and v is not None
+        }
 
     def create(self, validated_data):
         self._create_or_update_contained(validated_data)
@@ -74,9 +91,11 @@ class ContainedContentSerializerMixin:
         super(ContainedContentSerializerMixin, self).update(instance, validated_data)
 
     def to_representation(self, obj):
-        base_fhir_obj_repr = super(ContainedContentSerializerMixin, self).to_representation(obj)
-        if self.context.get('contained', False):
-            base_fhir_obj_repr['contained'] = self._create_contained_obj_dict(obj)
+        base_fhir_obj_repr = super(
+            ContainedContentSerializerMixin, self
+        ).to_representation(obj)
+        if self.context.get("contained", False):
+            base_fhir_obj_repr["contained"] = self._create_contained_obj_dict(obj)
         return base_fhir_obj_repr
 
     def _create_contained_obj_dict(self, obj):
@@ -84,7 +103,9 @@ class ContainedContentSerializerMixin:
         dict_list = [resource.dict() for resource in contained_resources]
         return dict_list
 
-    def create_contained_resource_fhir_implementation(self, obj) -> List[FHIRAbstractModel]:
+    def create_contained_resource_fhir_implementation(
+        self, obj
+    ) -> List[FHIRAbstractModel]:
         contained_resources = []
         for resource, fhir_repr in self._get_converted_resources(obj):
             contained_resources.extend(fhir_repr)
@@ -96,20 +117,28 @@ class ContainedContentSerializerMixin:
 
     def _create_contained_reference(self, base_reference):
         # Contained references are made by adding hash
-        return F"#{base_reference}"
+        return f"#{base_reference}"
 
     def _create_or_update_contained(self, validated_data):
         result = {}
-        main_resource_type = validated_data['resourceType']
-        #TODO: use a bundle instead 
-        if 'contained' in validated_data\
-            and main_resource_type in self.ALLOWED_RESOURCE_UPDATE_CONTAINED:
+        main_resource_type = validated_data["resourceType"]
+        # TODO: use a bundle instead
+        if (
+            "contained" in validated_data
+            and main_resource_type in self.ALLOWED_RESOURCE_UPDATE_CONTAINED
+        ):
             for resource in self._contained_definitions.get_contained().values():
                 name = resource.alias
                 ressource_type = resource.imis_converter.fhir_resource_type
-                for contained in validated_data['contained']:
-                    if 'resourceType' in contained and contained['resourceType'] == ressource_type\
-                        and contained['resourceType'] in self.ALLOWED_RESOURCE_UPDATE_CONTAINED[main_resource_type]:
-                        result[name] = resource.create_or_update_from_contained(contained)
+                for contained in validated_data["contained"]:
+                    if (
+                        "resourceType" in contained
+                        and contained["resourceType"] == ressource_type
+                        and contained["resourceType"]
+                        in self.ALLOWED_RESOURCE_UPDATE_CONTAINED[main_resource_type]
+                    ):
+                        result[name] = resource.create_or_update_from_contained(
+                            contained
+                        )
                         break
         return result

@@ -1,23 +1,13 @@
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.converters import CommunicationConverter
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
-from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
-from api_fhir_r4.utils import TimeUtils
+from api_fhir_r4.tests import GenericTestMixin
 from fhir.resources.R4B.communication import Communication, CommunicationPayload
 from fhir.resources.R4B.extension import Extension
-from claim.models import Claim, ClaimItem, ClaimService, Feedback
+from claim.models import Claim, Feedback
 from claim.test_helpers import (
-    create_test_claim_admin,
-    create_test_claimitem,
-    create_test_claimservice,
-    create_test_claim_context
+    create_test_claim_context,
 )
-from core import datetime
-from location.models import HealthFacility
-from location.test_helpers import create_test_village, create_test_health_facility
-from insuree.test_helpers import create_test_insuree
-from medical.test_helpers import create_test_item, create_test_service
-from medical.models import Diagnosis
 
 
 class CommunicationTestMixin(GenericTestMixin):
@@ -27,10 +17,10 @@ class CommunicationTestMixin(GenericTestMixin):
     _TEST_PAYMENT_ASKED = True
     _TEST_DRUG_PRESCRIBED = True
     _TEST_DRUG_RECEIVED = False
-    _TEST_ASESSMENT = '3'
+    _TEST_ASESSMENT = "3"
 
     # claim data
-    _TEST_CLAIM_CODE = 'codeTest'
+    _TEST_CLAIM_CODE = "codeTest"
     _TEST_CLAIM_UUID = "7ac646cb-d3cd-4660-baeb-ee34ecf0354e"
     _TEST_STATUS = Claim.STATUS_ENTERED
     _TEST_STATUS_DISPLAY = "entered"
@@ -64,8 +54,8 @@ class CommunicationTestMixin(GenericTestMixin):
 
     _TEST_ITEM_AVAILABILITY = True
 
-    _TEST_ITEM_TYPE = 'D'
-    _TEST_SERVICE_TYPE = 'D'
+    _TEST_ITEM_TYPE = "D"
+    _TEST_SERVICE_TYPE = "D"
 
     # insuree and claim admin data
     _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
@@ -87,54 +77,52 @@ class CommunicationTestMixin(GenericTestMixin):
     def setUp(self):
         super(CommunicationTestMixin, self).setUp()
         service_props = {
-            'status': self._TEST_SERVICE_STATUS,
-            'qty_approved': self._TEST_SERVICE_QUANTITY,
-            'qty_provided': self._TEST_SERVICE_QUANTITY,
-            'rejection_reason': self._TEST_SERVICE_REJECTED_REASON,
-            'availability': self._TEST_ITEM_AVAILABILITY,
-            'price_asked': self._TEST_SERVICE_PRICE,
-            'price_approved': self._TEST_SERVICE_PRICE,
-            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+            "status": self._TEST_SERVICE_STATUS,
+            "qty_approved": self._TEST_SERVICE_QUANTITY,
+            "qty_provided": self._TEST_SERVICE_QUANTITY,
+            "rejection_reason": self._TEST_SERVICE_REJECTED_REASON,
+            "availability": self._TEST_ITEM_AVAILABILITY,
+            "price_asked": self._TEST_SERVICE_PRICE,
+            "price_approved": self._TEST_SERVICE_PRICE,
+            "audit_user_id": self._ADMIN_AUDIT_USER_ID,
         }
         item_props = {
-            'status': self._TEST_ITEM_STATUS,
-            'qty_approved': self._TEST_ITEM_QUANTITY,
-            'qty_provided': self._TEST_ITEM_QUANTITY,
-            'rejection_reason': self._TEST_ITEM_REJECTED_REASON,
-            'availability': self._TEST_ITEM_AVAILABILITY,
-            'price_asked': self._TEST_ITEM_PRICE,
-            'price_approved': self._TEST_ITEM_PRICE,
-            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+            "status": self._TEST_ITEM_STATUS,
+            "qty_approved": self._TEST_ITEM_QUANTITY,
+            "qty_provided": self._TEST_ITEM_QUANTITY,
+            "rejection_reason": self._TEST_ITEM_REJECTED_REASON,
+            "availability": self._TEST_ITEM_AVAILABILITY,
+            "price_asked": self._TEST_ITEM_PRICE,
+            "price_approved": self._TEST_ITEM_PRICE,
+            "audit_user_id": self._ADMIN_AUDIT_USER_ID,
         }
-        self._TEST_CLAIM, self.test_insuree, policy, self.test_hf = create_test_claim_context(
-            claim={
-                'visit_type': self._TEST_VISIT_TYPE,
-                'code': self._TEST_CLAIM_CODE,
-                'uuid': self._TEST_CLAIM_UUID,
-                'status': self._TEST_STATUS,
-                }, 
-            claim_admin={
-                'uuid': self._TEST_CLAIM_ADMIN_UUID,
-                'feedback_status': Claim.FEEDBACK_SELECTED
-            },
-            insuree={'uuid': self._TEST_INSUREE_UUID}, 
-            product={}, 
-            hf={
-                'name': self._TEST_HF_NAME,
-                'level': self._TEST_HF_LEVEL,
-                'legal_form_id': self._TEST_HF_LEGAL_FORM,
-                'address': self._TEST_ADDRESS,
-                'phone': self._TEST_PHONE,
-                'fax': self._TEST_FAX,
-                'email': self._TEST_EMAIL,
-            }, 
-            items=[
-                item_props
-                ], 
-            services=[
-                service_props
-            ])
- 
+        self._TEST_CLAIM, self.test_insuree, policy, self.test_hf = (
+            create_test_claim_context(
+                claim={
+                    "visit_type": self._TEST_VISIT_TYPE,
+                    "code": self._TEST_CLAIM_CODE,
+                    "uuid": self._TEST_CLAIM_UUID,
+                    "status": self._TEST_STATUS,
+                },
+                claim_admin={
+                    "uuid": self._TEST_CLAIM_ADMIN_UUID,
+                    "feedback_status": Claim.FEEDBACK_SELECTED,
+                },
+                insuree={"uuid": self._TEST_INSUREE_UUID},
+                product={},
+                hf={
+                    "name": self._TEST_HF_NAME,
+                    "level": self._TEST_HF_LEVEL,
+                    "legal_form_id": self._TEST_HF_LEGAL_FORM,
+                    "address": self._TEST_ADDRESS,
+                    "phone": self._TEST_PHONE,
+                    "fax": self._TEST_FAX,
+                    "email": self._TEST_EMAIL,
+                },
+                items=[item_props],
+                services=[service_props],
+            )
+        )
 
     def create_test_imis_instance(self):
         imis_feedback = Feedback()
@@ -155,24 +143,25 @@ class CommunicationTestMixin(GenericTestMixin):
 
     def create_test_fhir_instance(self):
         fhir_communication = {}
-        fhir_communication['status'] = "completed"
+        fhir_communication["status"] = "completed"
 
         fhir_communication = Communication(**fhir_communication)
 
         fhir_payload = []
         # care rendered
         payload = {}
-        payload['contentString'] = "no"
+        payload["contentString"] = "no"
         payload = CommunicationPayload(**payload)
         payload.extension = []
 
         extension = Extension.construct()
-        url = f'{GeneralConfiguration.get_system_base_url()}StructureDefinition/communication-payload-type'
-        system = f'{GeneralConfiguration.get_system_base_url()}CodeSystem/feedback-payload'
+        url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/communication-payload-type"
+        system = (
+            f"{GeneralConfiguration.get_system_base_url()}CodeSystem/feedback-payload"
+        )
         extension.url = url
         extension.valueCodeableConcept = CommunicationConverter.build_codeable_concept(
-            system=system,
-            code=Config.get_fhir_care_rendered_code()
+            system=system, code=Config.get_fhir_care_rendered_code()
         )
         payload.extension.append(extension)
 
@@ -180,15 +169,14 @@ class CommunicationTestMixin(GenericTestMixin):
 
         # payment asked
         payload = {}
-        payload['contentString'] = "yes"
+        payload["contentString"] = "yes"
         payload = CommunicationPayload(**payload)
         payload.extension = []
 
         extension = Extension.construct()
         extension.url = url
         extension.valueCodeableConcept = CommunicationConverter.build_codeable_concept(
-            system=system,
-            code=Config.get_fhir_payment_asked_code()
+            system=system, code=Config.get_fhir_payment_asked_code()
         )
         payload.extension.append(extension)
 
@@ -196,15 +184,14 @@ class CommunicationTestMixin(GenericTestMixin):
 
         # drug prescribed
         payload = {}
-        payload['contentString'] = "yes"
+        payload["contentString"] = "yes"
         payload = CommunicationPayload(**payload)
         payload.extension = []
 
         extension = Extension.construct()
         extension.url = url
         extension.valueCodeableConcept = CommunicationConverter.build_codeable_concept(
-            system=system,
-            code=Config.get_fhir_drug_prescribed_code()
+            system=system, code=Config.get_fhir_drug_prescribed_code()
         )
         payload.extension.append(extension)
 
@@ -212,29 +199,27 @@ class CommunicationTestMixin(GenericTestMixin):
 
         # drug received
         payload = {}
-        payload['contentString'] = "no"
+        payload["contentString"] = "no"
         payload = CommunicationPayload(**payload)
         payload.extension = []
         extension = Extension.construct()
         extension.url = url
         extension.valueCodeableConcept = CommunicationConverter.build_codeable_concept(
-            system=system,
-            code=Config.get_fhir_drug_received_code()
+            system=system, code=Config.get_fhir_drug_received_code()
         )
         payload.extension.append(extension)
         fhir_payload.append(payload)
 
         # assesment
         payload = {}
-        payload['contentString'] = self._TEST_ASESSMENT
+        payload["contentString"] = self._TEST_ASESSMENT
         payload = CommunicationPayload(**payload)
         payload.extension = []
 
         extension = Extension.construct()
         extension.url = url
         extension.valueCodeableConcept = CommunicationConverter.build_codeable_concept(
-            system=system,
-            code=Config.get_fhir_asessment_code()
+            system=system, code=Config.get_fhir_asessment_code()
         )
         payload.extension.append(extension)
 
@@ -242,14 +227,18 @@ class CommunicationTestMixin(GenericTestMixin):
 
         fhir_communication.payload = fhir_payload
 
-        fhir_communication.about = [CommunicationConverter.build_fhir_resource_reference(
-            self._TEST_CLAIM,
-            type="Claim",
-        )]
+        fhir_communication.about = [
+            CommunicationConverter.build_fhir_resource_reference(
+                self._TEST_CLAIM,
+                type="Claim",
+            )
+        ]
 
-        fhir_communication.subject = CommunicationConverter.build_fhir_resource_reference(
-            self._TEST_CLAIM.insuree,
-            type="Patient",
+        fhir_communication.subject = (
+            CommunicationConverter.build_fhir_resource_reference(
+                self._TEST_CLAIM.insuree,
+                type="Patient",
+            )
         )
 
         return fhir_communication

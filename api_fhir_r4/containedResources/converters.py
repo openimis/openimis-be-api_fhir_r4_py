@@ -1,6 +1,5 @@
 import logging
-from abc import ABC, abstractmethod
-from typing import List, Callable, Iterable, Union
+from typing import List, Iterable, Union
 from django.db import models
 
 from fhir.resources.R4B.resource import Resource
@@ -19,37 +18,52 @@ class _ConverterWrapper:
     def __init__(self, converter: BaseFHIRConverter):
         self.converter = converter
 
-    def to_imis(self, resource: Union[Iterable[Resource], Resource], reference_type, audit_user):
-        return self.__convert_to_imis(self.converter.to_imis_obj, resource, reference_type, [audit_user])
+    def to_imis(
+        self, resource: Union[Iterable[Resource], Resource], reference_type, audit_user
+    ):
+        return self.__convert_to_imis(
+            self.converter.to_imis_obj, resource, reference_type, [audit_user]
+        )
 
     def to_fhir(self, resource, reference_type):
-        return self.__convert_to_fhir(self.converter.to_fhir_obj, resource, [reference_type])
+        return self.__convert_to_fhir(
+            self.converter.to_fhir_obj, resource, [reference_type]
+        )
 
     def __convert_to_fhir(self, method, resource, args):
         if not resource:
             return []
 
         try:
-            if isinstance(resource, Iterable) and   'resourceType' not in resource:
+            if isinstance(resource, Iterable) and "resourceType" not in resource:
                 return [method(next_resource, *args) for next_resource in resource]
             else:
                 return [method(resource, *args)]
         except BaseException as e:
-            logger.error(f"Failed to process resource ({resource.__class__}/{resource.id if hasattr(resource, 'id') else '' }, "
-                         f"reason: {e}")
+            logger.error(
+                f"Failed to process resource ({resource.__class__}/{resource.id if hasattr(resource, 'id') else ''}, "
+                f"reason: {e}"
+            )
             self.__raise_default_exception(resource, e)
 
     def __convert_to_imis(self, method, resource, reference_type, args):
         try:
-            if isinstance(resource, Iterable) and 'resourceType' not in resource :
+            if isinstance(resource, Iterable) and "resourceType" not in resource:
                 return [
-                    self.__convert_single_resource(next_, method, args, reference_type) for next_ in resource
+                    self.__convert_single_resource(next_, method, args, reference_type)
+                    for next_ in resource
                 ]
             else:
-                return [self.__convert_single_resource(resource, method, args, reference_type)]
+                return [
+                    self.__convert_single_resource(
+                        resource, method, args, reference_type
+                    )
+                ]
         except BaseException as e:
-            logger.error(f"Failed to process resource ({resource.get('resourceType')}/{resource.get('id')}, "
-                         f"reason: {e}")
+            logger.error(
+                f"Failed to process resource ({resource.get('resourceType')}/{resource.get('id')}, "
+                f"reason: {e}"
+            )
             self.__raise_default_exception(resource, e)
 
     def __convert_single_resource(self, resource, method, args, ref_type):
@@ -57,21 +71,25 @@ class _ConverterWrapper:
         self.__bind_uuid_to_converted_resource(converted, resource, ref_type)
         return converted
 
-    def __bind_uuid_to_converted_resource(self, converted, contained_fhir_resource: dict, reference_type):
+    def __bind_uuid_to_converted_resource(
+        self, converted, contained_fhir_resource: dict, reference_type
+    ):
         """
         By default, converters doesn't bind uuid to created resource. In that if id is explicitly given in contained
         resource this information will be lost in the process. Identifiers assigned from contained resource definitions
         are necessary for using contained resource in process of creating object from them. This is only available for
         UUID type identifiers.
         """
-        assert reference_type == DEFAULT_REF_TYPE, \
-            f'Invalid reference type, assigning contained resource uuid explicitly is available only for ' \
-            f'{DEFAULT_REF_TYPE}'
+        assert reference_type == DEFAULT_REF_TYPE, (
+            f"Invalid reference type, assigning contained resource uuid explicitly is available only for "
+            f"{DEFAULT_REF_TYPE}"
+        )
 
-        assert contained_fhir_resource.get('id') is not None, \
-            F'Resources created from contained data requires non empty ID field.'
-        
-        converted.uuid = contained_fhir_resource['id']
+        assert (
+            contained_fhir_resource.get("id") is not None
+        ), "Resources created from contained data requires non empty ID field."
+
+        converted.uuid = contained_fhir_resource["id"]
         if isinstance(converted.uuid, str):
             converted.uuid = UUID(converted.uuid)
 
@@ -84,7 +102,13 @@ class _ConverterWrapper:
 
 
 class FHIRContainedResourceConverter:
-    def __init__(self, imis_resource_name, converter, resource_extract_method=None, reference_type=DEFAULT_REF_TYPE):
+    def __init__(
+        self,
+        imis_resource_name,
+        converter,
+        resource_extract_method=None,
+        reference_type=DEFAULT_REF_TYPE,
+    ):
         """
         Parameters
         ----------
@@ -97,7 +121,9 @@ class FHIRContainedResourceConverter:
         :param reference_type: Optional argument. Determine what object value will be used as reference and id.
         """
         self.imis_resource_name = imis_resource_name
-        self.extract_value = resource_extract_method or (lambda model, attribute: model.__getattribute__(attribute))
+        self.extract_value = resource_extract_method or (
+            lambda model, attribute: model.__getattribute__(attribute)
+        )
         self.converter = _ConverterWrapper(converter)
         self.reference_type = reference_type
 
@@ -113,7 +139,9 @@ class FHIRContainedResourceConverter:
 
 
 class IMISContainedResourceConverter:
-    def __init__(self, resource_reference_type, converter, reference_type=DEFAULT_REF_TYPE):
+    def __init__(
+        self, resource_reference_type, converter, reference_type=DEFAULT_REF_TYPE
+    ):
         """
         Parameters
         ----------
@@ -129,7 +157,9 @@ class IMISContainedResourceConverter:
         self.converter = _ConverterWrapper(converter)
         self.reference_type = reference_type
 
-    def convert(self, fhir_dict_repr: dict, audit_user_id: int = None) -> List[models.Model]:
+    def convert(
+        self, fhir_dict_repr: dict, audit_user_id: int = None
+    ) -> List[models.Model]:
         """Extracts FHIR contained resource based on resource_type and converts to IMIS object.
 
         :param fhir_dict_repr: FHIR Dict representation with contained key that have to be converted.
@@ -139,17 +169,25 @@ class IMISContainedResourceConverter:
         """
         resource = None
         if fhir_dict_repr:
-            if 'id' in fhir_dict_repr and isinstance(fhir_dict_repr['id'], str):
+            if "id" in fhir_dict_repr and isinstance(fhir_dict_repr["id"], str):
                 try:
-                    fhir_dict_repr['id'] = str(UUID(fhir_dict_repr['id']))
+                    fhir_dict_repr["id"] = str(UUID(fhir_dict_repr["id"]))
                 except Exception as e:
                     logger.debug(f"id not UUID {e}")
-                    pass
-            if 'resourceType' in fhir_dict_repr and fhir_dict_repr['resourceType'] == self.fhir_resource_type:
+            if (
+                "resourceType" in fhir_dict_repr
+                and fhir_dict_repr["resourceType"] == self.fhir_resource_type
+            ):
                 resource = fhir_dict_repr
             else:
-                resource = [r for r in fhir_dict_repr.get('contained', {}) if r['resourceType'] == self.fhir_resource_type]
+                resource = [
+                    r
+                    for r in fhir_dict_repr.get("contained", {})
+                    if r["resourceType"] == self.fhir_resource_type
+                ]
             if resource:
-                return self.converter.to_imis(resource, self.reference_type, audit_user_id)
-        
+                return self.converter.to_imis(
+                    resource, self.reference_type, audit_user_id
+                )
+
         return None

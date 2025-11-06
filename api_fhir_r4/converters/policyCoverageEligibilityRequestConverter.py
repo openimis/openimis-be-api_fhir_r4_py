@@ -1,17 +1,22 @@
 # TODO uncomment if someone need this converter with connection to openHIM
 
-"""
+
 from policy.services import ByInsureeRequest
 
 from api_fhir_r4.configurations import R4CoverageEligibilityConfiguration as Config
 from api_fhir_r4.converters import BaseFHIRConverter, PatientConverter
 from fhir.resources.R4B.money import Money
-from fhir.resources.R4B.coverageeligibilityresponse import CoverageEligibilityResponse as FHIREligibilityResponse, \
-    CoverageEligibilityResponseInsuranceItem, CoverageEligibilityResponseInsurance, CoverageEligibilityResponseInsuranceItemBenefit
+from fhir.resources.R4B.coverageeligibilityresponse import (
+    CoverageEligibilityResponse as FHIREligibilityResponse,
+    CoverageEligibilityResponseInsuranceItem,
+    CoverageEligibilityResponseInsurance,
+    CoverageEligibilityResponseInsuranceItemBenefit
+)
 from api_fhir_r4.models import CoverageEligibilityRequestV2 as FHIREligibilityRequest
 from api_fhir_r4.utils import TimeUtils
-"""
-"""
+from api_fhir_r4.converters.contractConverter import ContractConverter
+
+
 class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
@@ -21,7 +26,7 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
             for item in eligibility_response.items:
                 if item.status in Config.get_fhir_active_policy_status():
                     cls.build_fhir_insurance(fhir_response, item)
-        except:
+        except Exception:
             for item in eligibility_response['items']:
                 if type(fhir_response.insurance) is not list:
                     fhir_response.insurance = [item]
@@ -41,7 +46,7 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
     @classmethod
     def build_fhir_insurance(cls, fhir_response, response):
         result = CoverageEligibilityResponseInsurance.construct()
-        #cls.build_fhir_insurance_contract(result, response)
+        # cls.build_fhir_insurance_contract(result, response)
         cls.build_fhir_money_item(result, Config.get_fhir_balance_code(),
                                   response.ceiling,
                                   response.ded)
@@ -50,12 +55,10 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
         else:
             fhir_response.insurance.append(result)
 
-    '''
     @classmethod
     def build_fhir_insurance_contract(cls, insurance, contract):
         insurance.contract = ContractConverter.build_fhir_resource_reference(
             contract)
-    '''
 
     @classmethod
     def build_fhir_money_item(cls, insurance, code, allowed_value, used_value):
@@ -103,4 +106,3 @@ class PolicyCoverageEligibilityRequestConverter(BaseFHIRConverter):
             uuid = PatientConverter.get_resource_id_from_reference(
                 patient_reference)
         return uuid
-"""

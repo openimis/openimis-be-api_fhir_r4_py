@@ -1,4 +1,8 @@
-from api_fhir_r4.configurations import BaseConfiguration, GeneralConfiguration, R4ApiFhirConfig
+from api_fhir_r4.configurations import (
+    BaseConfiguration,
+    GeneralConfiguration,
+    R4ApiFhirConfig,
+)
 
 
 class ModuleConfiguration(BaseConfiguration):

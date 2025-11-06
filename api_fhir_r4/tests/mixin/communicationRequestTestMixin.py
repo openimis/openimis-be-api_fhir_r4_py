@@ -1,19 +1,12 @@
-from core import datetime
-from claim.models import Claim, ClaimItem, ClaimService
+from claim.models import Claim
 
-from insuree.test_helpers import create_test_insuree
-from location.models import HealthFacility
-from medical.test_helpers import create_test_item, create_test_service
 from api_fhir_r4.configurations import R4CommunicationRequestConfig as Config
-from api_fhir_r4.tests import GenericTestMixin, LocationTestMixin
-from api_fhir_r4.utils import TimeUtils
+from api_fhir_r4.tests import GenericTestMixin
 from claim.test_helpers import create_test_claim_context
-from location.test_helpers import create_test_village, create_test_health_facility
-from medical.models import Diagnosis
 
 
 class CommunicationRequestTestMixin(GenericTestMixin):
-    _TEST_CODE = 'codeTest'
+    _TEST_CODE = "codeTest"
     _TEST_UUID = "7ac646cb-d3cd-4660-baeb-ee34ecf0354e"
     _TEST_STATUS = Claim.STATUS_ENTERED
     _TEST_STATUS_DISPLAY = "entered"
@@ -47,8 +40,8 @@ class CommunicationRequestTestMixin(GenericTestMixin):
 
     _TEST_ITEM_AVAILABILITY = True
 
-    _TEST_ITEM_TYPE = 'D'
-    _TEST_SERVICE_TYPE = 'D'
+    _TEST_ITEM_TYPE = "D"
+    _TEST_SERVICE_TYPE = "D"
 
     # insuree and claim admin data
     _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
@@ -71,76 +64,75 @@ class CommunicationRequestTestMixin(GenericTestMixin):
     test_hf = None
     test_village = None
     sub_str = {}
+
     def setUp(self):
         super(CommunicationRequestTestMixin, self).setUp()
         service_props = {
-            'status': self._TEST_SERVICE_STATUS,
-            'qty_approved': self._TEST_SERVICE_QUANTITY,
-            'qty_provided': self._TEST_SERVICE_QUANTITY,
-            'rejection_reason': self._TEST_SERVICE_REJECTED_REASON,
-            'availability': self._TEST_ITEM_AVAILABILITY,
-            'price_asked': self._TEST_SERVICE_PRICE,
-            'price_approved': self._TEST_SERVICE_PRICE,
-            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+            "status": self._TEST_SERVICE_STATUS,
+            "qty_approved": self._TEST_SERVICE_QUANTITY,
+            "qty_provided": self._TEST_SERVICE_QUANTITY,
+            "rejection_reason": self._TEST_SERVICE_REJECTED_REASON,
+            "availability": self._TEST_ITEM_AVAILABILITY,
+            "price_asked": self._TEST_SERVICE_PRICE,
+            "price_approved": self._TEST_SERVICE_PRICE,
+            "audit_user_id": self._ADMIN_AUDIT_USER_ID,
         }
         item_props = {
-            'status': self._TEST_ITEM_STATUS,
-            'qty_approved': self._TEST_ITEM_QUANTITY,
-            'qty_provided': self._TEST_ITEM_QUANTITY,
-            'rejection_reason': self._TEST_ITEM_REJECTED_REASON,
-            'availability': self._TEST_ITEM_AVAILABILITY,
-            'price_asked': self._TEST_ITEM_PRICE,
-            'price_approved': self._TEST_ITEM_PRICE,
-            'audit_user_id': self._ADMIN_AUDIT_USER_ID,
+            "status": self._TEST_ITEM_STATUS,
+            "qty_approved": self._TEST_ITEM_QUANTITY,
+            "qty_provided": self._TEST_ITEM_QUANTITY,
+            "rejection_reason": self._TEST_ITEM_REJECTED_REASON,
+            "availability": self._TEST_ITEM_AVAILABILITY,
+            "price_asked": self._TEST_ITEM_PRICE,
+            "price_approved": self._TEST_ITEM_PRICE,
+            "audit_user_id": self._ADMIN_AUDIT_USER_ID,
         }
-        
-        
-        self.test_claim, self.test_insuree, policy, self.test_hf = create_test_claim_context(
-            claim={
-                'visit_type': self._TEST_VISIT_TYPE,
-                'status': self._TEST_STATUS,
-                'feedback_status': Claim.FEEDBACK_SELECTED
-                }, 
-            claim_admin={
-                'uuid': self._TEST_CLAIM_ADMIN_UUID,
-            },
-            insuree={'uuid': self._TEST_INSUREE_UUID}, 
-            product={}, 
-            hf={
-                'uuid': self._TEST_HF_UUID,
-                'name': self._TEST_HF_NAME,
-                'level': self._TEST_HF_LEVEL,
-                'legal_form_id': self._TEST_HF_LEGAL_FORM,
-                'address': self._TEST_ADDRESS,
-                'phone': self._TEST_PHONE,
-                'fax': self._TEST_FAX,
-                'email': self._TEST_EMAIL,
-            }, 
-            items=[
-                item_props
-                ], 
-            services=[
-                service_props
-            ])        
- 
 
+        self.test_claim, self.test_insuree, policy, self.test_hf = (
+            create_test_claim_context(
+                claim={
+                    "visit_type": self._TEST_VISIT_TYPE,
+                    "status": self._TEST_STATUS,
+                    "feedback_status": Claim.FEEDBACK_SELECTED,
+                },
+                claim_admin={
+                    "uuid": self._TEST_CLAIM_ADMIN_UUID,
+                },
+                insuree={"uuid": self._TEST_INSUREE_UUID},
+                product={},
+                hf={
+                    "uuid": self._TEST_HF_UUID,
+                    "name": self._TEST_HF_NAME,
+                    "level": self._TEST_HF_LEVEL,
+                    "legal_form_id": self._TEST_HF_LEGAL_FORM,
+                    "address": self._TEST_ADDRESS,
+                    "phone": self._TEST_PHONE,
+                    "fax": self._TEST_FAX,
+                    "email": self._TEST_EMAIL,
+                },
+                items=[item_props],
+                services=[service_props],
+            )
+        )
 
-        self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
-        self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim.admin.uuid
-        self.sub_str[self._TEST_INSUREE_UUID]=self.test_insuree.uuid
-        self.sub_str[self._TEST_UUID]=self.test_claim.uuid
-        self.sub_str[self._TEST_SERVICE_UUID]=self.test_claim.services.first().service.uuid
-        self.sub_str[self._TEST_ITEM_UUID]=self.test_claim.items.first().item.uuid
-
-   
+        self.sub_str[self._TEST_HF_UUID] = self.test_hf.uuid
+        self.sub_str[self._TEST_CLAIM_ADMIN_UUID] = self.test_claim.admin.uuid
+        self.sub_str[self._TEST_INSUREE_UUID] = self.test_insuree.uuid
+        self.sub_str[self._TEST_UUID] = self.test_claim.uuid
+        self.sub_str[self._TEST_SERVICE_UUID] = (
+            self.test_claim.services.first().service.uuid
+        )
+        self.sub_str[self._TEST_ITEM_UUID] = self.test_claim.items.first().item.uuid
 
     def create_test_imis_instance(self):
-        
+
         return self.test_claim
 
     def verify_fhir_instance(self, fhir_obj):
         self.assertEqual("active", fhir_obj.status)
-        self.assertEqual(f"{Claim.FEEDBACK_SELECTED}", fhir_obj.statusReason.coding[0].code)
+        self.assertEqual(
+            f"{Claim.FEEDBACK_SELECTED}", fhir_obj.statusReason.coding[0].code
+        )
         self.assertIn(str(self.test_insuree.uuid), fhir_obj.subject.reference)
         self.assertIn(str(self.test_claim.admin.uuid), fhir_obj.recipient[0].reference)
         self.assertIn(str(self.test_claim.uuid), fhir_obj.about[0].reference)

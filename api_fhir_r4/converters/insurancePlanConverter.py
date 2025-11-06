@@ -8,9 +8,14 @@ from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.money import Money
-from fhir.resources.R4B.insuranceplan import InsurancePlan, InsurancePlanCoverage, \
-    InsurancePlanCoverageBenefit, InsurancePlanCoverageBenefitLimit, \
-    InsurancePlanPlan, InsurancePlanPlanGeneralCost
+from fhir.resources.R4B.insuranceplan import (
+    InsurancePlan,
+    InsurancePlanCoverage,
+    InsurancePlanCoverageBenefit,
+    InsurancePlanCoverageBenefitLimit,
+    InsurancePlanPlan,
+    InsurancePlanPlanGeneralCost,
+)
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.reference import Reference
 from fhir.resources.R4B.quantity import Quantity
@@ -21,7 +26,9 @@ from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
-    def to_fhir_obj(cls, imis_product, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls, imis_product, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
+    ):
         fhir_insurance_plan = InsurancePlan.construct()
         # then create fhir object as usual
         cls.build_fhir_identifiers(fhir_insurance_plan, imis_product)
@@ -63,9 +70,8 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
         return DbManagerUtils.get_object_or_none(
-            Product,
-            **cls.get_database_query_id_parameteres_from_reference(reference))
-
+            Product, **cls.get_database_query_id_parameteres_from_reference(reference)
+        )
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_insurance_plan, imis_product):
@@ -76,8 +82,10 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_imis_identifiers(cls, imis_product, fhir_insurance_plan):
-        value = cls.get_fhir_identifier_by_code(fhir_insurance_plan.identifier,
-                                                R4IdentifierConfig.get_fhir_generic_type_code())
+        value = cls.get_fhir_identifier_by_code(
+            fhir_insurance_plan.identifier,
+            R4IdentifierConfig.get_fhir_generic_type_code(),
+        )
         cls._validate_fhir_insurance_plan_identifier_code(value)
         imis_product.code = value
 
@@ -103,7 +111,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def __build_insurance_plan_type(cls):
         type = cls.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
         if len(type.coding) == 1:
             type.coding[0].display = _("Medical")
@@ -112,6 +120,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_status(cls, fhir_insurance_plan, imis_product):
         from core import datetime
+
         now = datetime.datetime.now()
         status = "unknown"
         if now < imis_product.date_from:
@@ -125,6 +134,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_period(cls, fhir_insurance_plan, imis_product):
         from core import datetime
+
         period = Period.construct()
         if imis_product.date_from:
             # check if datetime object
@@ -153,15 +163,21 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_coverage_area(cls, fhir_insurance_plan, imis_product):
         if imis_product.location:
-            fhir_insurance_plan.coverageArea = [LocationConverter.build_fhir_resource_reference(imis_product.location, 'Location')]
+            fhir_insurance_plan.coverageArea = [
+                LocationConverter.build_fhir_resource_reference(
+                    imis_product.location, "Location"
+                )
+            ]
 
     @classmethod
     def build_imis_coverage_area(cls, imis_product, fhir_insurance_plan):
         if fhir_insurance_plan.coverageArea:
             coverage_area = fhir_insurance_plan.coverageArea[0]
-            imis_product.location =  Location.objects.filter(**LocationConverter.get_database_query_id_parameteres_from_reference(coverage_area.reference)).first()
-
-
+            imis_product.location = Location.objects.filter(
+                **LocationConverter.get_database_query_id_parameteres_from_reference(
+                    coverage_area.reference
+                )
+            ).first()
 
     @classmethod
     def build_fhir_coverage(cls, fhir_insurance_plan, imis_product):
@@ -169,14 +185,14 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
         coverage = InsurancePlanCoverage.construct()
         coverage.type = cls.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
 
         # build coverage benefit
         benefit = InsurancePlanCoverageBenefit.construct()
         benefit.type = cls.build_codeable_concept(
             code="medical",
-            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type"
+            system="http://terminology.hl7.org/CodeSystem/insurance-plan-type",
         )
         # build coverage benefit limit slices
         system = f"{GeneralConfiguration.get_system_base_url()}CodeSystem/insurance-plan-coverage-benefit-limit"
@@ -186,7 +202,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 display=_("Period"),
                 system=system,
                 unit="month",
-                value=imis_product.insurance_period
+                value=imis_product.insurance_period,
             )
         ]
         benefit.limit.append(
@@ -195,7 +211,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 display=_("Member Count"),
                 system=system,
                 unit="member",
-                value=imis_product.max_members
+                value=imis_product.max_members,
             )
         )
 
@@ -223,15 +239,15 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def __build_imis_limit(cls, imis_product, benefit_limits):
         for limit in benefit_limits:
-            if limit.code.coding[0].code == 'memberCount':
+            if limit.code.coding[0].code == "memberCount":
                 imis_product.max_members = int(limit.value.value)
-            if limit.code.coding[0].code == 'period':
+            if limit.code.coding[0].code == "period":
                 imis_product.insurance_period = int(limit.value.value)
 
     @classmethod
     def build_fhir_plan(cls, fhir_insurance_plan, imis_product):
         # get the currency defined in configs from core module
-        if hasattr(core, 'currency'):
+        if hasattr(core, "currency"):
             currency = core.currency
         else:
             currency = "EUR"
@@ -245,7 +261,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 display=_("Lumpsum"),
                 system=system,
                 currency=currency,
-                value=imis_product.lump_sum
+                value=imis_product.lump_sum,
             )
         ]
         if imis_product.threshold:
@@ -258,9 +274,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("Premium Adult"),
                     system=system,
                     currency=currency,
-                    value=imis_product.premium_adult
+                    value=imis_product.premium_adult,
                 )
-           )
+            )
 
         if imis_product.premium_child:
             plan.generalCost.append(
@@ -269,9 +285,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("Premium Child"),
                     system=system,
                     currency=currency,
-                    value=imis_product.premium_child
+                    value=imis_product.premium_child,
                 )
-           )
+            )
 
         if imis_product.registration_lump_sum:
             plan.generalCost.append(
@@ -280,9 +296,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("Registration Lumpsum"),
                     system=system,
                     currency=currency,
-                    value=imis_product.registration_lump_sum
+                    value=imis_product.registration_lump_sum,
                 )
-           )
+            )
 
         if imis_product.registration_fee:
             plan.generalCost.append(
@@ -291,9 +307,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("Registration Fee"),
                     system=system,
                     currency=currency,
-                    value=imis_product.registration_fee
+                    value=imis_product.registration_fee,
                 )
-           )
+            )
 
         if imis_product.general_assembly_lump_sum:
             plan.generalCost.append(
@@ -302,9 +318,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("General Assembly Lumpsum"),
                     system=system,
                     currency=currency,
-                    value=imis_product.general_assembly_lump_sum
+                    value=imis_product.general_assembly_lump_sum,
                 )
-           )
+            )
 
         if imis_product.general_assembly_fee:
             plan.generalCost.append(
@@ -313,9 +329,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                     display=_("General Assembly Fee"),
                     system=system,
                     currency=currency,
-                    value=imis_product.general_assembly_fee
+                    value=imis_product.general_assembly_fee,
                 )
-           )
+            )
 
         fhir_insurance_plan.plan = [plan]
 
@@ -340,21 +356,21 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def __build_imis_cost_values(cls, imis_product, general_costs):
         for cost in general_costs:
-            if cost.type.coding[0].code == 'lumpsum':
+            if cost.type.coding[0].code == "lumpsum":
                 imis_product.lump_sum = cost.cost.value
                 if cost.groupSize:
                     imis_product.threshold = cost.groupSize
-            if cost.type.coding[0].code == 'premiumAdult':
+            if cost.type.coding[0].code == "premiumAdult":
                 imis_product.premium_adult = cost.cost.value
-            if cost.type.coding[0].code == 'premiumChild':
+            if cost.type.coding[0].code == "premiumChild":
                 imis_product.premium_child = cost.cost.value
-            if cost.type.coding[0].code == 'registrationLumpsum':
+            if cost.type.coding[0].code == "registrationLumpsum":
                 imis_product.registration_lump_sum = cost.cost.value
-            if cost.type.coding[0].code == 'registrationFee':
+            if cost.type.coding[0].code == "registrationFee":
                 imis_product.registration_fee = cost.cost.value
-            if cost.type.coding[0].code == 'generalAssemblyLumpSum':
+            if cost.type.coding[0].code == "generalAssemblyLumpSum":
                 imis_product.general_assembly_lump_sum = cost.cost.value
-            if cost.type.coding[0].code == 'generalAssemblyFee':
+            if cost.type.coding[0].code == "generalAssemblyFee":
                 imis_product.general_assembly_fee = cost.cost.value
 
     @classmethod
@@ -368,14 +384,20 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
         def build_extension(fhir_insurance_plan, imis_product, value):
             extension = Extension.construct()
             if value == "conversion":
-                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-{value}"
+                extension.url = f"""{
+                    GeneralConfiguration.get_system_base_url()
+                    }StructureDefinition/insurance-plan-{value}"""
 
                 reference_conversion = Reference.construct()
-                reference_conversion.reference = F"InsurancePlan/{imis_product.code}"
-                extension.valueReference = cls.build_fhir_resource_reference(imis_product, 'InsurancePlan')
+                reference_conversion.reference = f"InsurancePlan/{imis_product.code}"
+                extension.valueReference = cls.build_fhir_resource_reference(
+                    imis_product, "InsurancePlan"
+                )
                 extension.valueReference.display = imis_product.code
             elif value == "max-installments":
-                extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-{value}"
+                extension.url = f"""{
+                    GeneralConfiguration.get_system_base_url()
+                }StructureDefinition/insurance-plan-{value}"""
                 extension.valueUnsignedInt = imis_product.max_installments
             elif value == "start_cycle1":
                 cls.__build_fhir_cycle(extension, value, imis_product.start_cycle_1)
@@ -386,24 +408,30 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
             elif value == "start_cycle4":
                 cls.__build_fhir_cycle(extension, value, imis_product.start_cycle_4)
             elif value == "administration-period":
-                cls.__build_fhir_period_extension(extension, value, imis_product.administration_period)
+                cls.__build_fhir_period_extension(
+                    extension, value, imis_product.administration_period
+                )
             elif value == "payment-grace-period":
-                cls.__build_fhir_period_extension(extension, value, imis_product.grace_period_enrolment)
+                cls.__build_fhir_period_extension(
+                    extension, value, imis_product.grace_period_enrolment
+                )
             elif value == "renewal-grace-period":
-                cls.__build_fhir_period_extension(extension, value, imis_product.grace_period_renewal)
+                cls.__build_fhir_period_extension(
+                    extension, value, imis_product.grace_period_renewal
+                )
             elif value == "renewal-discount":
                 cls.__build_fhir_discount_extension(
                     extension=extension,
                     type_extension=value,
                     percent_value=imis_product.renewal_discount_perc,
-                    period=imis_product.renewal_discount_period
+                    period=imis_product.renewal_discount_period,
                 )
             elif value == "enrolment-discount":
                 cls.__build_fhir_discount_extension(
                     extension=extension,
                     type_extension=value,
                     percent_value=imis_product.enrolment_discount_perc,
-                    period=imis_product.enrolment_discount_period
+                    period=imis_product.enrolment_discount_period,
                 )
             else:
                 pass
@@ -414,7 +442,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 fhir_insurance_plan.extension.append(extension)
 
         if imis_product.conversion_product is not None:
-            build_extension(fhir_insurance_plan, imis_product.conversion_product, "conversion")
+            build_extension(
+                fhir_insurance_plan, imis_product.conversion_product, "conversion"
+            )
         if imis_product.max_installments is not None:
             build_extension(fhir_insurance_plan, imis_product, "max-installments")
         if imis_product.start_cycle_1 is not None:
@@ -431,9 +461,15 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
             build_extension(fhir_insurance_plan, imis_product, "payment-grace-period")
         if imis_product.grace_period_renewal is not None:
             build_extension(fhir_insurance_plan, imis_product, "renewal-grace-period")
-        if imis_product.renewal_discount_perc is not None and imis_product.renewal_discount_period is not None:
+        if (
+            imis_product.renewal_discount_perc is not None
+            and imis_product.renewal_discount_period is not None
+        ):
             build_extension(fhir_insurance_plan, imis_product, "renewal-discount")
-        if imis_product.enrolment_discount_perc is not None and imis_product.enrolment_discount_period is not None:
+        if (
+            imis_product.enrolment_discount_perc is not None
+            and imis_product.enrolment_discount_period is not None
+        ):
             build_extension(fhir_insurance_plan, imis_product, "enrolment-discount")
 
     @classmethod
@@ -451,7 +487,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 else:
                     imis_product.conversion_product = None
             elif "max-installments" in extension.url:
-                    imis_product.max_installments = extension.valueUnsignedInt
+                imis_product.max_installments = extension.valueUnsignedInt
             # TODO - clarify this period extension and the same for discount extension
             #  it is about handling the same extension object and how to assign values to particular one
             elif "plan-period" in extension.url:
@@ -484,9 +520,9 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 period = None
                 for ext in nested_extension:
                     if ext.url == "Percentage":
-                       percent_of_discount = ext.valueDecimal
+                        percent_of_discount = ext.valueDecimal
                     if ext.url == "Period":
-                       period = ext.valueQuantity.value
+                        period = ext.valueQuantity.value
                 if i == 0:
                     imis_product.renewal_discount_perc = percent_of_discount
                     imis_product.renewal_discount_period = period
@@ -496,29 +532,32 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def __get_product_code_reference(cls, code):
-        return code.rsplit('/', 1)[1]
+        return code.rsplit("/", 1)[1]
 
     @classmethod
     def __build_fhir_cycle(cls, extension, type_extension, start_cycle):
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-{type_extension[0: -1]}"
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/insurance-plan-{type_extension[0:-1]}"""
         extension.valueString = start_cycle
 
     @classmethod
     def __build_fhir_period_extension(cls, extension, type_extension, value):
-        splited_type = type_extension.split('-')
-        index_of_last_element = len(splited_type)-1
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-{splited_type[index_of_last_element]}"
-        extension.valueQuantity = Quantity(
-            **{
-                "value": value,
-                "unit": "months"
-            }
-        )
+        splited_type = type_extension.split("-")
+        index_of_last_element = len(splited_type) - 1
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/insurance-plan-{splited_type[index_of_last_element]}"""
+        extension.valueQuantity = Quantity(**{"value": value, "unit": "months"})
 
     @classmethod
-    def __build_fhir_discount_extension(cls, extension, type_extension, percent_value, period):
-        splited_type = type_extension.split('-')
-        extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/insurance-plan-{splited_type[1]}"
+    def __build_fhir_discount_extension(
+        cls, extension, type_extension, percent_value, period
+    ):
+        splited_type = type_extension.split("-")
+        extension.url = f"""{
+            GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/insurance-plan-{splited_type[1]}"""
         nested_extension = Extension.construct()
 
         # percentage
@@ -529,17 +568,14 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
         # period
         nested_extension = Extension.construct()
         nested_extension.url = "Period"
-        nested_extension.valueQuantity = Quantity(
-            **{
-                "value": period,
-                "unit": "months"
-            }
-        )
+        nested_extension.valueQuantity = Quantity(**{"value": period, "unit": "months"})
         extension.extension.append(nested_extension)
 
     @classmethod
-    def _validate_fhir_insurance_plan_identifier_code(cls, fhir_insurance_plan_identifier_code):
+    def _validate_fhir_insurance_plan_identifier_code(
+        cls, fhir_insurance_plan_identifier_code
+    ):
         if not fhir_insurance_plan_identifier_code:
             raise FHIRException(
-                _('InsurancePlan FHIR without code - this field is obligatory')
+                _("InsurancePlan FHIR without code - this field is obligatory")
             )

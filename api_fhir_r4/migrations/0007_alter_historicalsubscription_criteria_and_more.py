@@ -12,73 +12,99 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api_fhir_r4', '0006_add_subsription_perms_imis_admin'),
+        ("api_fhir_r4", "0006_add_subsription_perms_imis_admin"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='historicalsubscription',
-            name='criteria',
-            field=models.JSONField(blank=True, db_column='Criteria', null=True),
+            model_name="historicalsubscription",
+            name="criteria",
+            field=models.JSONField(blank=True, db_column="Criteria", null=True),
         ),
         migrations.AlterField(
-            model_name='historicalsubscription',
-            name='date_created',
-            field=core.fields.DateTimeField(db_column='DateCreated', default=datetime.datetime.now, null=True),
+            model_name="historicalsubscription",
+            name="date_created",
+            field=core.fields.DateTimeField(
+                db_column="DateCreated", default=datetime.datetime.now, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalsubscription',
-            name='date_updated',
-            field=core.fields.DateTimeField(db_column='DateUpdated', default=datetime.datetime.now, null=True),
+            model_name="historicalsubscription",
+            name="date_updated",
+            field=core.fields.DateTimeField(
+                db_column="DateUpdated", default=datetime.datetime.now, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalsubscription',
-            name='headers',
-            field=django_cryptography.fields.encrypt(models.TextField(blank=True, db_column='Headers', max_length=255, null=True)),
+            model_name="historicalsubscription",
+            name="headers",
+            field=django_cryptography.fields.encrypt(
+                models.TextField(
+                    blank=True, db_column="Headers", max_length=255, null=True
+                )
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalsubscription',
-            name='replacement_uuid',
-            field=models.UUIDField(blank=True, db_column='ReplacementUUID', null=True),
+            model_name="historicalsubscription",
+            name="replacement_uuid",
+            field=models.UUIDField(blank=True, db_column="ReplacementUUID", null=True),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='criteria',
-            field=models.JSONField(blank=True, db_column='Criteria', null=True),
+            model_name="subscription",
+            name="criteria",
+            field=models.JSONField(blank=True, db_column="Criteria", null=True),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='date_created',
-            field=core.fields.DateTimeField(db_column='DateCreated', default=datetime.datetime.now, null=True),
+            model_name="subscription",
+            name="date_created",
+            field=core.fields.DateTimeField(
+                db_column="DateCreated", default=datetime.datetime.now, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='date_updated',
-            field=core.fields.DateTimeField(db_column='DateUpdated', default=datetime.datetime.now, null=True),
+            model_name="subscription",
+            name="date_updated",
+            field=core.fields.DateTimeField(
+                db_column="DateUpdated", default=datetime.datetime.now, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='headers',
-            field=django_cryptography.fields.encrypt(models.TextField(blank=True, db_column='Headers', max_length=255, null=True)),
+            model_name="subscription",
+            name="headers",
+            field=django_cryptography.fields.encrypt(
+                models.TextField(
+                    blank=True, db_column="Headers", max_length=255, null=True
+                )
+            ),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='replacement_uuid',
-            field=models.UUIDField(blank=True, db_column='ReplacementUUID', null=True),
+            model_name="subscription",
+            name="replacement_uuid",
+            field=models.UUIDField(blank=True, db_column="ReplacementUUID", null=True),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='user_created',
-            field=models.ForeignKey(db_column='UserCreatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='%(class)s_user_created', to=settings.AUTH_USER_MODEL),
+            model_name="subscription",
+            name="user_created",
+            field=models.ForeignKey(
+                db_column="UserCreatedUUID",
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="%(class)s_user_created",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='user_updated',
-            field=models.ForeignKey(db_column='UserUpdatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='%(class)s_user_updated', to=settings.AUTH_USER_MODEL),
+            model_name="subscription",
+            name="user_updated",
+            field=models.ForeignKey(
+                db_column="UserUpdatedUUID",
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="%(class)s_user_updated",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='subscriptionnotificationresult',
-            name='error',
+            model_name="subscriptionnotificationresult",
+            name="error",
             field=models.TextField(blank=True, default=None, null=True),
         ),
     ]
