@@ -24,7 +24,7 @@ class PolicyCoverageEligibilityRequestSerializer(BaseFHIRSerializer):
         password = os.environ.get('OPEHNHIM_PASSWORD')
         try:
             response = requests.post(
-                url+'CoverageEligibilityRequest',
+                url + 'CoverageEligibilityRequest',
                 json=data,
                 auth=HTTPBasicAuth(technical_user, password)
             )

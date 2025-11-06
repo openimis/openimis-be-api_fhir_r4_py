@@ -89,7 +89,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         fhir_eligibility_response["insurer"] = reference_insurer
 
         reference_patient = {
-                "reference": f"Patient/{coverage_eligibility_request.chf_id}"
+            "reference": f"Patient/{coverage_eligibility_request.chf_id}"
         }
         fhir_eligibility_response["patient"] = reference_patient
 
