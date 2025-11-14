@@ -6,12 +6,15 @@ from api_fhir_r4.tests.mixin.invoiceTestMixin import InvoiceTestMixin
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 
 
-class InvoiceConverterTestCase(InvoiceTestMixin, LogInMixin, ConvertJsonToFhirTestMixin):
-    _TEST_USER_NAME = "TestUserTest2"
+class InvoiceConverterTestCase(
+    InvoiceTestMixin, LogInMixin, ConvertJsonToFhirTestMixin
+):
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
 
     converter = InvoiceConverter
     fhir_resource = Invoice
-    json_repr = 'test/test_invoice.json'
+    json_repr = "test/test_invoice.json"
 
     def test_to_fhir_obj(self):
         user = self.get_or_create_user_api()
@@ -22,4 +25,6 @@ class InvoiceConverterTestCase(InvoiceTestMixin, LogInMixin, ConvertJsonToFhirTe
         self.verify_fhir_instance(fhir_invoice)
 
     def test_to_imis_obj(self):
-        self.assertRaises(NotImplementedError, InvoiceConverter.to_imis_obj, object(), 1)
+        self.assertRaises(
+            NotImplementedError, InvoiceConverter.to_imis_obj, object(), 1
+        )

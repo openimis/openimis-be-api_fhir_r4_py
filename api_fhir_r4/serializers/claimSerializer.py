@@ -1,23 +1,32 @@
-from claim.services import ClaimSubmitService, ClaimSubmit, ClaimConfig
+from claim.services import ClaimSubmitService, ClaimConfig
 from claim.gql_mutations import create_attachments
 from claim.models import Claim, ClaimItem, ClaimService
 from typing import List, Union
-from core.models.user import ClaimAdmin
-from api_fhir_r4.containedResources.claimContainedResources import ClaimContainedResources
-from api_fhir_r4.containedResources.serializerMixin import ContainedContentSerializerMixin
+from api_fhir_r4.containedResources.claimContainedResources import (
+    ClaimContainedResources,
+)
+from api_fhir_r4.containedResources.serializerMixin import (
+    ContainedContentSerializerMixin,
+)
 from api_fhir_r4.models import ClaimV2 as FHIRClaim
 from django.http import HttpResponseForbidden
 from django.http.response import HttpResponseBase
 from django.shortcuts import get_object_or_404
 
 from api_fhir_r4.configurations import R4ClaimConfig, GeneralConfiguration
-from api_fhir_r4.converters import ClaimResponseConverter, OperationOutcomeConverter, ReferenceConverterMixin as r
+from api_fhir_r4.converters import (
+    ClaimResponseConverter,
+    OperationOutcomeConverter,
+    ReferenceConverterMixin as r,
+)
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.R4B import FHIRAbstractModel
-from api_fhir_r4.serializers import BaseFHIRSerializer
+from api_fhir_r4.serializers.baseSerializer import BaseFHIRSerializer
 from core.utils import filter_validity
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
@@ -25,12 +34,14 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
     contained_resources = ClaimContainedResources
 
-    def fhir_object_reference_fields(self, fhir_obj: FHIRClaim) -> List[FHIRAbstractModel]:
+    def fhir_object_reference_fields(
+        self, fhir_obj: FHIRClaim
+    ) -> List[FHIRAbstractModel]:
         return [
             fhir_obj.patient,
             fhir_obj.provider,
             fhir_obj.enterer,
-            *[item.extension[0].valueReference for item in fhir_obj.item]
+            *[item.extension[0].valueReference for item in fhir_obj.item],
         ]
 
     def create(self, validated_data):
@@ -54,17 +65,17 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
         fhir_obj = self.fhirConverter.to_fhir_obj(obj, self._reference_type)
         self.remove_attachment_data(fhir_obj)
-        
-        if self.context.get('contained', None):
+
+        if self.context.get("contained", None):
             self._add_contained_references(fhir_obj)
 
         fhir_dict = fhir_obj.dict()
-        if self.context.get('contained', False):
-            fhir_dict['contained'] = self._create_contained_obj_dict(obj)
+        if self.context.get("contained", False):
+            fhir_dict["contained"] = self._create_contained_obj_dict(obj)
         return fhir_dict
 
     def remove_attachment_data(self, fhir_obj):
-        if hasattr(self.parent, 'many') and self.parent.many is True:
+        if hasattr(self.parent, "many") and self.parent.many is True:
             attachments = self.__get_attachments(fhir_obj)
             for next_attachment in attachments:
                 next_attachment.data = None
@@ -74,16 +85,23 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         return super().reference_type
 
     @reference_type.setter
-    def reference_type(self, reference_type: Union[r.UUID_REFERENCE_TYPE,
-                                                   r.CODE_REFERENCE_TYPE,
-                                                   r.DB_ID_REFERENCE_TYPE]):
+    def reference_type(
+        self,
+        reference_type: Union[
+            r.UUID_REFERENCE_TYPE, r.CODE_REFERENCE_TYPE, r.DB_ID_REFERENCE_TYPE
+        ],
+    ):
         if reference_type != self._reference_type:
             self._reference_type = reference_type
             self.__set_contained_resource_reference_types(reference_type)
 
     def __get_attachments(self, fhir_obj):
         attachment_category = R4ClaimConfig.get_fhir_claim_attachment_code()
-        return [a.valueAttachment for a in fhir_obj.supportingInfo if a.category.text == attachment_category]
+        return [
+            a.valueAttachment
+            for a in fhir_obj.supportingInfo
+            if a.category.text == attachment_category
+        ]
 
     def __set_contained_resource_reference_types(self, reference_type):
         self._contained_definitions.update_reference_type(reference_type)
@@ -94,46 +112,73 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         out = []
         for x in list_of_provisions:
             dict_ = x.__dict__
-            dict_.pop('_state', None)
+            dict_.pop("_state", None)
             if isinstance(x, ClaimItem):
-                dict_['item_id'] = \
-                    self.__get_contained_medical_provision(contained_items, dict_) or dict_['item_id']
+                dict_["item_id"] = (
+                    self.__get_contained_medical_provision(contained_items, dict_)
+                    or dict_["item_id"]
+                )
             elif isinstance(x, ClaimService):
-                dict_['service_id'] = \
-                    self.__get_contained_medical_provision(contained_items, dict_) or dict_['service_id']
+                dict_["service_id"] = (
+                    self.__get_contained_medical_provision(contained_items, dict_)
+                    or dict_["service_id"]
+                )
             else:
-                raise AttributeError(F"Medical provision {x} is not ClaimItem nor ClaimService")
+                raise AttributeError(
+                    f"Medical provision {x} is not ClaimItem nor ClaimService"
+                )
 
-            dict_.pop('code')
+            dict_.pop("code")
             out.append(dict_)
         return out
 
     def __get_contained_or_default_hf_id(self, contained_dict, validated_data):
-        return self.__get_contained_or_default( contained_dict, validated_data,
-             'health_facility__Organization', 'health_facility_code',  'health_facility_id' )              
+        return self.__get_contained_or_default(
+            contained_dict,
+            validated_data,
+            "health_facility__Organization",
+            "health_facility_code",
+            "health_facility_id",
+        )
 
-
-    def __get_contained_or_default(self, contained_dict, validated_data,ref_attr,ref_code,ref_id, code='code'):
-        c_elm =contained_dict.pop(ref_attr,None)
+    def __get_contained_or_default(
+        self, contained_dict, validated_data, ref_attr, ref_code, ref_id, code="code"
+    ):
+        c_elm = contained_dict.pop(ref_attr, None)
         elm_id = None
         if c_elm and ref_code in validated_data:
-            elm_id =  self.__id_from_contained(c_elm, lambda x: hasattr(x,code) and getattr(x,code) == validated_data[ref_code])
+            elm_id = self.__id_from_contained(
+                c_elm,
+                lambda x: hasattr(x, code)
+                and getattr(x, code) == validated_data[ref_code],
+            )
         if elm_id is None and ref_id in validated_data:
             elm_id = validated_data[ref_id]
         return elm_id
-      
-    def __get_contained_or_default_insuree(self, contained_dict, validated_data):
-        return self.__get_contained_or_default( contained_dict, validated_data,
-             'insuree__Patient', 'insuree_chf_id',  'insuree_id', 'chf_id' )              
 
+    def __get_contained_or_default_insuree(self, contained_dict, validated_data):
+        return self.__get_contained_or_default(
+            contained_dict,
+            validated_data,
+            "insuree__Patient",
+            "insuree_chf_id",
+            "insuree_id",
+            "chf_id",
+        )
 
     def __get_contained_or_default_claim_admin(self, contained_dict, validated_data):
-        return self.__get_contained_or_default( contained_dict, validated_data,
-             'admin__Practitioner', 'claim_admin_code',  'admin_id' )              
-
+        return self.__get_contained_or_default(
+            contained_dict,
+            validated_data,
+            "admin__Practitioner",
+            "claim_admin_code",
+            "admin_id",
+        )
 
     def __get_contained_medical_provision(self, contained_items: list, item):
-        contained_value = self.__id_from_contained(contained_items, lambda x: hasattr(x,'code') and x.code == item['code'])
+        contained_value = self.__id_from_contained(
+            contained_items, lambda x: hasattr(x, "code") and x.code == item["code"]
+        )
         return contained_value
 
     def __id_from_contained(self, contained_collection, lookup_func):
@@ -141,60 +186,75 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
         return matching[0] if len(matching) != 0 else None
 
     def _create_claim_from_validated_data(self, validated_data, contained):
-        truncated_data = self._claim_input_from_validated_claim_data(validated_data, contained)
+        truncated_data = self._claim_input_from_validated_claim_data(
+            validated_data, contained
+        )
         user = self.context.get("request").user
         if not user or not user.has_perms(
-                ClaimConfig.gql_mutation_create_claims_perms
-                + ClaimConfig.gql_mutation_submit_claims_perms
+            ClaimConfig.gql_mutation_create_claims_perms
+            + ClaimConfig.gql_mutation_submit_claims_perms
         ):
             return HttpResponseForbidden()
 
         rule_engine_validation = GeneralConfiguration.get_claim_rule_engine_validation()
-        claim = ClaimSubmitService(user) \
-            .enter_and_submit(truncated_data, rule_engine_validation=rule_engine_validation)
+        claim = ClaimSubmitService(user).enter_and_submit(
+            truncated_data, rule_engine_validation=rule_engine_validation
+        )
 
-        attachments = validated_data.get('claim_attachments', [])
+        attachments = validated_data.get("claim_attachments", [])
         self.create_claim_attachments(claim.code, attachments)
         return claim
 
     def _claim_input_from_validated_claim_data(self, validated_data, contained):
         essential_claim_fields = [
-            'date_claimed', 'date_from', 'date_to',
-            'icd_id', 'icd_1_id', 'icd_2_id', 'icd_3_id', 'icd_4_id',
-            'code',
-            'claimed',
-            'explanation',
-            'adjustment',
-            'category',
-            'visit_type',
-            'guarantee_id',
-
-            'insuree_id',
-            'health_facility_id',
-            'admin_id',
-
-            'items',
-            'services',
-
-            'json_ext'
+            "date_claimed",
+            "date_from",
+            "date_to",
+            "icd_id",
+            "icd_1_id",
+            "icd_2_id",
+            "icd_3_id",
+            "icd_4_id",
+            "code",
+            "claimed",
+            "explanation",
+            "adjustment",
+            "category",
+            "visit_type",
+            "guarantee_id",
+            "insuree_id",
+            "health_facility_id",
+            "admin_id",
+            "items",
+            "services",
+            "json_ext",
         ]
-        truncated_data = {k: v for k, v in validated_data.items() if k in essential_claim_fields}
-        truncated_data.pop('_state', None)
+        truncated_data = {
+            k: v for k, v in validated_data.items() if k in essential_claim_fields
+        }
+        truncated_data.pop("_state", None)
 
         # Items and services passed in converter through additional attributes
-        #TODO : check that items__Medication could be a key of contained
-        truncated_data['items'] = self.__claim_provisions_to_dict(
-            validated_data['submit_items'],
-            contained.get('items__Medication',[]))
+        # TODO : check that items__Medication could be a key of contained
+        truncated_data["items"] = self.__claim_provisions_to_dict(
+            validated_data["submit_items"], contained.get("items__Medication", [])
+        )
 
-        truncated_data['services'] = self.__claim_provisions_to_dict(
-            validated_data['submit_services'],
-            contained.get('services__ActivityDefinition',[]))
+        truncated_data["services"] = self.__claim_provisions_to_dict(
+            validated_data["submit_services"],
+            contained.get("services__ActivityDefinition", []),
+        )
 
         # If those resources are created through contained id is not available until _create_or_update_contained is
         # called. This ensures references are ok. Codes are assigned in converter as additional variables.
         # .get() is used as those values are mandatory in claim and have to be unique.
-        truncated_data['health_facility_id'] = self.__get_contained_or_default_hf_id(contained, validated_data)
-        truncated_data['insuree_id'] = self.__get_contained_or_default_insuree(contained, validated_data)
-        truncated_data['admin_id'] = self.__get_contained_or_default_claim_admin(contained, validated_data)
+        truncated_data["health_facility_id"] = self.__get_contained_or_default_hf_id(
+            contained, validated_data
+        )
+        truncated_data["insuree_id"] = self.__get_contained_or_default_insuree(
+            contained, validated_data
+        )
+        truncated_data["admin_id"] = self.__get_contained_or_default_claim_admin(
+            contained, validated_data
+        )
         return truncated_data

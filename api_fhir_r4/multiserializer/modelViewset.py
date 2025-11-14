@@ -7,10 +7,11 @@ from api_fhir_r4.multiserializer.serializerClass import MultiSerializerSerialize
 
 
 class MultiSerializerModelViewSet(
-        GenericViewSet,
-        mixins.MultiSerializerCreateModelMixin,
-        mixins.MultiSerializerRetrieveModelMixin,
-        mixins.MultiSerializerUpdateModelMixin,
-        mixins.MultiSerializerListModelMixin, ABC
+    GenericViewSet,
+    mixins.MultiSerializerCreateModelMixin,
+    mixins.MultiSerializerRetrieveModelMixin,
+    mixins.MultiSerializerUpdateModelMixin,
+    mixins.MultiSerializerListModelMixin,
+    ABC,
 ):
     serializer_class = MultiSerializerSerializerClass

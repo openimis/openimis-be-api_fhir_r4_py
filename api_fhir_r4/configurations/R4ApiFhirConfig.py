@@ -10,7 +10,7 @@ from api_fhir_r4.configurations import (
     R4OrganisationConfig,
     R4CoverageConfig,
     R4SubscriptionConfig,
-    R4PaymentNoticeConfig
+    R4PaymentNoticeConfig,
 )
 
 

@@ -10,17 +10,24 @@ from claim.models import Claim
 
 
 class CommunicationRequestViewSet(
-    BaseFHIRView,
-    MultiIdentifierRetrieverMixin,
-    ListModelMixin,
-    GenericViewSet
+    BaseFHIRView, MultiIdentifierRetrieverMixin, ListModelMixin, GenericViewSet
 ):
     retrievers = [UUIDIdentifierModelRetriever]
     serializer_class = CommunicationRequestSerializer
     permission_classes = (FHIRApiCommunicationRequestPermissions,)
 
     def get_queryset(self):
-        queryset = Claim.get_queryset(None, self.request.user).filter(feedback_status__in=[
-            Claim.FEEDBACK_SELECTED, Claim.FEEDBACK_DELIVERED, Claim.FEEDBACK_BYPASSED
-        ]).order_by('validity_from')
-        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
+        queryset = (
+            Claim.get_queryset(None, self.request.user)
+            .filter(
+                feedback_status__in=[
+                    Claim.FEEDBACK_SELECTED,
+                    Claim.FEEDBACK_DELIVERED,
+                    Claim.FEEDBACK_BYPASSED,
+                ]
+            )
+            .order_by("validity_from")
+        )
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(
+            queryset
+        )

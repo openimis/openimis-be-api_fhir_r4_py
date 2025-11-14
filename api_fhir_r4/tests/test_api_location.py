@@ -6,14 +6,15 @@ from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiCreateTestMixin
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests.utils import load_and_replace_json
 
-class LocationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin,
-                       APITestCase):
 
-    base_url = GeneralConfiguration.get_base_url()+'Location/'
+class LocationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin, APITestCase):
+
+    base_url = GeneralConfiguration.get_base_url() + "Location/"
     _test_json_path = "/test/test_location.json"
-    _TEST_MUNICIPALITY_UUID = 'a82f54bf-d983-4963-a279-490312a96344'
+    _TEST_MUNICIPALITY_UUID = "a82f54bf-d983-4963-a279-490312a96344"
     _TEST_EXPECTED_NAME = "UPDATED_NAME"
     sub_str = {}
+
     def setUp(self):
         super(LocationAPITests, self).setUp()
         # create level location
@@ -37,12 +38,14 @@ class LocationAPITests(GenericFhirAPITestMixin, FhirApiCreateTestMixin,
         imis_location_municipality.parent = imis_location_district
         imis_location_municipality.save()
         self.sub_str[self._TEST_MUNICIPALITY_UUID] = imis_location_municipality.uuid
-        self._TEST_MUNICIPALITY_UUID =  imis_location_municipality.uuid
-        self._test_request_data = load_and_replace_json(self._test_json_path,self.sub_str)
+        self._TEST_MUNICIPALITY_UUID = imis_location_municipality.uuid
+        self._test_request_data = load_and_replace_json(
+            self._test_json_path, self.sub_str
+        )
 
     def verify_updated_obj(self, updated_obj):
         self.assertTrue(isinstance(updated_obj, FHIRLocation))
         self.assertEqual(self._TEST_EXPECTED_NAME, updated_obj.name)
 
     def update_resource(self, data):
-        data['name'] = self._TEST_EXPECTED_NAME
+        data["name"] = self._TEST_EXPECTED_NAME

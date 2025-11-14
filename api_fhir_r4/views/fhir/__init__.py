@@ -1,3 +1,4 @@
+# flake8: noqa
 from api_fhir_r4.views.fhir.activity_definition import ActivityDefinitionViewSet
 from api_fhir_r4.views.fhir.claim import ClaimViewSet
 from api_fhir_r4.views.fhir.claim_response import ClaimResponseViewSet

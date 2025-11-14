@@ -1,47 +1,42 @@
-import json
-import os
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests import GenericFhirAPITestMixin
-from api_fhir_r4.tests import LocationTestMixin, ClaimAdminPractitionerTestMixin
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 from api_fhir_r4.utils import TimeUtils
-from api_fhir_r4.tests.utils import load_and_replace_json,get_connection_payload,get_or_create_user_api
-from api_fhir_r4.utils import DbManagerUtils
+from api_fhir_r4.tests.utils import (
+    load_and_replace_json,
+    get_connection_payload,
+    get_or_create_user_api,
+)
 
-from claim.models import Claim, ClaimDetail
-from insuree.test_helpers import create_test_insuree
-from location.models import HealthFacility, UserDistrict
-from location.test_helpers import create_test_village, create_test_health_facility
-from medical.models import Diagnosis
-from medical.test_helpers import create_test_item, create_test_service
+from claim.models import Claim
+from location.models import UserDistrict
 from claim.test_helpers import create_test_claim_context, full_delete_claim
-from policy.test_helpers import create_test_policy2
-from product.test_helpers import create_test_product
 from datetime import datetime
 
+
 class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
-    base_url = GeneralConfiguration.get_base_url() + 'Claim/'
+    base_url = GeneralConfiguration.get_base_url() + "Claim/"
     _test_json_path = "/test/test_claim.json"
 
     # diagnosis data
-    _TEST_MAIN_ICD_CODE = 'T_CD'
-    _TEST_MAIN_ICD_NAME = 'Test diagnosis'
+    _TEST_MAIN_ICD_CODE = "T_CD"
+    _TEST_MAIN_ICD_NAME = "Test diagnosis"
 
     _TEST_CLAIM_ADMIN_UUID = "044c33d1-dbf3-4d6a-9924-3797b461e535"
     _TEST_CLAIM_ADMIN_CODE = "VITEST99"
     _TEST_INSUREE_CODE = "999000001"
-    _TEST_INSUREE_UUID = '76aca309-f8cf-4890-8f2e-b416d78de00b'
+    _TEST_INSUREE_UUID = "76aca309-f8cf-4890-8f2e-b416d78de00b"
     # claim item data
     _TEST_ITEM_CODE = "0004"
     _TEST_ITEM_UUID = "e2bc1546-390b-4d41-8571-632ecf7a0936"
     _TEST_ITEM_QUANTITY_PROVIDED = 10.0
     _TEST_ITEM_PRICE_ASKED = 10.0
     _TEST_ITEM_EXPLANATION = "item_explanation"
-    _TEST_ITEM_TYPE = 'D'
+    _TEST_ITEM_TYPE = "D"
 
     # claim service data
     _TEST_SERVICE_CODE = "M7"
@@ -49,7 +44,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     _TEST_SERVICE_QUANTITY_PROVIDED = 1
     _TEST_SERVICE_PRICE_ASKED = 21000.0
     _TEST_SERVICE_EXPLANATION = "service_explanation"
-    _TEST_SERVICE_TYPE = 'D'
+    _TEST_SERVICE_TYPE = "D"
 
     # hf test data
     _TEST_HF_ID = 10000
@@ -66,8 +61,8 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
 
     _ADMIN_AUDIT_USER_ID = -1
     _TEST_USER = None
-    _TEST_USER_NAME = "TestUserTest2"
-    _TEST_USER_PASSWORD = "TestPasswordTest2"
+    _TEST_USER_NAME = "Admin"
+    _TEST_USER_PASSWORD = "admin123"
     _TEST_DATA_USER = {
         "username": _TEST_USER_NAME,
         "last_name": _TEST_USER_NAME,
@@ -84,65 +79,62 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     sub_str = {}
     test_insuree = None
     test_claim_admin = None
- 
+
     def setUp(self):
         super(ClaimAPITests, self).setUp()
         self._TEST_USER = get_or_create_user_api(self._TEST_DATA_USER)
         self.create_dependencies()
-        self.sub_str[self._TEST_INSUREE_UUID]=self.test_insuree.uuid
-        self.sub_str[self._TEST_INSUREE_CODE]=self.test_insuree.chf_id
-        self.sub_str[self._TEST_HF_UUID]=self.test_hf.uuid
-        self.sub_str[self._TEST_CLAIM_ADMIN_UUID]=self.test_claim_admin.uuid
-        self.sub_str[self._TEST_CLAIM_ADMIN_CODE]=self.test_claim_admin.code
+        self.sub_str[self._TEST_INSUREE_UUID] = self.test_insuree.uuid
+        self.sub_str[self._TEST_INSUREE_CODE] = self.test_insuree.chf_id
+        self.sub_str[self._TEST_HF_UUID] = self.test_hf.uuid
+        self.sub_str[self._TEST_CLAIM_ADMIN_UUID] = self.test_claim_admin.uuid
+        self.sub_str[self._TEST_CLAIM_ADMIN_CODE] = self.test_claim_admin.code
 
-        self.sub_str[self._TEST_ITEM_UUID]=self._TEST_ITEM.uuid
-        self.sub_str[self._TEST_SERVICE_UUID]=self._TEST_SERVICE.uuid
-        self.sub_str[self._TEST_ITEM_CODE]=self._TEST_ITEM.code
-        self.sub_str[self._TEST_SERVICE_CODE]=self._TEST_SERVICE.code
+        self.sub_str[self._TEST_ITEM_UUID] = self._TEST_ITEM.uuid
+        self.sub_str[self._TEST_SERVICE_UUID] = self._TEST_SERVICE.uuid
+        self.sub_str[self._TEST_ITEM_CODE] = self._TEST_ITEM.code
+        self.sub_str[self._TEST_SERVICE_CODE] = self._TEST_SERVICE.code
         self.sub_str[self._TEST_DATE] = datetime.now().strftime("%Y-%m-%d")
-        
+
         self._TEST_HF_ID = self.test_hf.id
         self._TEST_HF_UUID = self.test_hf.uuid
 
-
-
     def create_dependencies(self):
 
-        self.test_claim, self.test_insuree, self.policy, self.test_hf = create_test_claim_context(
-            claim={
-                'icd':{
-                    'code': self._TEST_MAIN_ICD_CODE,
-                    'name': self._TEST_MAIN_ICD_NAME
-                }
-            },
-            insuree={"chf_id": self._TEST_INSUREE_CODE}, 
-            claim_admin={
-                'code':'T-CA-API',
-                'last_name' : self._TEST_DATA_USER['last_name'],
-                'other_names' : self._TEST_DATA_USER['other_names']
-            },
-            product={}, 
-            hf={
-                'name': self._TEST_HF_NAME,
-                'code': self._TEST_HF_CODE,
-                'level':self._TEST_HF_LEVEL,
-                'legal_form_id':self._TEST_HF_LEGAL_FORM,
-                'address':self._TEST_ADDRESS,
-                'phone':self._TEST_PHONE,
-                'fax':self._TEST_FAX,
-                'email':self._TEST_EMAIL,
-            }, 
-            items=[
-                {"type": self._TEST_ITEM_TYPE}
-                ], 
-            services=[
-                {"type": self._TEST_SERVICE_TYPE}
-            ])
+        self.test_claim, self.test_insuree, self.policy, self.test_hf = (
+            create_test_claim_context(
+                claim={
+                    "icd": {
+                        "code": self._TEST_MAIN_ICD_CODE,
+                        "name": self._TEST_MAIN_ICD_NAME,
+                    }
+                },
+                insuree={"chf_id": self._TEST_INSUREE_CODE},
+                claim_admin={
+                    "code": "T-CA-API",
+                    "last_name": self._TEST_DATA_USER["last_name"],
+                    "other_names": self._TEST_DATA_USER["other_names"],
+                },
+                product={},
+                hf={
+                    "name": self._TEST_HF_NAME,
+                    "code": self._TEST_HF_CODE,
+                    "level": self._TEST_HF_LEVEL,
+                    "legal_form_id": self._TEST_HF_LEGAL_FORM,
+                    "address": self._TEST_ADDRESS,
+                    "phone": self._TEST_PHONE,
+                    "fax": self._TEST_FAX,
+                    "email": self._TEST_EMAIL,
+                },
+                items=[{"type": self._TEST_ITEM_TYPE}],
+                services=[{"type": self._TEST_SERVICE_TYPE}],
+            )
+        )
         #
         self.test_claim_admin = self.test_claim.admin
         self._TEST_ITEM = self.test_claim.items.first().item
         self._TEST_SERVICE = self.test_claim.services.first().service
-        
+
         full_delete_claim(self.test_claim.id)
 
         ud = UserDistrict()
@@ -152,54 +144,68 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         ud.validity_from = TimeUtils.now()
         ud.save()
 
-
     def _post_claim(self, data, headers):
-        return self.client.post(self.base_url, data=data, format='json', **headers)
-
+        return self.client.post(self.base_url, data=data, format="json", **headers)
 
     def test_post_should_create_correctly(self):
         response = self.client.post(
-            GeneralConfiguration.get_base_url() + 'login/', data=get_connection_payload(self._TEST_DATA_USER), format='json'
+            GeneralConfiguration.get_base_url() + "login/",
+            data=get_connection_payload(self._TEST_DATA_USER),
+            format="json",
         )
         response_json = response.json()
         token = response_json["token"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         headers = {
             "Content-Type": "application/json",
-            "HTTP_AUTHORIZATION": f"Bearer {token}"
+            "HTTP_AUTHORIZATION": f"Bearer {token}",
         }
 
         dataset = [
-            load_and_replace_json(self._test_json_path,self.sub_str),
-            load_and_replace_json(self._test_json_path_with_code_references,self.sub_str)
+            load_and_replace_json(self._test_json_path, self.sub_str),
+            load_and_replace_json(
+                self._test_json_path_with_code_references, self.sub_str
+            ),
         ]
         for data in dataset:
-            response = self.client.post(self.base_url, data=data, format='json', **headers)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.json())
+            response = self.client.post(
+                self.base_url, data=data, format="json", **headers
+            )
+            self.assertEqual(
+                response.status_code, status.HTTP_201_CREATED, response.json()
+            )
             self.assertIsNotNone(response.content)
             response_json = response.json()
-            self.assertEqual(response_json["resourceType"], 'ClaimResponse')
-            self.assertEqual(response_json["outcome"], 'complete')
+            self.assertEqual(response_json["resourceType"], "ClaimResponse")
+            self.assertEqual(response_json["outcome"], "complete")
             # for both tests item and service should be 'rejected' and 'not in price list'
             for item in response_json["item"]:
                 for adjudication in item["adjudication"]:
-                    self.assertEqual(adjudication["category"]["coding"][0]["code"], f'{Claim.STATUS_REJECTED}')
+                    self.assertEqual(
+                        adjudication["category"]["coding"][0]["code"],
+                        f"{Claim.STATUS_REJECTED}",
+                    )
                     # 2 not in price list
-                    self.assertEqual(adjudication["reason"]["coding"][0]["code"], '2')
-
+                    self.assertEqual(adjudication["reason"]["coding"][0]["code"], "2")
 
     def test_get_should_return_200_claim_response(self):
         # test if get ClaimResponse return 200
         response = self.client.post(
-            GeneralConfiguration.get_base_url() + 'login/', data=get_connection_payload(self._TEST_DATA_USER), format='json'
+            GeneralConfiguration.get_base_url() + "login/",
+            data=get_connection_payload(self._TEST_DATA_USER),
+            format="json",
         )
         response_json = response.json()
         token = response_json["token"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         headers = {
             "Content-Type": "application/json",
-            "HTTP_AUTHORIZATION": f"Bearer {token}"
+            "HTTP_AUTHORIZATION": f"Bearer {token}",
         }
-        response = self.client.get(GeneralConfiguration.get_base_url() + 'ClaimResponse/', data=None, format='json',
-                                   **headers)
+        response = self.client.get(
+            GeneralConfiguration.get_base_url() + "ClaimResponse/",
+            data=None,
+            format="json",
+            **headers,
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

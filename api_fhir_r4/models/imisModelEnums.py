@@ -53,9 +53,10 @@ class ImisCategoryDefinition(Enum):
                 "O": cls.CATEGORY_OTHER.value,
                 "V": cls.CATEGORY_VISIT.value,
             }
+
         try:
             cached_categories()[category_char]
-        except KeyError as e:
+        except KeyError:
             raise ValueError(
                 f"Invalid category code: {category_char}, available categories are: \n{cached_categories()}"
             )
@@ -64,9 +65,10 @@ class ImisCategoryDefinition(Enum):
 class BundleType(Enum):
     """
     fhir.resources.R4B doesn't use enum for bundle type,
-    see https://github.com/nazrulworld/fhir.resources.R4B/blob/91bf2064aa03c6f3c252d26d7945fa0bb140b03a/fhir/resources/bundle.py#L103
+    see https://github.com/nazrulworld/fhir.resources.R4B/blob/91bf2064aa03c6f3c252d26d7945fa0bb140b03a/fhir/resources/bundle.py#L103 # noqa: E501
     this class allows to use constants instead of plain strings.
     """
+
     DOCUMENT = "document"
     MESSAGE = "message"
     TRANSACTION = "transaction"

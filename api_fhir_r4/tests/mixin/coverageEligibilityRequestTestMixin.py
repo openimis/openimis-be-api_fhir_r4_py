@@ -1,10 +1,17 @@
 from policy.services import EligibilityResponse, EligibilityRequest
 from insuree.test_helpers import create_test_insuree
 from medical.test_helpers import create_test_service, create_test_item
-
-from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageEligibilityConfiguration as Config
+from core.test_helpers import create_test_interactive_user
+from policy.test_helpers import create_test_policy_with_IPs
+from product.test_helpers import create_test_product
+from api_fhir_r4.configurations import (
+    GeneralConfiguration,
+    R4CoverageEligibilityConfiguration as Config,
+)
 from api_fhir_r4.converters import PatientConverter
-from api_fhir_r4.models import CoverageEligibilityRequestV2 as CoverageEligibilityRequest
+from api_fhir_r4.models import (
+    CoverageEligibilityRequestV2 as CoverageEligibilityRequest,
+)
 from fhir.resources.R4B.coverageeligibilityrequest import CoverageEligibilityRequestItem
 from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
@@ -13,9 +20,9 @@ from api_fhir_r4.utils import TimeUtils
 class CoverageEligibilityRequestTestMixin(GenericTestMixin):
     _TEST_ADMIN_USER_ID = 1
     _TEST_ADMIN_USER_UUID = "90b0cee2-73ae-4705-af8d-8fe035209ab2"
-    _TEST_SERVICE_CODE = 'STEST'
-    _TEST_ITEM_CODE = 'ITEST'
-    _TEST_CHFID = 'chfid'
+    _TEST_SERVICE_CODE = "STEST"
+    _TEST_ITEM_CODE = "ITEST"
+    _TEST_CHFID = "chfid"
     _TEST_TOTAL_ADMISSIONS = 1
     _TEST_TOTAL_VISITS = 3
     _TEST_TOTAL_CONSULTATIONS = 23
@@ -31,28 +38,31 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
     _TEST_ITEM_LEFT = 1
     _TEST_IS_SERVICE_OK = True
     _TEST_IS_ITEM_OK = False
+    _TEST_USER = None
 
     def setUp(self):
         super(CoverageEligibilityRequestTestMixin, self).setUp()
+        self._TEST_USER = create_test_interactive_user(username="Admin")
         self._TEST_INSUREE = create_test_insuree()
         self._TEST_INSUREE.chf_id = self._TEST_CHFID
         self._TEST_INSUREE.save()
-        self._TEST_SERVICE = create_test_service('D')
+        self._TEST_PRODUCT = create_test_product("TESTPROD")
+        self._TEST_POLICY = create_test_policy_with_IPs(self._TEST_PRODUCT, self._TEST_INSUREE)
+        self._TEST_SERVICE = create_test_service("D")
         self._TEST_SERVICE.code = self._TEST_SERVICE_CODE
         self._TEST_SERVICE.save()
-        self._TEST_ITEM = create_test_item('D')
+        self._TEST_ITEM = create_test_item("D")
         self._TEST_ITEM.code = self._TEST_ITEM_CODE
         self._TEST_ITEM.save()
         self._TEST_ELIGIBILITY_REQUEST = EligibilityRequest(
-            self._TEST_CHFID,
-            self._TEST_SERVICE_CODE,
-            self._TEST_ITEM_CODE
+            chf_id=self._TEST_CHFID, policy_uuid=self._TEST_POLICY.uuid,
+            service_code=self._TEST_SERVICE_CODE, item_code=self._TEST_ITEM_CODE
         )
 
     def create_test_imis_instance(self):
         return EligibilityResponse(
             eligibility_request=self._TEST_ELIGIBILITY_REQUEST,
-            prod_id=None,
+            prod_id=self._TEST_PRODUCT.id,
             total_admissions_left=self._TEST_TOTAL_ADMISSIONS,
             total_visits_left=self._TEST_TOTAL_VISITS,
             total_consultations_left=self._TEST_TOTAL_CONSULTATIONS,
@@ -69,7 +79,7 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
             service_left=self._TEST_SERVICE_LEFT,
             item_left=self._TEST_ITEM_LEFT,
             is_item_ok=self._TEST_IS_ITEM_OK,
-            is_service_ok=self._TEST_IS_SERVICE_OK
+            is_service_ok=self._TEST_IS_SERVICE_OK,
         )
 
     def verify_imis_instance(self, imis_obj):
@@ -88,11 +98,11 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
         fhir_request["created"] = TimeUtils.date().isoformat()
 
         reference_patient = {}
-        reference_patient["reference"] = f'Patient/{self._TEST_CHFID}'
-        fhir_request['patient'] = reference_patient
+        reference_patient["reference"] = f"Patient/{self._TEST_CHFID}"
+        fhir_request["patient"] = reference_patient
 
         reference_insurer = {}
-        reference_insurer["reference"] = 'openIMIS'
+        reference_insurer["reference"] = "openIMIS"
         fhir_request["insurer"] = reference_insurer
 
         fhir_request = CoverageEligibilityRequest(**fhir_request)
@@ -100,9 +110,9 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
         fhir_request.item = []
         item = CoverageEligibilityRequestItem.construct()
         item.category = PatientConverter.build_codeable_concept(
-            system=f'{GeneralConfiguration.get_base_url()}/CodeSystem/claim-item-category',
+            system=f"{GeneralConfiguration.get_base_url()}/CodeSystem/claim-item-category",
             code="service",
-            display="Service"
+            display="Service",
         )
         item.productOrService = PatientConverter.build_simple_codeable_concept(
             text=self._TEST_SERVICE_CODE
@@ -111,9 +121,9 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
 
         item = CoverageEligibilityRequestItem.construct()
         item.category = PatientConverter.build_codeable_concept(
-            system=f'{GeneralConfiguration.get_base_url()}/CodeSystem/claim-item-category',
+            system=f"{GeneralConfiguration.get_base_url()}/CodeSystem/claim-item-category",
             code="item",
-            display="Item"
+            display="Item",
         )
         item.productOrService = PatientConverter.build_simple_codeable_concept(
             text=self._TEST_ITEM_CODE
@@ -125,31 +135,62 @@ class CoverageEligibilityRequestTestMixin(GenericTestMixin):
         self.assertIsNotNone(fhir_obj.insurance[0].item)
         for item in fhir_obj.insurance[0].item:
             if item.category.text == Config.get_fhir_total_admissions_code():
-                self.assertEqual(self._TEST_TOTAL_ADMISSIONS, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_ADMISSIONS, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_total_visits_code():
-                self.assertEqual(self._TEST_TOTAL_VISITS, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_VISITS, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_total_consultations_code():
-                self.assertEqual(self._TEST_TOTAL_CONSULTATIONS, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_CONSULTATIONS, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_total_surgeries_code():
-                self.assertEqual(self._TEST_TOTAL_SURGERIES, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_SURGERIES, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_total_deliveries_code():
-                self.assertEqual(self._TEST_TOTAL_DELIVERIES, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_DELIVERIES, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_total_antenatal_code():
-                self.assertEqual(self._TEST_TOTAL_ANTENATAL, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_TOTAL_ANTENATAL, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_consultation_amount_code():
-                self.assertEqual(str(self._TEST_CONSULTATION_AMOUNT), str(item.benefit[0].allowedMoney.value))
+                self.assertEqual(
+                    str(self._TEST_CONSULTATION_AMOUNT),
+                    str(item.benefit[0].allowedMoney.value),
+                )
             elif item.category.text == Config.get_fhir_surgery_amount_code():
-                self.assertEqual(str(self._TEST_SURGERY_AMOUNT), str(item.benefit[0].allowedMoney.value))
+                self.assertEqual(
+                    str(self._TEST_SURGERY_AMOUNT),
+                    str(item.benefit[0].allowedMoney.value),
+                )
             elif item.category.text == Config.get_fhir_delivery_amount_code():
-                self.assertEqual(str(self._TEST_DELIVERY_AMOUNT), str(item.benefit[0].allowedMoney.value))
+                self.assertEqual(
+                    str(self._TEST_DELIVERY_AMOUNT),
+                    str(item.benefit[0].allowedMoney.value),
+                )
             elif item.category.text == Config.get_fhir_hospitalization_amount_code():
-                self.assertEqual(str(self._TEST_HOSPITALIZATION_AMOUNT), str(item.benefit[0].allowedMoney.value))
+                self.assertEqual(
+                    str(self._TEST_HOSPITALIZATION_AMOUNT),
+                    str(item.benefit[0].allowedMoney.value),
+                )
             elif item.category.text == Config.get_fhir_antenatal_amount_code():
-                self.assertEqual(str(self._TEST_ANTENATAL_AMOUNT), str(item.benefit[0].allowedMoney.value))
+                self.assertEqual(
+                    str(self._TEST_ANTENATAL_AMOUNT),
+                    str(item.benefit[0].allowedMoney.value),
+                )
             elif item.category.text == Config.get_fhir_service_left_code():
-                self.assertEqual(self._TEST_SERVICE_LEFT, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_SERVICE_LEFT, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_item_left_code():
-                self.assertEqual(self._TEST_ITEM_LEFT, item.benefit[0].allowedUnsignedInt)
+                self.assertEqual(
+                    self._TEST_ITEM_LEFT, item.benefit[0].allowedUnsignedInt
+                )
             elif item.category.text == Config.get_fhir_is_service_ok_code():
                 self.assertEqual(self._TEST_IS_SERVICE_OK, not item.excluded)
             elif item.category.text == Config.get_fhir_is_item_ok_code():

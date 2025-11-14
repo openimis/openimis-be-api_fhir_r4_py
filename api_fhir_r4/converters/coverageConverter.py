@@ -15,7 +15,9 @@ from api_fhir_r4.utils import TimeUtils
 class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
-    def to_fhir_obj(cls, imis_policy, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls, imis_policy, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
+    ):
         fhir_coverage = Coverage.construct()
         cls.build_coverage_status(fhir_coverage, imis_policy)
         cls.build_coverage_identifier(fhir_coverage, imis_policy)
@@ -26,7 +28,7 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
         cls.build_coverage_payor(fhir_coverage, imis_policy)
         cls.build_coverage_extension(fhir_coverage, imis_policy)
         return fhir_coverage
- 
+
     @classmethod
     def get_reference_obj_uuid(cls, imis_policy: Policy):
         return imis_policy.uuid
@@ -67,7 +69,7 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_coverage_policy_holder(cls, fhir_coverage, imis_policy):
         reference = Reference.construct()
         resource_id = imis_policy.family.head_insuree.chf_id
-        reference.reference = f'Patient/{str(resource_id)}'
+        reference.reference = f"Patient/{str(resource_id)}"
         fhir_coverage.policyHolder = reference
         return fhir_coverage
 
@@ -75,7 +77,7 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_coverage_beneficiary(cls, fhir_coverage, imis_policy):
         reference = Reference.construct()
         resource_id = imis_policy.family.head_insuree.chf_id
-        reference.reference = f'Patient/{str(resource_id)}'
+        reference.reference = f"Patient/{str(resource_id)}"
         fhir_coverage.beneficiary = reference
         return fhir_coverage
 
@@ -85,7 +87,7 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
         # send the signal from policy module - check if policy is connected to
         # formal sector contract entity
         results_signal_policy_fs = signal_check_formal_sector_for_policy.send(
-             sender=cls, policy_id=imis_policy.id
+            sender=cls, policy_id=imis_policy.id
         )
         if len(results_signal_policy_fs) > 0:
             if results_signal_policy_fs[0][1]:
@@ -93,15 +95,15 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if policy_holder_contract:
             # formal sector
             resource_id = policy_holder_contract.id
-            resource_type = 'Organization'
+            resource_type = "Organization"
         else:
             # informal sector
             resource_id = imis_policy.family.head_insuree.chf_id
-            resource_type = 'Patient'
+            resource_type = "Patient"
 
         fhir_coverage.payor = []
         reference = Reference.construct()
-        reference.reference = f'{resource_type}/{resource_id}'
+        reference.reference = f"{resource_type}/{resource_id}"
         fhir_coverage.payor.append(reference)
         return fhir_coverage
 
@@ -130,9 +132,9 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
         coverage_class.value = product.code
         coverage_class.name = product.name
         coverage_class.type = cls.build_codeable_concept(
-            system='http://terminology.hl7.org/CodeSystem/coverage-class',
-            code='plan',
-            display=_('Plan')
+            system="http://terminology.hl7.org/CodeSystem/coverage-class",
+            code="plan",
+            display=_("Plan"),
         )
 
         fhir_coverage.class_fhir.append(coverage_class)
@@ -162,7 +164,7 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def __build_date_extension(cls, value):
         ext_date = Extension.construct()
-        ext_date.url = f'{GeneralConfiguration.get_system_base_url()}/StructureDefinition/coverage-date'
+        ext_date.url = f"{GeneralConfiguration.get_system_base_url()}/StructureDefinition/coverage-date"
         ext_date.valueDate = TimeUtils.str_to_date(value.isoformat())
         return ext_date
 
@@ -174,7 +176,9 @@ class CoverageConverter(BaseFHIRConverter, ReferenceConverterMixin):
         product_items = ProductItem.objects.filter(product=product).all()
         product_services = ProductService.objects.filter(product=product).all()
         product_coverage[item_code] = [item.item.code for item in product_items]
-        product_coverage[service_code] = [service.service.code for service in product_services]
+        product_coverage[service_code] = [
+            service.service.code for service in product_services
+        ]
         class_.value = product.code
         class_.type = cls.build_simple_codeable_concept(product.name)
         class_.name = str(product_coverage)

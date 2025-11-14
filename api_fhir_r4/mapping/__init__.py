@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from api_fhir_r4.mapping import contractMapping
 from api_fhir_r4.mapping import patientMapping
 from api_fhir_r4.mapping import activityDefinitionMapping

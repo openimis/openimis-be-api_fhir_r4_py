@@ -1,7 +1,10 @@
 from rest_framework.viewsets import GenericViewSet
 
 from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, ListModelMixin
-from api_fhir_r4.model_retrievers import UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever
+from api_fhir_r4.model_retrievers import (
+    UUIDIdentifierModelRetriever,
+    CodeIdentifierModelRetriever,
+)
 from api_fhir_r4.permissions import FHIRApiClaimPermissions
 from api_fhir_r4.serializers import ClaimResponseSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
@@ -10,15 +13,14 @@ from claim.models import Claim
 
 
 class ClaimResponseViewSet(
-    BaseFHIRView,
-    ListModelMixin,
-    MultiIdentifierRetrieverMixin,
-    GenericViewSet
+    BaseFHIRView, ListModelMixin, MultiIdentifierRetrieverMixin, GenericViewSet
 ):
     retrievers = [UUIDIdentifierModelRetriever, CodeIdentifierModelRetriever]
     serializer_class = ClaimResponseSerializer
     permission_classes = (FHIRApiClaimPermissions,)
 
     def get_queryset(self):
-        queryset = Claim.get_queryset(None, self.request.user).order_by('validity_from')
-        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
+        queryset = Claim.get_queryset(None, self.request.user).order_by("validity_from")
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(
+            queryset
+        )

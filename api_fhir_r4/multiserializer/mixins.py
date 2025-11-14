@@ -4,11 +4,12 @@ Basic building blocks for generic class based views.
 We don't bind behaviour to http method handlers yet,
 which allows mixin classes to be composed in interesting ways.
 """
+
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from itertools import chain
-from typing import Dict, Type, Callable, Iterable, Tuple, List
+from typing import Dict, Type, Callable, Tuple, List
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -27,25 +28,31 @@ logger = logging.getLogger(__name__)
 
 def _MultiserializerPermissionClassWrapper(PermissionClass):
     def has_permission(self, request, view, queryset):
-        if getattr(view, '_ignore_model_permissions', False):
+        if getattr(view, "_ignore_model_permissions", False):
             return True
 
-        if not request.user or (not request.user.is_authenticated and self.authenticated_users_only):
+        if not request.user or (
+            not request.user.is_authenticated and self.authenticated_users_only
+        ):
             return False
-        
-        #read access can be defined by the ability to get a queryset
-        if request.method == 'GET' and self.base_class:
-            qs =  self.base_class.get_queryset()
+
+        # read access can be defined by the ability to get a queryset
+        if request.method == "GET" and self.base_class:
+            qs = self.base_class.get_queryset()
             if qs is None:
                 return False
             filter_values = qs.filter_values()
             # filter(id=-1) is used to return an empty qs
-            if filter_values.get('id') == -1:
+            if filter_values.get("id") == -1:
                 return False
         perms = self.get_required_permissions(request.method, queryset.model)
         return request.user.has_perms(perms)
 
-    permission_class = type('PermissionClassWrapper', PermissionClass.__bases__, dict(PermissionClass.__dict__))
+    permission_class = type(
+        "PermissionClassWrapper",
+        PermissionClass.__bases__,
+        dict(PermissionClass.__dict__),
+    )
     permission_class.has_permission = has_permission
     return permission_class
 
@@ -66,16 +73,23 @@ class GenericMultiSerializerViewsetMixin(ABC):
         """
         serializer_class is not meant to be used in Multiserializer viewset context
         """
-        pass
 
     @property
     def serializer_class(self):
-        raise NotImplementedError("serializer_class is not meant to be used in Multiserializer viewset context")
+        raise NotImplementedError(
+            "serializer_class is not meant to be used in Multiserializer viewset context"
+        )
 
     @property
     @abstractmethod
-    def serializers(self) \
-            -> Dict[Type[Serializer], Tuple[Callable[[], QuerySet], Callable[[Dict], bool], Tuple[FHIRApiPermissions]]]:
+    def serializers(
+        self,
+    ) -> Dict[
+        Type[Serializer],
+        Tuple[
+            Callable[[], QuerySet], Callable[[Dict], bool], Tuple[FHIRApiPermissions]
+        ],
+    ]:
         """
         Variable used for determining serializers available for the given viewset. It's a dictionary where keys
         are serializers and values are tuples with two functions.
@@ -88,7 +102,9 @@ class GenericMultiSerializerViewsetMixin(ABC):
         Returns:
 
         """
-        raise NotImplementedError('serializers method has to return dictionary of serializers')
+        raise NotImplementedError(
+            "serializers method has to return dictionary of serializers"
+        )
 
     def get_eligible_serializers(self) -> List[Type[Serializer]]:
         eligible = []
@@ -96,8 +112,15 @@ class GenericMultiSerializerViewsetMixin(ABC):
 
         eligible_from_permissions = self._get_eligible_from_user_permissions()
 
-        for serializer, (queryset, eligibility_validator, permission_class) in self.serializers.items():
-            if eligibility_validator(context) and serializer in eligible_from_permissions:
+        for serializer, (
+            queryset,
+            eligibility_validator,
+            permission_class,
+        ) in self.serializers.items():
+            if (
+                eligibility_validator(context)
+                and serializer in eligible_from_permissions
+            ):
                 eligible.append(serializer)
         return eligible
 
@@ -119,10 +142,10 @@ class GenericMultiSerializerViewsetMixin(ABC):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
         assert lookup_url_kwarg in self.kwargs, (
-            'Expected view %s to be called with a URL keyword argument '
+            "Expected view %s to be called with a URL keyword argument "
             'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
+            "attribute on the view correctly."
+            % (self.__class__.__name__, lookup_url_kwarg)
         )
 
         queryset = self.filter_queryset(qs)
@@ -135,8 +158,10 @@ class GenericMultiSerializerViewsetMixin(ABC):
         except (ObjectDoesNotExist, PermissionDenied):
             return None
         except FieldError as e:
-            logger.warning(F"Fetching object with multiserializer has failed, lookup field {self.lookup_field} does"
-                           F"not exist for {queryset.model}: {str(e)}")
+            logger.warning(
+                f"Fetching object with multiserializer has failed, lookup field {self.lookup_field} does"
+                f"not exist for {queryset.model}: {str(e)}"
+            )
             return None
         return obj
 
@@ -155,21 +180,33 @@ class GenericMultiSerializerViewsetMixin(ABC):
         raise AssertionError("Failed to match serializer eligible for given request")
 
     def _raise_multiple_eligible_serializers(self):
-        raise AssertionError("Ambiguous request, more than one serializer is eligible for given action")
+        raise AssertionError(
+            "Ambiguous request, more than one serializer is eligible for given action"
+        )
 
     def _get_eligible_from_user_permissions(self):
         eligible_serializers = []
-        for serializer, (queryset, eligibility_validator, permission_classes) in self.serializers.items():
+        for serializer, (
+            queryset,
+            eligibility_validator,
+            permission_classes,
+        ) in self.serializers.items():
             permission_classes = [
-                _MultiserializerPermissionClassWrapper(perm_cls)() for perm_cls in permission_classes
+                _MultiserializerPermissionClassWrapper(perm_cls)()
+                for perm_cls in permission_classes
             ]
-            if all([p.has_permission(self.request, self, queryset) for p in permission_classes]):
+            if all(
+                [
+                    p.has_permission(self.request, self, queryset)
+                    for p in permission_classes
+                ]
+            ):
                 eligible_serializers.append(serializer)
 
         if len(eligible_serializers) == 0:
             self.permission_denied(
                 self.request,
-                message="User unauthorized for any of the resourceType available in the view."
+                message="User unauthorized for any of the resourceType available in the view.",
             )
 
         return eligible_serializers
@@ -179,6 +216,7 @@ class MultiSerializerCreateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
     """
     Create a model instance.
     """
+
     def create(self, request, *args, **kwargs):
         self._validate_create_request()
         results = []
@@ -202,7 +240,9 @@ class MultiSerializerCreateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
 
     def get_success_headers(self, res):
         try:
-            return {'Location': str([data[api_settings.URL_FIELD_NAME] for data in res])}
+            return {
+                "Location": str([data[api_settings.URL_FIELD_NAME] for data in res])
+            }
         except (TypeError, KeyError):
             return {}
 
@@ -248,7 +288,7 @@ class _JoinedQuerysets:
             if start:
                 final_query.append(start_qs)
 
-            final_query.extend(self.querysets[intersection[0]:intersection[1]])
+            final_query.extend(self.querysets[intersection[0]: intersection[1]])
 
             if end:
                 final_query.append(end_qs)
@@ -284,6 +324,7 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
     """
     List a queryset.
     """
+
     def list(self, request, *args, **kwargs):
         self._validate_list_model_request()
         filtered_querysets = {}  # {serialzer: qs}
@@ -300,11 +341,14 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
             querysets = self._join_querysets([*filtered_querysets.values()])
             page = self.paginate_queryset(querysets)
             data = self.__dispatch_page_data(page)
-            serialized_data = self._serialize_dispatched_data(data, dict(filtered_querysets.keys()), user=request.user)
+            serialized_data = self._serialize_dispatched_data(
+                data, dict(filtered_querysets.keys()), user=request.user
+            )
             data = self.get_paginated_response(serialized_data)
             return data
         except Exception as e:
             import traceback
+
             traceback.print_exc()
             raise e
 
@@ -323,8 +367,10 @@ class MultiSerializerListModelMixin(GenericMultiSerializerViewsetMixin, ABC):
         for model, model_data in data.items():
             serializer_cls = serializer_models.get(model, None)
             if not serializer_cls:
-                logger.error(f"Found data of type {model_data} but it couldn't be matched with "
-                             f"any of available serializers {serializer_models}")
+                logger.error(
+                    f"Found data of type {model_data} but it couldn't be matched with "
+                    f"any of available serializers {serializer_models}"
+                )
                 continue
             else:
                 serializer = serializer_cls(tuple(model_data), many=True, user=user)
@@ -348,6 +394,7 @@ class MultiSerializerRetrieveModelMixin(GenericMultiSerializerViewsetMixin, ABC)
     """
     Retrieve a model instance.
     """
+
     def retrieve(self, request, *args, **kwargs):
         self._validate_retrieve_model_request()
         retrieved = []
@@ -358,7 +405,9 @@ class MultiSerializerRetrieveModelMixin(GenericMultiSerializerViewsetMixin, ABC)
                 retrieved.append(serializer.data)
 
         if len(retrieved) > 1:
-            raise ValueError("Ambiguous retrieve result, object found for multiple serializers.")
+            raise ValueError(
+                "Ambiguous retrieve result, object found for multiple serializers."
+            )
         if len(retrieved) == 0:
             raise Http404
 
@@ -373,24 +422,37 @@ class MultiSerializerUpdateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
     """
     Update a model instance.
     """
+
     def update(self, request, *args, **kwargs):
         self._validate_update_request()
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         results = []
         for serializer, (qs, _, _) in self.get_eligible_serializers_iterator():
             instance = self.get_object_by_queryset(qs=qs)
-            update_result = self._update_for_serializer(serializer, instance, request.data, partial, user=request.user)
+            update_result = self._update_for_serializer(
+                serializer, instance, request.data, partial, user=request.user
+            )
             results.append(update_result)
 
         response = results[0]  # By default there should be only one eligible serializer
         return Response(response)
 
-    def _update_for_serializer(self, serializer, instance, data, partial, user=None, *args, **kwargs):
+    def _update_for_serializer(
+        self, serializer, instance, data, partial, user=None, *args, **kwargs
+    ):
         context = self.get_serializer_context()  # Required for audit user id
-        serializer = serializer(instance, data=data, partial=partial, context=context, user=user, *args, **kwargs)
+        serializer = serializer(
+            instance,
+            data=data,
+            partial=partial,
+            context=context,
+            user=user,
+            *args,
+            **kwargs,
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        if getattr(instance, '_prefetched_objects_cache', None):
+        if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
         return serializer.data
 
@@ -398,7 +460,7 @@ class MultiSerializerUpdateModelMixin(GenericMultiSerializerViewsetMixin, ABC):
         serializer.save()
 
     def partial_update(self, request, *args, **kwargs):
-        kwargs['partial'] = True
+        kwargs["partial"] = True
         return self.update(request, *args, **kwargs)
 
     def _validate_update_request(self):

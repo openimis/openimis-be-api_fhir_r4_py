@@ -1,9 +1,12 @@
 from uuid import UUID
 
-from insuree.models import Gender, Insuree, Profession
-from location.models import Location
-from location.test_helpers import create_test_location,create_test_village
-from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig, R4MaritalConfig
+from insuree.models import Gender, Profession
+from location.test_helpers import create_test_village
+from api_fhir_r4.configurations import (
+    GeneralConfiguration,
+    R4IdentifierConfig,
+    R4MaritalConfig,
+)
 from api_fhir_r4.converters import PatientConverter
 from api_fhir_r4.mapping.patientMapping import PatientProfessionMapping
 from fhir.resources.R4B.address import Address
@@ -47,12 +50,13 @@ class PatientTestMixin(GenericTestMixin):
     _TEST_MOCKED_PHOTO_TYPE = "png"
     _TEST_MOCKED_PHOTO_CREATION = "2021-03-27"
     _TEST_PHOTO_TITLE = "photo_test"
-    test_insuree= None
-    test_village= None
-    test_region= None
+    test_insuree = None
+    test_village = None
+    test_region = None
     test_ward = None
     test_district = None
     sub_str = {}
+
     @classmethod
     def setUpTestData(cls):
         cls._TEST_GENDER = Gender()
@@ -60,40 +64,43 @@ class PatientTestMixin(GenericTestMixin):
         cls._TEST_PROFESSION = Profession.objects.get(id=4)
 
         if cls.test_region is None:
-            
-            cls.test_village  =create_test_village( custom_props={"code":cls._TEST_VILLAGE_CODE,"name":cls._TEST_VILLAGE_NAME})
-            cls.test_ward =cls.test_village.parent
-            cls.test_region =cls.test_village.parent.parent.parent
+
+            cls.test_village = create_test_village(
+                custom_props={
+                    "code": cls._TEST_VILLAGE_CODE,
+                    "name": cls._TEST_VILLAGE_NAME,
+                }
+            )
+            cls.test_ward = cls.test_village.parent
+            cls.test_region = cls.test_village.parent.parent.parent
             cls.test_district = cls.test_village.parent.parent
-            
+
         cls.test_insuree = create_test_insuree(
-            custom_props = {
-                "last_name":cls._TEST_LAST_NAME,
-                "other_names":cls._TEST_OTHER_NAME,
-            "id" : cls._TEST_INSUREE_ID,
-            "uuid" : cls._TEST_INSUREE_UUID,
-            "chf_id" : cls._TEST_INSUREE_CHFID,
-            "passport" : cls._TEST_PASSPORT,
-            "dob" : TimeUtils.str_to_date(cls._TEST_INSUREE_DOB),
-            "gender" : cls._TEST_GENDER,
-            "marital": "D",
-            "phone" : cls._TEST_PHONE,
-            "email" : cls._TEST_EMAIL,
-            "current_address" : cls._TEST_ADDRESS,
-            "current_village" : cls.test_village,
-            "profession" : cls._TEST_PROFESSION,
-            "card_issued" : cls._TEST_CARD_ISSUED,
+            custom_props={
+                "last_name": cls._TEST_LAST_NAME,
+                "other_names": cls._TEST_OTHER_NAME,
+                "id": cls._TEST_INSUREE_ID,
+                "uuid": cls._TEST_INSUREE_UUID,
+                "chf_id": cls._TEST_INSUREE_CHFID,
+                "passport": cls._TEST_PASSPORT,
+                "dob": TimeUtils.str_to_date(cls._TEST_INSUREE_DOB),
+                "gender": cls._TEST_GENDER,
+                "marital": "D",
+                "phone": cls._TEST_PHONE,
+                "email": cls._TEST_EMAIL,
+                "current_address": cls._TEST_ADDRESS,
+                "current_village": cls.test_village,
+                "profession": cls._TEST_PROFESSION,
+                "card_issued": cls._TEST_CARD_ISSUED,
             }
         )
-        
+
         cls.sub_str[cls._TEST_INSUREE_CHFID] = cls.test_insuree.chf_id
         cls.sub_str[cls._TEST_INSUREE_UUID] = cls.test_insuree.uuid
         cls.sub_str[cls._TEST_VILLAGE_UUID] = cls.test_village.uuid
         cls.sub_str[cls._TEST_GROUP_UUID] = cls.test_insuree.family.uuid
         cls._TEST_INSUREE_CHFID = cls.test_insuree.chf_id
 
-        
-            
     def create_test_imis_instance(self):
         return self.test_insuree
 
@@ -108,7 +115,9 @@ class PatientTestMixin(GenericTestMixin):
         self.assertEqual(self._TEST_EMAIL, imis_obj.email)
         self.assertEqual(self._TEST_ADDRESS, imis_obj.current_address)
         self.assertEqual(self._TEST_IS_HEAD, imis_obj.head)
-        self.assertEqual(self._TEST_PROFESSION.profession, imis_obj.profession.profession)
+        self.assertEqual(
+            self._TEST_PROFESSION.profession, imis_obj.profession.profession
+        )
         self.assertEqual(self._TEST_CARD_ISSUED, imis_obj.card_issued)
 
     def create_test_fhir_instance(self):
@@ -116,41 +125,40 @@ class PatientTestMixin(GenericTestMixin):
         fhir_patient = Patient.construct()
         name = HumanName.construct()
         name.family = self.test_insuree.last_name
-        name.given = [ self.test_insuree.other_names]
+        name.given = [self.test_insuree.other_names]
         name.use = "usual"
         fhir_patient.name = [name]
         identifiers = []
         chf_id = PatientConverter.build_fhir_identifier(
             self.test_insuree.chf_id,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
-            R4IdentifierConfig.get_fhir_generic_type_code()
+            R4IdentifierConfig.get_fhir_generic_type_code(),
         )
 
         identifiers.append(chf_id)
 
         fhir_patient.identifier = identifiers
-        fhir_patient.birthDate =  self.test_insuree.dob
+        fhir_patient.birthDate = self.test_insuree.dob
         fhir_patient.gender = "male"
         fhir_patient.maritalStatus = PatientConverter.build_codeable_concept(
             R4MaritalConfig.get_fhir_divorced_code(),
-            R4MaritalConfig.get_fhir_marital_status_system())
+            R4MaritalConfig.get_fhir_marital_status_system(),
+        )
         telecom = []
         phone = PatientConverter.build_fhir_contact_point(
-            self._TEST_PHONE,
-            ContactPointSystem.PHONE,
-            ContactPointUse.HOME
+            self._TEST_PHONE, ContactPointSystem.PHONE, ContactPointUse.HOME
         )
         telecom.append(phone)
         email = PatientConverter.build_fhir_contact_point(
-            self._TEST_EMAIL,
-            ContactPointSystem.EMAIL,
-            ContactPointUse.HOME
+            self._TEST_EMAIL, ContactPointSystem.EMAIL, ContactPointUse.HOME
         )
         telecom.append(email)
         fhir_patient.telecom = telecom
 
         # family slice - required
-        family_address = PatientConverter.build_fhir_address(self._TEST_ADDRESS, "home", "physical")
+        family_address = PatientConverter.build_fhir_address(
+            self._TEST_ADDRESS, "home", "physical"
+        )
         family_address.state = self.test_village.parent.parent.parent.name
         family_address.district = self.test_village.parent.parent.name
 
@@ -164,7 +172,7 @@ class PatientTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
         reference_location = Reference.construct()
-        reference_location.reference = F"Location/{self.test_village.uuid}"
+        reference_location.reference = f"Location/{self.test_village.uuid}"
         extension.valueReference = reference_location
         family_address.extension.append(extension)
 
@@ -223,10 +231,13 @@ class PatientTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-profession"
         PatientProfessionMapping.load()
-        display = PatientProfessionMapping.patient_profession[str(self._TEST_PROFESSION.id)]
+        display = PatientProfessionMapping.patient_profession[
+            str(self._TEST_PROFESSION.id)
+        ]
         system = "CodeSystem/patient-profession"
-        extension.valueCodeableConcept = PatientConverter.build_codeable_concept(code=str(self._TEST_PROFESSION.id),
-                                                                                 system=system)
+        extension.valueCodeableConcept = PatientConverter.build_codeable_concept(
+            code=str(self._TEST_PROFESSION.id), system=system
+        )
         if len(extension.valueCodeableConcept.coding) == 1:
             extension.valueCodeableConcept.coding[0].display = display
         fhir_patient.extension.append(extension)
@@ -234,7 +245,7 @@ class PatientTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/patient-group-reference"
         reference_group = Reference.construct()
-        reference_group.reference = F"Group/{self.test_insuree.family.uuid}"
+        reference_group.reference = f"Group/{self.test_insuree.family.uuid}"
         extension.valueReference = reference_group
         fhir_patient.extension.append(extension)
 
@@ -249,14 +260,21 @@ class PatientTestMixin(GenericTestMixin):
         self.assertEqual("usual", human_name.use)
         for identifier in fhir_obj.identifier:
             self.assertTrue(isinstance(identifier, Identifier))
-            code = PatientConverter.get_first_coding_from_codeable_concept(identifier.type).code
+            code = PatientConverter.get_first_coding_from_codeable_concept(
+                identifier.type
+            ).code
             if code == R4IdentifierConfig.get_fhir_generic_type_code():
                 self.assertEqual(str(self.test_insuree.chf_id), identifier.value)
-            elif code == R4IdentifierConfig.get_fhir_uuid_type_code() and not isinstance(identifier.value, UUID):
+            elif (
+                code == R4IdentifierConfig.get_fhir_uuid_type_code()
+                and not isinstance(identifier.value, UUID)
+            ):
                 self.assertEqual(str(self.test_insuree.uuid), identifier.value)
         self.assertEqual(self._TEST_INSUREE_DOB, fhir_obj.birthDate.isoformat())
         self.assertEqual("male", fhir_obj.gender)
-        marital_code = PatientConverter.get_first_coding_from_codeable_concept(fhir_obj.maritalStatus).code
+        marital_code = PatientConverter.get_first_coding_from_codeable_concept(
+            fhir_obj.maritalStatus
+        ).code
         self.assertEqual(R4MaritalConfig.get_fhir_divorced_code(), marital_code)
         self.assertEqual(2, len(fhir_obj.telecom))
         for telecom in fhir_obj.telecom:
@@ -278,10 +296,16 @@ class PatientTestMixin(GenericTestMixin):
         for extension in fhir_obj.extension:
             self.assertTrue(isinstance(extension, Extension))
             if "patient-group-reference" in extension.url:
-                self.assertIn(str(self.test_insuree.family.uuid), extension.valueReference.reference)
+                self.assertIn(
+                    str(self.test_insuree.family.uuid),
+                    extension.valueReference.reference,
+                )
             if "patient-card-issue" in extension.url:
                 self.assertEqual(self._TEST_CARD_ISSUED, extension.valueBoolean)
             if "patient-is-head" in extension.url:
                 self.assertEqual(self._TEST_IS_HEAD, extension.valueBoolean)
             if "patient-profession" in extension.url:
-                self.assertEqual(self._TEST_PROFESSION.profession, extension.valueCodeableConcept.coding[0].display)
+                self.assertEqual(
+                    self._TEST_PROFESSION.profession,
+                    extension.valueCodeableConcept.coding[0].display,
+                )

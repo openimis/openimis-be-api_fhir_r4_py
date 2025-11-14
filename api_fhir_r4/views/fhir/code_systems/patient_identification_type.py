@@ -14,7 +14,9 @@ class CodeSystemOpenIMISPatientIdentificationTypeViewSet(viewsets.ViewSet):
 
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -24,15 +26,15 @@ class CodeSystemOpenIMISPatientIdentificationTypeViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                "model_name": 'IdentificationType',
-                "code_field": 'code',
-                "display_field": 'identification_type',
-                "id": 'patient-identification-type',
-                "name": 'PatientIdentificationTypeCS',
-                "title": 'Identification Type (Patient)',
+                "model_name": "IdentificationType",
+                "code_field": "code",
+                "display_field": "identification_type",
+                "id": "patient-identification-type",
+                "name": "PatientIdentificationTypeCS",
+                "title": "Identification Type (Patient)",
                 "description": "Indicates the type of document the Patient used to identify himself."
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                "Values defined by openIMIS. Can be extended.",
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)
