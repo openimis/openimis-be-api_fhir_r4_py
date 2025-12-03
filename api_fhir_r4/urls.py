@@ -90,6 +90,17 @@ if "medical" in imis_modules:
         fhir_viewsets.ActivityDefinitionViewSet,
         basename="ActivityDefinition_R4",
     )
+    # code system for openimis medical
+    router.register(
+        r"CodeSystem/medical-item",
+        fhir_viewsets.CodeSystemOpenIMISMedicalItemViewSet,
+        basename="CodeSystem/medical-item_R4",
+    )
+    router.register(
+        r"CodeSystem/medical-service",
+        fhir_viewsets.CodeSystemOpenIMISMedicalServiceViewSet,
+        basename="CodeSystem/medical-service_R4",
+    )
 
 # register all endpoints related to c based on c
 if "claim" in imis_modules:
