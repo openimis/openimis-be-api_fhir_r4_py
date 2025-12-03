@@ -32,3 +32,4 @@ from api_fhir_r4.views.fhir.practitioner import PractitionerViewSet
 from api_fhir_r4.views.fhir.practitioner_role import PractitionerRoleViewSet
 from api_fhir_r4.views.fhir.subscription import SubscriptionViewSet
 from api_fhir_r4.views.fhir.payment_notice import PaymentNoticeViewSet
+from api_fhir_r4.views.fhir.value_sets.pricelist import PricelistValueSetViewSet

@@ -101,6 +101,17 @@ if "medical" in imis_modules:
         fhir_viewsets.CodeSystemOpenIMISMedicalServiceViewSet,
         basename="CodeSystem/medical-service_R4",
     )
+    # value sets for openimis medical pricelists
+    router.register(
+        r"ValueSet/items-pricelist",
+        fhir_viewsets.PricelistValueSetViewSet,
+        basename="ValueSet/items-pricelist_R4",
+    )
+    router.register(
+        r"ValueSet/services-pricelist",
+        fhir_viewsets.PricelistValueSetViewSet,
+        basename="ValueSet/services-pricelist_R4",
+    )
 
 # register all endpoints related to c based on c
 if "claim" in imis_modules:

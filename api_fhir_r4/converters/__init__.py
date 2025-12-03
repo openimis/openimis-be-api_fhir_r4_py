@@ -33,3 +33,4 @@ from api_fhir_r4.converters.communicationRequestConverter import CommunicationRe
 
 from api_fhir_r4.converters.policyCoverageEligibilityRequestConverter import PolicyCoverageEligibilityRequestConverter
 from api_fhir_r4.converters.communicationConverter import CommunicationConverter
+from api_fhir_r4.converters.valueSetConverter import ValueSetConverter
