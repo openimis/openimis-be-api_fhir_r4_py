@@ -1,5 +1,6 @@
 import copy
 import json
+from abc import ABC
 
 from policy.models import Policy
 
@@ -18,6 +19,7 @@ from graphql_jwt.shortcuts import get_token
 from core.test_helpers import create_test_interactive_user
 from dataclasses import dataclass
 from core.models import User
+from policy.test_helpers import create_test_policy2
 
 
 @dataclass
@@ -26,7 +28,7 @@ class DummyContext:
     user: User
 
 
-class ContractAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, LogInMixin):
+class ContractAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, LogInMixin, ABC):
 
     base_url = GeneralConfiguration.get_base_url() + 'Contract/'
     _test_json_path = None
@@ -83,6 +85,10 @@ class ContractAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCas
         cls.test_officer = create_test_officer(
             custom_props={"uuid": cls._TEST_OFFICER_UUID}
         )
+
+    def create_test_instance(self):
+        """Create a test contract instance."""
+        create_test_policy2(create_test_product(), create_test_insuree())
 
     def test_post_should_create_correctly(self):
         headers = self._build_headers()
@@ -172,6 +178,8 @@ class ContractAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCas
         )
 
     def test_simple_list_page_2(self):
+        for i in range(1, 100, 1):
+            self.create_test_instance()
         headers = {
             "Content-Type": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {self.admin_token}",

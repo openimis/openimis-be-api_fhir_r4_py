@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.configurations import GeneralConfiguration
 from insuree.models import IdentificationType
+from insuree.test_helpers import create_test_confirmation_type, create_test_basic_identification_types
 
 
 class CodeSystemPatientIdentificationTypeAPITests(GenericFhirAPITestMixin, APITestCase):
@@ -11,6 +12,8 @@ class CodeSystemPatientIdentificationTypeAPITests(GenericFhirAPITestMixin, APITe
     )
 
     def setUp(self):
+        create_test_basic_identification_types()
+        create_test_confirmation_type()
         super(CodeSystemPatientIdentificationTypeAPITests, self).setUp()
         self._EXPECTED_COUNT = IdentificationType.objects.all().count()
 

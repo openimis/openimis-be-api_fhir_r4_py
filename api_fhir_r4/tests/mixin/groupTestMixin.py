@@ -13,7 +13,17 @@ from fhir.resources.R4B.group import Group, GroupMember
 from fhir.resources.R4B.reference import Reference
 from api_fhir_r4.tests import GenericTestMixin
 
-from insuree.test_helpers import create_test_insuree, create_test_family
+from insuree.test_helpers import (
+    create_test_insuree,
+    create_test_family,
+    create_test_gender,
+    create_test_profession,
+    create_test_education,
+    create_test_relation,
+    create_test_confirmation_type,
+    create_test_family_type
+)
+from location.test_helpers import create_basic_test_locations
 
 
 class GroupTestMixin(GenericTestMixin):
@@ -37,6 +47,14 @@ class GroupTestMixin(GenericTestMixin):
 
     @classmethod
     def setUpTestData(cls):
+        create_basic_test_locations()
+        create_test_gender()
+        create_test_family_type()
+        create_test_profession()
+        create_test_education()
+        create_test_relation()
+        create_test_confirmation_type()
+
         cls._TEST_GROUP_TYPE = FamilyType.objects.get(code="H")
         cls.test_village = create_test_village(
             custom_props={

@@ -4,6 +4,7 @@ from api_fhir_r4.tests.utils import load_and_replace_json
 
 
 class FhirConverterTestMixin(TestCase):
+
     def verify_fhir_identifier(
         self, fhir_obj, identifier_type, expected_identifier_value
     ):

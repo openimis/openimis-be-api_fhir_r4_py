@@ -73,6 +73,7 @@ class ClaimResponseTestMixin(GenericTestMixin):
 
     def setUp(self):
         super(ClaimResponseTestMixin, self).setUp()
+
         self.test_insuree = create_test_insuree()
         self.create_test_hf()
         self.test_claim_admin = create_test_claim_admin(

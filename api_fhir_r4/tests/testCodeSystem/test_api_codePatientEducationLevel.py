@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 from api_fhir_r4.tests import GenericFhirAPITestMixin
 from api_fhir_r4.configurations import GeneralConfiguration
 from insuree.models import Education
+from insuree.test_helpers import create_test_education
 
 
 class CodeSystemPatientEducationLevelAPITests(GenericFhirAPITestMixin, APITestCase):
@@ -23,6 +24,7 @@ class CodeSystemPatientEducationLevelAPITests(GenericFhirAPITestMixin, APITestCa
         response = self.client.get(self.base_url, data=None, format="json")
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        create_test_education()
         nursery = ""
         for concept in response_data["concept"]:
             if concept["display"] == "Nursery":

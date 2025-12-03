@@ -11,6 +11,8 @@ from fhir.resources.R4B.bundle import Bundle
 from api_fhir_r4.utils import DbManagerUtils
 
 from core.test_helpers import create_test_interactive_user
+from insuree.test_helpers import create_test_gender, create_test_profession, create_test_education, create_test_relation, create_test_confirmation_type
+from location.test_helpers import create_basic_test_locations, create_test_basic_health_facility_legal_form, create_test_basic_health_facility_sub_level
 
 
 class GenericFhirAPITestMixin(object):
@@ -31,6 +33,18 @@ class GenericFhirAPITestMixin(object):
     _TEST_SUPERUSER_NAME = "Admin"
     _TEST_SUPERUSER_PASS = "admin123"
     _test_request_data = None
+
+    @classmethod
+    def setUpTestData(cls):
+        super(GenericFhirAPITestMixin, cls).setUpTestData()
+        create_basic_test_locations()
+        create_test_basic_health_facility_legal_form()
+        create_test_basic_health_facility_sub_level()
+        create_test_gender()
+        create_test_profession()
+        create_test_education()
+        create_test_relation()
+        create_test_confirmation_type()
 
     def setUp(self):
         self.user = create_test_interactive_user(username=self._TEST_SUPERUSER_NAME)

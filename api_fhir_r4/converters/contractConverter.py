@@ -112,13 +112,14 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_contract_author(cls, fhir_contract, imis_policy, reference_type):
-        author = cls.build_fhir_resource_reference(
-            imis_policy.officer,
-            "Practitioner",
-            imis_policy.officer.code,
-            reference_type=reference_type,
-        )
-        fhir_contract.author = author
+        if imis_policy.officer:
+            author = cls.build_fhir_resource_reference(
+                imis_policy.officer,
+                "Practitioner",
+                imis_policy.officer.code,
+                reference_type=reference_type,
+            )
+            fhir_contract.author = author
 
     @classmethod
     def build_contract_subject(cls, fhir_contract, imis_policy, reference_type):

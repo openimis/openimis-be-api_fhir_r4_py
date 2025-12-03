@@ -20,7 +20,6 @@ from api_fhir_r4.tests.utils import (
     get_or_create_user_api,
 )
 from claim.test_helpers import create_test_claim_context
-
 from insuree.models import Insuree, Family
 from datetime import datetime
 
@@ -89,6 +88,7 @@ class ClaimAPIContainedTestBaseMixin:
 
     def setUp(self):
         super(ClaimAPIContainedTestBaseMixin, self).setUp()
+        # Initialize basic test data
         self.create_dependencies()
         self.sub_str[self._TEST_GROUP_UUID] = self.test_insuree.family.uuid
         self.sub_str[self._TEST_INSUREE_UUID] = self.test_insuree.uuid

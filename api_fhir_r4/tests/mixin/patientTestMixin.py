@@ -21,7 +21,7 @@ from api_fhir_r4.models.imisModelEnums import ContactPointSystem, ContactPointUs
 from api_fhir_r4.tests import GenericTestMixin
 from api_fhir_r4.utils import TimeUtils
 
-from insuree.test_helpers import create_test_insuree
+from insuree.test_helpers import create_test_insuree, create_test_profession
 
 
 class PatientTestMixin(GenericTestMixin):
@@ -59,6 +59,7 @@ class PatientTestMixin(GenericTestMixin):
 
     @classmethod
     def setUpTestData(cls):
+        create_test_profession()
         cls._TEST_GENDER = Gender()
         cls._TEST_GENDER.code = cls._TEST_GENDER_CODE
         cls._TEST_PROFESSION = Profession.objects.get(id=4)

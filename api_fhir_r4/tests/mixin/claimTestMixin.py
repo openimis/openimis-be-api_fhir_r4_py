@@ -1,5 +1,4 @@
 from claim.models import Claim
-from insuree.test_helpers import create_test_insuree
 from medical.models import Diagnosis
 
 from api_fhir_r4.configurations import R4IdentifierConfig, R4ClaimConfig
@@ -14,7 +13,8 @@ from api_fhir_r4.mapping.claimMapping import ClaimVisitTypeMapping
 from api_fhir_r4.models import ClaimV2 as FHIRClaim
 from fhir.resources.R4B.period import Period
 from fhir.resources.R4B.money import Money
-from location.test_helpers import create_test_health_facility
+from insuree.test_helpers import create_test_insuree, create_test_gender, create_test_profession, create_test_education, create_test_relation, create_test_confirmation_type
+from location.test_helpers import create_test_health_facility, create_basic_test_locations, create_test_basic_health_facility_legal_form, create_test_basic_health_facility_sub_level
 from medical.models import Item, Service
 from medical.test_helpers import create_test_item, create_test_service
 from claim.test_helpers import (
@@ -87,6 +87,16 @@ class ClaimTestMixin(GenericTestMixin):
 
     def setUp(self):
         super(ClaimTestMixin, self).setUp()
+        # Initialize basic test data
+        create_basic_test_locations()
+        create_test_basic_health_facility_legal_form()
+        create_test_basic_health_facility_sub_level()
+        create_test_gender()
+        create_test_profession()
+        create_test_education()
+        create_test_relation()
+        create_test_confirmation_type()
+
         self.test_icd = Diagnosis()
         self.test_icd.code = self._TEST_MAIN_ICD_CODE
         self.test_icd.name = self._TEST_MAIN_ICD_NAME
