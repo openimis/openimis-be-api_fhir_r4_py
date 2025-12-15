@@ -29,7 +29,7 @@ class CommunicationViewSet(
         if identifier:
             return self.retrieve(request, *args, **{**kwargs, "identifier": identifier})
         else:
-            queryset = queryset.filter(*filter_validity())
+            queryset = queryset.filter(*Feedback.filter_validity())
         serializer = CommunicationSerializer(
             self.paginate_queryset(queryset), many=True, user=request.user
         )
@@ -40,7 +40,7 @@ class CommunicationViewSet(
         return response
 
     def get_queryset(self):
-        queryset = Feedback.objects.filter(*filter_validity()).order_by("validity_from")
+        queryset = Feedback.objects.all().order_by("validity_from")
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
             queryset
         )

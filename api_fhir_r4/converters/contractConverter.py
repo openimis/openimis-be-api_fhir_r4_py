@@ -150,8 +150,8 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def build_contract_asset_premium(cls, contract_term_asset, imis_policy):
         asset_extensions = Extension.construct()
         asset_extensions.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/contract-premium"
-        if Premium.objects.filter(policy=imis_policy, *filter_validity()).count() > 0:
-            imis_premium = Premium.objects.get(policy=imis_policy, *filter_validity())
+        if Premium.objects.filter(policy=imis_policy, *Premium.filter_validity()).count() > 0:
+            imis_premium = Premium.objects.get(policy=imis_policy, *Premium.filter_validity())
             fhir_premium = cls.build_contract_asset_premium_extension(
                 asset_extensions, imis_premium
             )
@@ -328,7 +328,7 @@ class ContractConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
         list_insuree_policy = InsureePolicy.objects.filter(
             Q(policy=imis_policy),
-            *filter_validity(validity=now),
+            *InsureePolicy.filter_validity(validity=now),
         ).only("insuree")
 
         for insuree_policy in list_insuree_policy:

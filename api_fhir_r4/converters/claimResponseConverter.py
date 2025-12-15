@@ -36,12 +36,15 @@ class ClaimResponseConverter(BaseFHIRConverter):
     def to_fhir_obj(
         cls, imis_claim, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
     ):
+        # Dict
         fhir_claim_response = {}
         fhir_claim_response["created"] = TimeUtils.date().isoformat()
         cls.build_fhir_status(fhir_claim_response, imis_claim)
         cls.build_fhir_outcome(fhir_claim_response, imis_claim)
         cls.build_fhir_use(fhir_claim_response)
+        cls.build_fhir_type(fhir_claim_response, imis_claim)
         fhir_claim_response = ClaimResponse(**fhir_claim_response)
+        # FHIR object
         cls.build_fhir_pk(fhir_claim_response, imis_claim, reference_type)
         ClaimConverter.build_fhir_identifiers(fhir_claim_response, imis_claim)
         cls.build_fhir_items(fhir_claim_response, imis_claim, reference_type)
@@ -50,10 +53,10 @@ class ClaimResponseConverter(BaseFHIRConverter):
         cls.build_fhir_communication_request_reference(
             fhir_claim_response, imis_claim, reference_type
         )
-        cls.build_fhir_type(fhir_claim_response, imis_claim)
         cls.build_fhir_insurer(fhir_claim_response)
         cls.build_fhir_requestor(fhir_claim_response, imis_claim, reference_type)
         cls.build_fhir_request(fhir_claim_response, imis_claim, reference_type)
+        
         return fhir_claim_response
 
     @classmethod
@@ -227,12 +230,15 @@ class ClaimResponseConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_type(cls, fhir_claim_response, imis_claim):
-        if imis_claim.visit_type:
-            fhir_claim_response.type = cls.build_codeable_concept(
-                system=ClaimResponseMapping.visit_type_system,
-                code=imis_claim.visit_type,
-                display=ClaimResponseMapping.visit_type[f"{imis_claim.visit_type}"],
-            )
+        if not imis_claim.visit_type:
+            imis_claim.visit_type = 'O'
+        
+        fhir_claim_response["type"] = cls.build_codeable_concept(
+            system=ClaimResponseMapping.visit_type_system,
+            code=imis_claim.visit_type,
+            display=ClaimResponseMapping.visit_type[f"{imis_claim.visit_type}"],
+        )
+
 
     @classmethod
     def build_imis_type(cls, imis_claim, fhir_claim_response):
@@ -285,7 +291,7 @@ class ClaimResponseConverter(BaseFHIRConverter):
     def build_fhir_items_for_imis_services(
         cls, fhir_claim_response, imis_claim, reference_type
     ):
-        for claim_service in imis_claim.services.filter(*filter_validity()):
+        for claim_service in imis_claim.services.filter(*ClaimService.filter_validity()):
             if claim_service:
                 item_type = R4ClaimConfig.get_fhir_claim_service_code()
                 cls.build_fhir_item(
@@ -301,7 +307,7 @@ class ClaimResponseConverter(BaseFHIRConverter):
     def build_fhir_items_for_imis_items(
         cls, fhir_claim_response, imis_claim, reference_type
     ):
-        for claim_item in imis_claim.items.filter(*filter_validity()):
+        for claim_item in imis_claim.items.filter(*ClaimItem.filter_validity()):
             if claim_item:
                 item_type = R4ClaimConfig.get_fhir_claim_item_code()
                 cls.build_fhir_item(

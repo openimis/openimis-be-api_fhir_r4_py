@@ -380,7 +380,7 @@ class MedicationConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_act_code(cls, imis_medication):
-        code = ""
+        code = "B" # default, no limits
         if imis_medication.care_type == "O":
             code = "AMB"
         if imis_medication.care_type == "I":

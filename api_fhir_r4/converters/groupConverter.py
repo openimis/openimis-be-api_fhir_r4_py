@@ -50,10 +50,10 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
         )
         cls._validate_fhir_family_identifier_code(head_code)
         imis_family = Family.objects.filter(
-            Q(head_insuree__chf_id=head_code) | Q(uuid=family_uuid), *filter_validity()
+            Q(head_insuree__chf_id=head_code) | Q(uuid=family_uuid), *Family.filter_validity()
         ).first()
         if imis_family:
-            saved_members = imis_family.members.filter(*filter_validity())
+            saved_members = imis_family.members.filter(*Insuree.filter_validity())
             if saved_members and all([m.chf_id != head_code for m in saved_members]):
                 raise FHIRException(
                     "Group is using an UUID of a group not associated the head"

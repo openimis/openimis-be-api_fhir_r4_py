@@ -13,7 +13,7 @@ from api_fhir_r4.serializers.claimAdminPractitionerSerializer import ClaimAdminP
 from api_fhir_r4.serializers.medicationSerializer import MedicationSerializer
 from api_fhir_r4.serializers.activityDefinitionSerializer import ActivityDefinitionSerializer
 from api_fhir_r4.serializers.claimAdminPractitionerRoleSerializer import ClaimAdminPractitionerRoleSerializer
-
+from medical.models import Item, Service
 
 class ClaimContainedResources(AbstractContainedResourceCollection):
     @classmethod
@@ -41,7 +41,7 @@ class ClaimContainedResources(AbstractContainedResourceCollection):
                 "Medication",
                 lambda model, field: [
                     item.item
-                    for item in model.__getattribute__(field).filter(*filter_validity())
+                    for item in model.__getattribute__(field).filter(*Item.filter_validity())
                 ],
             ),
             ActivityDefinitionSerializer: ContainedResourceDefinition(
@@ -50,7 +50,7 @@ class ClaimContainedResources(AbstractContainedResourceCollection):
                 lambda model, field: [
                     service.service
                     for service in model.__getattribute__(field).filter(
-                        *filter_validity()
+                        *Service.filter_validity()
                     )
                 ],
             ),

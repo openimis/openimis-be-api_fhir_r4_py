@@ -105,9 +105,9 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
     @classmethod
     def build_fhir_patient(cls, chf_id, patient_uuid):
         if chf_id:
-            insuree = Insuree.objects.filter(chf_id=chf_id, *filter_validity())
+            insuree = Insuree.objects.filter(chf_id=chf_id, *Insuree.filter_validity())
         elif patient_uuid:
-            insuree = Insuree.objects.filter(uuid=patient_uuid, *filter_validity())
+            insuree = Insuree.objects.filter(uuid=patient_uuid, *Insuree.filter_validity())
         else:
             raise ValueError(_("policy.service.eligibility.insuree_id_or_uuid_missing"))
         if insuree.count() == 1:
@@ -137,10 +137,10 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         cls.build_fhir_benefit_item_element(result, response_eligibility_sp)
         # check services and items etc
         prod_service = ProductService.objects.filter(
-            product=response_eligibility_sp.prod_id, service__code=request.service_code, *filter_validity()
+            product=response_eligibility_sp.prod_id, service__code=request.service_code, *ProductService.filter_validity()
         ).first()
         prod_item = ProductItem.objects.filter(
-            product=response_eligibility_sp.prod_id, item__code=request.item_code, *filter_validity()
+            product=response_eligibility_sp.prod_id, item__code=request.item_code, *ProductItem.filter_validity()
         ).first()
         # build coverage item - service
         if prod_service:
@@ -163,7 +163,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         from api_fhir_r4.converters import CoverageConverter
 
         policy = Policy.objects.filter(
-            uuid=UUID(str(policy_uuid)), *filter_validity()
+            uuid=UUID(str(policy_uuid)), *Policy.filter_validity()
         ).first()
         reference_coverage = CoverageConverter.build_fhir_resource_reference(
             policy, type="Coverage", display=policy.uuid
@@ -397,12 +397,12 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
     def __get_coverage_data(cls, response):
         policy = (
             InsureePolicy.objects.filter(
-                insuree__chf_id=response.eligibility_request.chf_id, *filter_validity()
+                insuree__chf_id=response.eligibility_request.chf_id, *InsureePolicy.filter_validity()
             )
             .first()
             .policy
         )
-        product = Product.objects.get(id=response.prod_id, *filter_validity())
+        product = Product.objects.get(id=response.prod_id, *Product.filter_validity())
         return policy, product
 
     @classmethod
