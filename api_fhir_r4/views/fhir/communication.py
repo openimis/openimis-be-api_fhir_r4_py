@@ -10,7 +10,6 @@ from api_fhir_r4.serializers import CommunicationSerializer
 from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import ValidityFromRequestParameterFilter
 from claim.models import Feedback
-from core.utils import filter_validity
 import logging
 
 logger = logging.getLogger(__name__)

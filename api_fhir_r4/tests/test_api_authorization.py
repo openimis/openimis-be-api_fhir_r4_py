@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from api_fhir_r4.configurations import GeneralConfiguration
 from api_fhir_r4.tests import GenericFhirAPITestMixin
 from django.utils.translation import gettext as _
-from core.test_helpers import create_enrolment_officer_role
+from core.test_helpers import create_test_role
 from api_fhir_r4.tests.utils import get_connection_payload, get_or_create_user_api
 
 
@@ -112,12 +112,9 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
     def test_post_should_raise_forbidden(self):
         _TEST_DATA_USER_NO_ROLE = {
             "username": "TestUserTest3",
-            "last_name": "TestUserTest3",
             "password": "TestPasswordTest3",
-            "other_names": "TestUserTest3",
-            "user_types": "INTERACTIVE",
             "language": "en",
-            "roles": [create_enrolment_officer_role().id]
+            "roles": [create_test_role(perm_names=[], name="EmptyRole").id]
         }
         get_or_create_user_api(_TEST_DATA_USER_NO_ROLE)
         response = self.client.post(

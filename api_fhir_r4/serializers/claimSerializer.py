@@ -22,7 +22,6 @@ from api_fhir_r4.converters import (
 from api_fhir_r4.converters.claimConverter import ClaimConverter
 from fhir.resources.R4B import FHIRAbstractModel
 from api_fhir_r4.serializers.baseSerializer import BaseFHIRSerializer
-from core.utils import filter_validity
 import logging
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,6 @@ from core.models.user import ClaimAdmin
 from django.db.models import Subquery
 from medical.models import Item, Service
 import core
-from core.utils import filter_validity
 from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig
 from api_fhir_r4.converters.baseFHIRConverter import BaseFHIRConverter
 from api_fhir_r4.converters.communicationRequestConverter import CommunicationRequestConverter
@@ -56,7 +55,7 @@ class ClaimResponseConverter(BaseFHIRConverter):
         cls.build_fhir_insurer(fhir_claim_response)
         cls.build_fhir_requestor(fhir_claim_response, imis_claim, reference_type)
         cls.build_fhir_request(fhir_claim_response, imis_claim, reference_type)
-        
+
         return fhir_claim_response
 
     @classmethod
@@ -232,13 +231,12 @@ class ClaimResponseConverter(BaseFHIRConverter):
     def build_fhir_type(cls, fhir_claim_response, imis_claim):
         if not imis_claim.visit_type:
             imis_claim.visit_type = 'O'
-        
+
         fhir_claim_response["type"] = cls.build_codeable_concept(
             system=ClaimResponseMapping.visit_type_system,
             code=imis_claim.visit_type,
             display=ClaimResponseMapping.visit_type[f"{imis_claim.visit_type}"],
         )
-
 
     @classmethod
     def build_imis_type(cls, imis_claim, fhir_claim_response):

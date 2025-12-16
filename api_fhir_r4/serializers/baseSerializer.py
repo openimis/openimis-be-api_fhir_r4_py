@@ -70,7 +70,7 @@ class BaseFHIRSerializer(serializers.Serializer):
     def get_audit_user_id(self):
         # the audit user is the user
         if self.user:
-            return self.user.audit_user_id or self.user._u.id
+            return self.user.id_for_audit or -1
         audit_user_id = GeneralConfiguration.get_default_audit_user_id()
         if isinstance(audit_user_id, int):
             return audit_user_id

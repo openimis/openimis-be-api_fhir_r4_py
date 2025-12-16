@@ -51,7 +51,7 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
             entry["resource"] = obj
             try:
                 bundle_entry = BundleEntry(**entry)
-            except:
+            except Exception:
                 raise ValueError(f"malformed entry {entry['fullUrl']}")
             bundle.entry.append(bundle_entry)
 

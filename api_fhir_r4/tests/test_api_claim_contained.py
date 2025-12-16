@@ -77,7 +77,7 @@ class ClaimAPIContainedTestBaseMixin:
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [9],
+        "roles": [1],
     }
     _test_request_data_credentials = None
     test_village = None

@@ -74,7 +74,6 @@ class QuerysetParameterABC(ABC):
         capable of creating specific filters taking affected field and parsed parameter value as arguments.
         @return: {prefix: lambda creating filter} map
         """
-        pass
 
     def build_filter(self, request_parameter_value):
         modifier, value = self._get_prefix_and_value(request_parameter_value)
@@ -136,7 +135,6 @@ class RequestParameterFilterABC(ABC):
         filters (allowing lazy loading)
         @return: {request parameter: lambda creating queryset parameter} map
         """
-        pass
 
     def filter_queryset(self, queryset):
         parameter_mapping = self._get_parameter_mapping()

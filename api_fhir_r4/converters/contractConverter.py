@@ -29,7 +29,7 @@ from insuree.models import Insuree, InsureePolicy
 from insuree.models import Family
 from contribution.models import Premium
 from core.models import Officer
-from core.utils import filter_validity, get_current_user
+from core.utils import get_current_user
 from api_fhir_r4.utils import DbManagerUtils, TimeUtils
 
 

@@ -1,5 +1,4 @@
 from typing import Dict, Type
-from core.utils import filter_validity
 from api_fhir_r4.containedResources.containedResources import (
     AbstractContainedResourceCollection,
     ContainedResourceDefinition,
@@ -14,6 +13,7 @@ from api_fhir_r4.serializers.medicationSerializer import MedicationSerializer
 from api_fhir_r4.serializers.activityDefinitionSerializer import ActivityDefinitionSerializer
 from api_fhir_r4.serializers.claimAdminPractitionerRoleSerializer import ClaimAdminPractitionerRoleSerializer
 from medical.models import Item, Service
+
 
 class ClaimContainedResources(AbstractContainedResourceCollection):
     @classmethod

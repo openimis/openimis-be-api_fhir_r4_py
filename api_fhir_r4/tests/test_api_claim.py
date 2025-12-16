@@ -70,7 +70,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [9],
+        "roles": [1],
     }
 
     _test_json_path_credentials = "/test/test_login.json"

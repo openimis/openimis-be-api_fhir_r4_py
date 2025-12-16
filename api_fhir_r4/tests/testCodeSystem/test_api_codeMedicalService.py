@@ -25,10 +25,10 @@ class CodeSystemMedicalServiceAPITests(GenericFhirAPITestMixin, APITestCase):
         response = self.client.get(self.base_url, data=None, format="json")
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        service_code = ""
-        for concept in response_data["concept"]:
-            if concept["display"].startswith("test S service"):
-                service_code = concept["code"]
+        # service_code = ""
+        # for concept in response_data["concept"]:
+        #     if concept["display"].startswith("test S service"):
+        #         service_code = concept["code"]
 #        self.assertTrue(service_code.startswith("TS-"))
         self.assertEqual(response_data["count"], self._EXPECTED_COUNT)
         self.assertEqual(response_data["name"], "MedicalServiceCS")

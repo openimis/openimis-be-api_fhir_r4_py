@@ -42,7 +42,6 @@ from fhir.resources.R4B.claim import (
     ClaimSupportingInfo,
     ClaimItem as FHIRClaimItem,
 )
-from core.utils import filter_validity
 from api_fhir_r4.utils import TimeUtils, FhirUtils, DbManagerUtils
 
 import logging
@@ -307,7 +306,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_type(cls, fhir_claim, imis_claim):
         mapping = ClaimVisitTypeMapping.fhir_claim_visit_type_coding[
-            imis_claim.visit_type
+            imis_claim.visit_type or 'O'
         ]
         fhir_claim.type = cls.build_codeable_concept_from_coding(
             cls.build_fhir_mapped_coding(mapping)

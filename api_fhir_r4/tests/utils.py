@@ -3,6 +3,7 @@ import json
 from core.models import User
 from api_fhir_r4.utils import DbManagerUtils
 from core.services import create_or_update_interactive_user, create_or_update_core_user
+from core.test_helpers import create_test_interactive_user
 
 
 def load_and_replace_json(path=None, sub_str={}):
@@ -36,12 +37,9 @@ _TEST_USER_NAME = "Admin"
 _TEST_USER_PASSWORD = "admin123"
 _TEST_DATA_USER = {
     "username": _TEST_USER_NAME,
-    "last_name": _TEST_USER_NAME,
     "password": _TEST_USER_PASSWORD,
-    "other_names": _TEST_USER_NAME,
-    "user_types": "INTERACTIVE",
     "language": "en",
-    "roles": [1, 3, 5, 9],
+    "roles": [1],
 }
 
 
@@ -50,11 +48,7 @@ def get_connection_payload(userdata=_TEST_DATA_USER):
 
 
 def get_or_create_user_api(userdata=_TEST_DATA_USER):
-    user = DbManagerUtils.get_object_or_none(User, username=userdata["username"])
-    if user is None:
-        user = __create_user_interactive_core(userdata)
-    user.set_password(userdata["password"])
-    user.save()
+    user = create_test_interactive_user(**userdata)
     return user
 
 

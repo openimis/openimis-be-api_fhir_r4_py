@@ -14,7 +14,7 @@ from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.group import Group, GroupMember
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.exceptions import FHIRException
-from core.utils import filter_validity, get_current_user
+from core.utils import get_current_user
 
 
 class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):

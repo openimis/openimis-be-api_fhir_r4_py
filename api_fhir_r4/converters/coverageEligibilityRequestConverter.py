@@ -26,7 +26,7 @@ from policy.models import Policy
 from policy.services import EligibilityRequest, EligibilityService
 from product.models import Product, ProductService, ProductItem
 from uuid import UUID
-from core.utils import filter_validity, get_current_user
+from core.utils import get_current_user
 from django.utils.translation import gettext as _
 
 

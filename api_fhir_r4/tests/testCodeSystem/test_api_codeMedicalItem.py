@@ -25,11 +25,12 @@ class CodeSystemMedicalItemAPITests(GenericFhirAPITestMixin, APITestCase):
         response = self.client.get(self.base_url, data=None, format="json")
         response_data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        item_code = ""
-        for concept in response_data["concept"]:
-            if concept["display"] == "Test item":
-                item_code = concept["code"]
-        #self.assertTrue(item_code.startswith("TI-"))
+        # item_code = ""
+        # for concept in response_data["concept"]:
+        #     if concept["display"] == "Test item":
+        #         item_code = concept["code"]
+        #
+        # self.assertTrue(item_code.startswith("TI-"))
         self.assertEqual(response_data["count"], self._EXPECTED_COUNT)
         self.assertEqual(response_data["name"], "MedicalItemCS")
         self.assertEqual(response_data["title"], "Medical Item")
