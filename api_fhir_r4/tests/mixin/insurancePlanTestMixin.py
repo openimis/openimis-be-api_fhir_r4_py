@@ -176,13 +176,13 @@ class InsurancePlanTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/insurance-plan-max-installments"""
+        }StructureDefinition/insurance-plan-max-installments"""
         extension.valueUnsignedInt = self._TEST_MAX_INSTALLMENTS
         fhir_insurance_plan.extension = [extension]
         extension = Extension.construct()
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/insurance-plan-period"""
+        }StructureDefinition/insurance-plan-period"""
         extension.valueQuantity = Quantity(
             **{"value": self._TEST_GRACE_PERIOD_PAYMENT, "unit": "months"}
         )

@@ -11,7 +11,7 @@ from api_fhir_r4.tests.utils import (
     get_connection_payload,
     get_or_create_user_api,
 )
-
+from core.test_helpers import create_admin_role
 from claim.models import Claim
 from location.models import UserDistrict
 from claim.test_helpers import create_test_claim_context, full_delete_claim
@@ -70,7 +70,7 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [1],
+        "roles": [create_admin_role().id],
     }
 
     _test_json_path_credentials = "/test/test_login.json"

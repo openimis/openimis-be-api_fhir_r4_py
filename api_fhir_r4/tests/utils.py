@@ -3,7 +3,7 @@ import json
 from core.models import User
 from api_fhir_r4.utils import DbManagerUtils
 from core.services import create_or_update_interactive_user, create_or_update_core_user
-from core.test_helpers import create_test_interactive_user
+from core.test_helpers import create_test_interactive_user, create_admin_role
 
 
 def load_and_replace_json(path=None, sub_str={}):
@@ -39,7 +39,7 @@ _TEST_DATA_USER = {
     "username": _TEST_USER_NAME,
     "password": _TEST_USER_PASSWORD,
     "language": "en",
-    "roles": [1],
+    "roles": [create_admin_role().id],
 }
 
 

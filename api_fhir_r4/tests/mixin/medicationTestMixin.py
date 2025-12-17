@@ -96,7 +96,7 @@ class MedicationTestMixin(GenericTestMixin):
         extension_usage = Extension.construct()
         extension_usage.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/medication-usage-context"""
+        }StructureDefinition/medication-usage-context"""
 
         # gender
         PatientCategoryMapping.load()

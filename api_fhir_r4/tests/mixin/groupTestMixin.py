@@ -163,7 +163,7 @@ class GroupTestMixin(GenericTestMixin):
         extension_address = Extension.construct()
         extension_address.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/address-municipality"""
+        }StructureDefinition/address-municipality"""
         extension_address.valueString = self.test_village.parent.name
         family_address.extension = [extension_address]
 
@@ -171,7 +171,7 @@ class GroupTestMixin(GenericTestMixin):
         extension_address = Extension.construct()
         extension_address.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/address-location-reference"""
+        }StructureDefinition/address-location-reference"""
         reference_location = Reference.construct()
         reference_location.reference = f"Location/{self.test_village.uuid}"
         extension_address.valueReference = reference_location

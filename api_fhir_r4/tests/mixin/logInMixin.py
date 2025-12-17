@@ -2,7 +2,7 @@ from api_fhir_r4.utils import DbManagerUtils
 from core.forms import User
 from core.services import create_or_update_interactive_user, create_or_update_core_user
 from core.utils import set_current_user
-from core.test_helpers import create_test_interactive_user
+from core.test_helpers import create_test_interactive_user, create_admin_role
 import json
 import os
 
@@ -17,7 +17,7 @@ class LogInMixin:
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [1, 3, 5, 9],
+        "roles": [create_admin_role().id],
     }
 
     def load_user_data_from_json(self, json_path):

@@ -16,7 +16,7 @@ class HealthFacilityOrganizationTypeMapping:
 
     ADDRESS_LOCATION_REFERENCE_URL = f"""{
         GeneralConfiguration.get_system_base_url()
-        }/StructureDefinition/address-location-reference"""
+    }/StructureDefinition/address-location-reference"""
 
     CONTRACT_PURPOSE = {
         "code": "PAYOR",

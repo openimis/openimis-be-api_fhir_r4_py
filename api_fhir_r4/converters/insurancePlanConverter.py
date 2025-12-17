@@ -386,7 +386,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
             if value == "conversion":
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/insurance-plan-{value}"""
+                }StructureDefinition/insurance-plan-{value}"""
 
                 reference_conversion = Reference.construct()
                 reference_conversion.reference = f"InsurancePlan/{imis_product.code}"
@@ -538,7 +538,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def __build_fhir_cycle(cls, extension, type_extension, start_cycle):
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/insurance-plan-{type_extension[0:-1]}"""
+        }StructureDefinition/insurance-plan-{type_extension[0:-1]}"""
         extension.valueString = start_cycle
 
     @classmethod
@@ -547,7 +547,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
         index_of_last_element = len(splited_type) - 1
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/insurance-plan-{splited_type[index_of_last_element]}"""
+        }StructureDefinition/insurance-plan-{splited_type[index_of_last_element]}"""
         extension.valueQuantity = Quantity(**{"value": value, "unit": "months"})
 
     @classmethod
@@ -557,7 +557,7 @@ class InsurancePlanConverter(BaseFHIRConverter, ReferenceConverterMixin):
         splited_type = type_extension.split("-")
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/insurance-plan-{splited_type[1]}"""
+        }StructureDefinition/insurance-plan-{splited_type[1]}"""
         nested_extension = Extension.construct()
 
         # percentage

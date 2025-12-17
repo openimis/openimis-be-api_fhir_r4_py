@@ -47,11 +47,11 @@ class ActivityDefinitionTestMixin(GenericTestMixin, FhirConverterTestMixin):
 
     _TEST_ACTIVITY_DEFINITION_LEVEL_EXT_URL = f"""{
         GeneralConfiguration.get_system_base_url()
-        }StructureDefinition/activity-definition-level"""
+    }StructureDefinition/activity-definition-level"""
     _TEST_ACTIVITY_DEFINITION_LEVEL_CODING_TEXT = "Day of service"
     _TEST_ACTIVITY_DEFINITION_LEVEL_CODING_SYSTEM = f"""{
         GeneralConfiguration.get_system_base_url()
-        }ValueSet/activity-definition-level"""
+    }ValueSet/activity-definition-level"""
 
     def create_test_imis_instance(self):
         imis_service = Service()

@@ -312,7 +312,7 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             extension_address = Extension.construct()
             extension_address.url = f"""{
                 GeneralConfiguration.get_system_base_url()
-                }StructureDefinition/address-municipality"""
+            }StructureDefinition/address-municipality"""
             extension_address.valueString = imis_family.location.parent.name
             family_address.extension = [extension_address]
 
@@ -320,7 +320,7 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             extension_address = Extension.construct()
             extension_address.url = f"""{
                 GeneralConfiguration.get_system_base_url()
-                }StructureDefinition/address-location-reference"""
+            }StructureDefinition/address-location-reference"""
             extension_address.valueReference = (
                 LocationConverter.build_fhir_resource_reference(
                     imis_family.location, "Location", reference_type=reference_type

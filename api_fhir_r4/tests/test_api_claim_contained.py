@@ -22,6 +22,7 @@ from api_fhir_r4.tests.utils import (
 from claim.test_helpers import create_test_claim_context
 from insuree.models import Insuree, Family
 from datetime import datetime
+from core.test_helpers import create_admin_role
 
 
 class ClaimAPIContainedTestBaseMixin:
@@ -77,7 +78,7 @@ class ClaimAPIContainedTestBaseMixin:
         "other_names": _TEST_USER_NAME,
         "user_types": "INTERACTIVE",
         "language": "en",
-        "roles": [1],
+        "roles": [create_admin_role().id],
     }
     _test_request_data_credentials = None
     test_village = None

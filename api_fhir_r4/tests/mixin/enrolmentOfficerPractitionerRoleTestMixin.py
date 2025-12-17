@@ -94,7 +94,7 @@ class EnrolmentOfficerPractitionerRoleTestMixin(GenericTestMixin):
         extension = Extension.construct()
         extension.url = f"""{
             GeneralConfiguration.get_system_base_url()
-            }StructureDefinition/practitioner-role-substitution-reference"""
+        }StructureDefinition/practitioner-role-substitution-reference"""
         reference = EnrolmentOfficerPractitionerConverter.build_fhir_resource_reference(
             self.test_substitution_officer,
         )

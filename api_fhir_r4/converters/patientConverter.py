@@ -470,7 +470,7 @@ class PatientConverter(
             elif value == "education.education":
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/patient-education-level"""
+                }StructureDefinition/patient-education-level"""
                 if (
                     hasattr(imis_insuree, "education")
                     and imis_insuree.education is not None
@@ -489,13 +489,13 @@ class PatientConverter(
             elif value == "patient.card.issue":
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/patient-card-issued"""
+                }StructureDefinition/patient-card-issued"""
                 extension.valueBoolean = imis_insuree.card_issued
 
             elif value == "patient.group.reference":
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/patient-group-reference"""
+                }StructureDefinition/patient-group-reference"""
                 extension.valueReference = GroupConverter.build_fhir_resource_reference(
                     imis_insuree.family, "Group", reference_type=reference_type
                 )
@@ -504,7 +504,7 @@ class PatientConverter(
                 nested_extension = Extension.construct()
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/patient-identification"""
+                }StructureDefinition/patient-identification"""
                 if hasattr(imis_insuree, "type_of_id") and imis_insuree.type_of_id:
                     if hasattr(imis_insuree, "passport") and imis_insuree.passport:
                         # add number extension
@@ -525,7 +525,7 @@ class PatientConverter(
             else:
                 extension.url = f"""{
                     GeneralConfiguration.get_system_base_url()
-                    }StructureDefinition/patient-profession"""
+                }StructureDefinition/patient-profession"""
                 if (
                     hasattr(imis_insuree, "profession")
                     and imis_insuree.profession is not None
