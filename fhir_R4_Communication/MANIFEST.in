@@ -1,0 +1,12 @@
+include README.md
+include LICENSE
+include MANIFEST.in
+recursive-include fhir_R4_Communication *.py
+recursive-include fhir_R4_Communication *.md
+recursive-include fhir_R4_Communication *.txt
+recursive-include fhir_R4_Communication *.cfg
+recursive-include fhir_R4_Communication *.ini
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.so
+recursive-exclude * .DS_Store
