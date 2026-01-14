@@ -318,7 +318,10 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
             imp_coding = cls.build_fhir_venue_coding(Service.CARE_TYPE_IN_PATIENT)
             codeable_concept.coding.append(imp_coding)
 
-        codeable_concept.text = " or ".join([coding.display for coding in codeable_concept.coding])
+        if codeable_concept.coding:
+            codeable_concept.text = " or ".join([coding.display for coding in codeable_concept.coding])
+        else:
+            codeable_concept.text = "AMB"
 
         return codeable_concept
 
@@ -356,7 +359,10 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
             child_coding = cls.build_fhir_patient_category_coding("child")
             codeable_concept.coding.append(child_coding)
 
-        codeable_concept.text = " or ".join([coding.display for coding in codeable_concept.coding])
+        if codeable_concept.coding:
+            codeable_concept.text = " or ".join([coding.display for coding in codeable_concept.coding])
+        else:
+            codeable_concept.text = "Adult"
 
         return codeable_concept
 
@@ -374,10 +380,18 @@ class ActivityDefinitionConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
     def build_fhir_workflow_coding(cls, workflow):
+        if workflow in ["V", "H"]:
+            workflow="O"
+        if workflow == "s":
+            workflow = "S"
+        if workflow == "c":
+            workflow = "C"
         return cls.build_fhir_mapped_coding(WorkflowMapping.fhir_workflow_coding[workflow])
 
     @classmethod
     def build_fhir_topic_coding(cls, topic):
+        if topic and topic == "c":
+            topic = "C"
         return cls.build_fhir_mapped_coding(ServiceTypeMapping.fhir_service_type_coding[topic])
 
     @classmethod
