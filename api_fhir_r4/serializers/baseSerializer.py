@@ -99,7 +99,7 @@ class BaseFHIRSerializer(serializers.Serializer):
 
     def __get_technical_audit_user(self, technical_user_uuid):
         technical_user = TechnicalUser.objects.get(id=technical_user_uuid)
-        core_user = User.objects.get(t_user=technical_user_uuid)
+        core_user = User.objects.filter(t_user=technical_user_uuid).first()
         interactive_user = core_user.i_user
         return interactive_user.id if interactive_user else technical_user.id_for_audit
 

@@ -23,7 +23,7 @@ from api_fhir_r4.configurations import R4ClaimConfig
 from api_fhir_r4.converters import ClaimResponseConverter
 from core.service_signals import ServiceSignalBindType
 from core.signals import bind_service_signal
-
+from core.utils import get_current_user
 from openIMIS.openimisapps import openimis_apps
 from django.contrib.auth import get_user_model
 
@@ -127,16 +127,7 @@ def bind_service_signals():
             """
             try:
                 model = kwargs.get("result", None)
-                audit_user_id = None
-                try:
-                    user = User.objects.get(
-                        claim_admin_id=kwargs.get("data")[0][0].get("admin_id")
-                    )
-                except User.DoesNotExist:
-                    logger.error(
-                        f"User with id {audit_user_id} not found. Aborting notification."
-                    )
-                    return
+                user = get_current_user()
 
                 # Instantiate the correct converter (ClaimResponseConverter) with the user
                 logger.info(
