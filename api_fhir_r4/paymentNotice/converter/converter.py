@@ -12,5 +12,7 @@ class PaymentNoticeConverter(
         return PaymentNoticeToImisConverter.to_imis_obj(fhir_payment_notice)
 
     @classmethod
-    def to_fhir_obj(cls, imis_payment, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls, imis_payment, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
+    ):
         return PaymentNoticeToFhirConverter.to_fhir_obj(imis_payment, reference_type)

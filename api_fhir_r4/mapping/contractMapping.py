@@ -1,4 +1,4 @@
-from api_fhir_r4.configurations import GeneralConfiguration, R4CoverageConfig
+from api_fhir_r4.configurations import R4CoverageConfig
 from django.utils.translation import gettext as _
 from policy.models import Policy
 
@@ -34,7 +34,7 @@ class ContractState(object):
     def imis_map_stage(cls, code, imis_policy):
         codes = {
             R4CoverageConfig.get_status_offered_code(): imis_policy.STAGE_NEW,
-            R4CoverageConfig.get_status_active_code(): imis_policy.STAGE_RENEWED
+            R4CoverageConfig.get_status_active_code(): imis_policy.STAGE_RENEWED,
         }
         return codes[code]
 
@@ -45,5 +45,5 @@ class PayTypeMapping(object):
         "B": _("Bank transfer"),
         "C": _("Cash"),
         "M": _("Mobile phone"),
-        "F": _("Funding")
+        "F": _("Funding"),
     }

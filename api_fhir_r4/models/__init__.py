@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from api_fhir_r4.models.fhirModels import (
     OperationOutcomeV2,
     UsageContextV2,

@@ -1,10 +1,6 @@
-DEFAULT_CFG = { 
+DEFAULT_CFG = {
     "default_audit_user_id": 1,
-    "gender_codes": {
-        "male": "M",
-        "female": "F",
-        "other": "O"
-    },
+    "gender_codes": {"male": "M", "female": "F", "other": "O"},
     "base_url": "https://openimis.github.io/openimis_fhir_r4_ig/",
     "default_value_of_patient_head_attribute": False,
     "default_value_of_patient_card_issued_attribute": False,
@@ -26,7 +22,7 @@ DEFAULT_CFG = {
         "fhir_code_for_imis_location_code_type": "LC",
         "fhir_code_for_imis_diagnosis_code_type": "DC",
         "fhir_code_for_imis_item_code_type": "IC",
-        "fhir_code_for_imis_service_code_type": "SC"
+        "fhir_code_for_imis_service_code_type": "SC",
     },
     "R4_fhir_marital_status_config": {
         "system": "http://hl7.org/fhir/valueset-marital-status.html",
@@ -34,7 +30,7 @@ DEFAULT_CFG = {
         "fhir_code_for_never_married": "S",
         "fhir_code_for_divorced": "D",
         "fhir_code_for_widowed": "W",
-        "fhir_code_for_unknown": "U"
+        "fhir_code_for_unknown": "U",
     },
     "R4_fhir_location_site_type": {
         "system": "http://hl7.org/fhir/v3/ServiceDeliveryLocationRoleType/vs.html",
@@ -47,7 +43,7 @@ DEFAULT_CFG = {
         "fhir_code_for_region": "R",
         "fhir_code_for_district": "D",
         "fhir_code_for_ward": "W",
-        "fhir_code_for_village": "V"
+        "fhir_code_for_village": "V",
     },
     "R4_fhir_location_status_codes": {
         "fhir_code_for_active": "active",
@@ -58,12 +54,12 @@ DEFAULT_CFG = {
         "system": "http://hl7.org/fhir/valueset-service-type.html",
         "fhir_code_for_in_patient": "I",
         "fhir_code_for_out_patient": "O",
-        "fhir_code_for_both": "B"
+        "fhir_code_for_both": "B",
     },
     "R4_fhir_issue_type_config": {
         "fhir_code_for_exception": "exception",
         "fhir_code_for_not_found": "not-found",
-        "fhir_code_for_informational": "informational"
+        "fhir_code_for_informational": "informational",
     },
     "R4_fhir_claim_config": {
         "fhir_claim_information_guarantee_id_code": "guarantee",
@@ -83,13 +79,21 @@ DEFAULT_CFG = {
         "fhir_claim_item_rejected_reason_adjudication_code": "rejected_reason",
         "fhir_claim_organization_code": "openIMIS",
         "fhir_claim_attachment_code": "attachment",
-        "fhir_claim_supporting_info_category_system": 'CodeSystem/claim-supporting-info-category',
-        'fhir_claim_item_reference_extension_system': 'StructureDefinition/claim-item-reference',
-        'fhir_claim_visit_type_system': 'CodeSystem/claim-visit-type',
-        'fhir_claim_item_category_system': 'CodeSystem/claim-item-category',
-        'fhir_claim_diagnosis_system': 'CodeSystem/diagnosis-ICD10-level1',
-        "fhir_claim_allowed_mime_types_regex":
-            '|'.join(['application\/pdf','text\/.*', 'image\/png', 'image\/jpe?g', 'application\/msword', '.*doc.*'])
+        "fhir_claim_supporting_info_category_system": "CodeSystem/claim-supporting-info-category",
+        "fhir_claim_item_reference_extension_system": "StructureDefinition/claim-item-reference",
+        "fhir_claim_visit_type_system": "CodeSystem/claim-visit-type",
+        "fhir_claim_item_category_system": "CodeSystem/claim-item-category",
+        "fhir_claim_diagnosis_system": "CodeSystem/diagnosis-ICD10-level1",
+        "fhir_claim_allowed_mime_types_regex": "|".join(
+            [
+                r"application/pdf",  # noqa: W605
+                r"text/.*",  # noqa: W605
+                r"image/png",  # noqa: W605
+                r"image/jpe?g",  # noqa: W605
+                r"application/msword",  # noqa: W605
+                ".*doc.*",
+            ]
+        ),
     },
     "R4_fhir_coverage_eligibility_config": {
         "fhir_serializer": "PolicyCoverageEligibilityRequestSerializer",
@@ -112,14 +116,14 @@ DEFAULT_CFG = {
         "fhir_is_service_ok_code": "is_service_ok",
         "fhir_balance_code": "balance",
         "fhir_balance_default_category": "medical",
-        "fhir_active_policy_status": ("A", 2)
+        "fhir_active_policy_status": ("A", 2),
     },
     "R4_fhir_communication_request_config": {
         "fhir_care_rendered_code": "CareRendered",
         "fhir_payment_asked_code": "PaymentAsked",
         "fhir_drug_prescribed_code": "DrugPrescribed",
         "fhir_drug_received_code": "DrugReceived",
-        "fhir_asessment_code": "Asessment"
+        "fhir_asessment_code": "Asessment",
     },
     "R4_fhir_contract_config": {
         "fhir_contract_eo_signer_type": "EnrolmentOfficer",
@@ -129,7 +133,7 @@ DEFAULT_CFG = {
         "fhir_contract_executable_status": "Executable",
         "fhir_contract_renewed_status": "Renewed",
         "fhir_contract_policy_status": "Policy",
-        "fhir_contract_Terminated_status": "Terminated"
+        "fhir_contract_Terminated_status": "Terminated",
     },
     "R4_fhir_coverage_config": {
         "fhir_family_refereence_code": "FamilyReference",
@@ -143,7 +147,7 @@ DEFAULT_CFG = {
         "fhir_practitioner_role_code": "Practitioner",
         "fhir_product_code": "Product",
         "fhir_effective_date_code": "EffectiveDate",
-        "fhir_enroll_date_code": "EnrollDate"
+        "fhir_enroll_date_code": "EnrollDate",
     },
     "R4_fhir_organisation_config": {
         "fhir_ph_organisation_type": "bus",
@@ -154,23 +158,23 @@ DEFAULT_CFG = {
         "fhir_ph_organisation_legal_form_code_system": "CodeSystem/organization-ph-legal-form",
         "fhir_ph_organisation_activity_code_system": "CodeSystem/organization-ph-activity",
         "fhir_ph_organisation_type_system": "http://terminology.hl7.org/CodeSystem/organization-type",
-        "fhir_ph_organisation_type_contactentity_type":"http://terminology.hl7.org/CodeSystem/contactentity-type"
+        "fhir_ph_organisation_type_contactentity_type": "http://terminology.hl7.org/CodeSystem/contactentity-type",
     },
     "R4_fhir_insurance_organisation_config": {
-        "resource_type": 'insurance_organisation',
-        "id": 'openIMIS-Implementation',
-        "name": 'openIMIS Implementation',
-        "code": 'openIMIS',
-        "type": 'ins',
-        "email": 'implementation@openimis.org',
-        "phone": '0908060703',
-        "fax": '0908060730',
+        "resource_type": "insurance_organisation",
+        "id": "openIMIS-Implementation",
+        "name": "openIMIS Implementation",
+        "code": "openIMIS",
+        "type": "ins",
+        "email": "implementation@openimis.org",
+        "phone": "0908060703",
+        "fax": "0908060730",
         "contact_name": "Manuel D. Medina",
         "municipality": "Jamu",
         "city": "Jamula",
         "district": "Rapta",
         "state": "Ultha",
-        "line": "1 Pasay"
+        "line": "1 Pasay",
     },
     "R4_fhir_invoice_config": {
         "fhir_invoice_type_system": "CodeSystem/invoice-type",
@@ -180,15 +184,15 @@ DEFAULT_CFG = {
         "subscribe_invoice_signal": False,
     },
     "R4_fhir_subscription_config": {
-        "fhir_sub_search_perms": ['158001'],
-        "fhir_sub_create_perms": ['158002'],
-        "fhir_sub_update_perms": ['158003'],
-        "fhir_sub_delete_perms": ['158004'],
+        "fhir_sub_search_perms": ["158001"],
+        "fhir_sub_create_perms": ["158002"],
+        "fhir_sub_update_perms": ["158003"],
+        "fhir_sub_delete_perms": ["158004"],
         "fhir_sub_channel_rest_hook": "rest-hook",
         "fhir_sub_status_off": "off",
         "fhir_sub_status_active": "active",
         "get_fhir_sub_criteria_key_resource": "resource",
-        "get_fhir_sub_criteria_key_resource_type": "resource_type"
+        "get_fhir_sub_criteria_key_resource_type": "resource_type",
     },
     "R4_fhir_payment_notice_config": {
         "get_fhir_payment_notice_status_active": "active",
@@ -196,6 +200,6 @@ DEFAULT_CFG = {
         "get_fhir_payment_notice_status_draft": "draft",
         "get_fhir_payment_notice_status_entered_in_error": "entered-in-error",
         "fhir_payment_notice_payment_status_paid": "paid",
-        "fhir_payment_notice_payment_status_cleared": "cleared"
+        "fhir_payment_notice_payment_status_cleared": "cleared",
     },
 }

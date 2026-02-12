@@ -8,11 +8,13 @@ class CodeSystemConverter(BaseFHIRConverter):
 
     @classmethod
     def to_imis_obj(cls, data, audit_user_id):
-        raise NotImplementedError('`toImisObj()` not implemented.')  # pragma: no cover
+        raise NotImplementedError("`toImisObj()` not implemented.")  # pragma: no cover
 
     @classmethod
     def get_fhir_code_identifier_type(cls):
-        raise NotImplementedError('`get_fhir_code_identifier_type()` not implemented.')  # pragma: no cover
+        raise NotImplementedError(
+            "`get_fhir_code_identifier_type()` not implemented."
+        )  # pragma: no cover
 
     @classmethod
     def to_fhir_obj(cls, obj, reference_type):
@@ -32,36 +34,37 @@ class CodeSystemConverter(BaseFHIRConverter):
 
     @classmethod
     def build_fhir_id(cls, fhir_code_system, obj):
-        fhir_code_system.id = obj['id']
+        fhir_code_system.id = obj["id"]
 
     @classmethod
     def build_fhir_url(cls, fhir_code_system, obj):
-        fhir_code_system.url = obj['url']
+        fhir_code_system.url = obj["url"]
 
     @classmethod
     def build_fhir_code_system_name(cls, fhir_code_system, obj):
-        fhir_code_system.name = obj['name']
+        fhir_code_system.name = obj["name"]
 
     @classmethod
     def build_fhir_code_system_title(cls, fhir_code_system, obj):
-        fhir_code_system.title = obj['title']
+        fhir_code_system.title = obj["title"]
 
     @classmethod
     def build_fhir_code_system_date(cls, fhir_code_system):
         from core.utils import TimeUtils
+
         fhir_code_system.date = TimeUtils.now()
 
     @classmethod
     def build_fhir_code_system_description(cls, fhir_code_system, obj):
-        fhir_code_system.description = obj['description']
+        fhir_code_system.description = obj["description"]
 
     @classmethod
     def build_fhir_code_system_status(cls, fhir_code_system):
-        fhir_code_system['status'] = 'active'
+        fhir_code_system["status"] = "active"
 
     @classmethod
     def build_fhir_code_system_content(cls, fhir_code_system):
-        fhir_code_system['content'] = 'complete'
+        fhir_code_system["content"] = "complete"
 
     @classmethod
     def build_fhir_code_system_count(cls, fhir_code_system, obj):

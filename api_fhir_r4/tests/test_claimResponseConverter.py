@@ -4,9 +4,9 @@ from api_fhir_r4.tests import ClaimResponseTestMixin
 from api_fhir_r4.tests.mixin import ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
 
 
-class ClaimResponseConverterTestCase(ClaimResponseTestMixin,
-                                     ConvertToFhirTestMixin,
-                                     ConvertJsonToFhirTestMixin):
+class ClaimResponseConverterTestCase(
+    ClaimResponseTestMixin, ConvertToFhirTestMixin, ConvertJsonToFhirTestMixin
+):
     converter = ClaimResponseConverter
     fhir_resource = ClaimResponse
-    json_repr = 'test/test_claimResponse.json'
+    json_repr = "test/test_claimResponse.json"

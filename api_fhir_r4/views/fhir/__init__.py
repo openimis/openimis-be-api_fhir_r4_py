@@ -1,9 +1,12 @@
+# flake8: noqa
 from api_fhir_r4.views.fhir.activity_definition import ActivityDefinitionViewSet
 from api_fhir_r4.views.fhir.claim import ClaimViewSet
 from api_fhir_r4.views.fhir.claim_response import ClaimResponseViewSet
 from api_fhir_r4.views.fhir.code_systems.diagnosis import CodeSystemOpenIMISDiagnosisViewSet
 from api_fhir_r4.views.fhir.code_systems.group_confirmation_type import CodeSystemOpenIMISGroupConfirmationTypeViewSet
 from api_fhir_r4.views.fhir.code_systems.group_type import CodeSystemOpenIMISGroupTypeViewSet
+from api_fhir_r4.views.fhir.code_systems.medical_item import CodeSystemOpenIMISMedicalItemViewSet
+from api_fhir_r4.views.fhir.code_systems.medical_service import CodeSystemOpenIMISMedicalServiceViewSet
 from api_fhir_r4.views.fhir.code_systems.organization_hf_legal_form import CodeSystemOrganizationHFLegalFormViewSet
 from api_fhir_r4.views.fhir.code_systems.organization_hf_level import CodeSystemOrganizationHFLevelViewSet
 from api_fhir_r4.views.fhir.code_systems.organization_ph_activity import CodeSystemOrganizationPHActivityViewSet
@@ -29,3 +32,4 @@ from api_fhir_r4.views.fhir.practitioner import PractitionerViewSet
 from api_fhir_r4.views.fhir.practitioner_role import PractitionerRoleViewSet
 from api_fhir_r4.views.fhir.subscription import SubscriptionViewSet
 from api_fhir_r4.views.fhir.payment_notice import PaymentNoticeViewSet
+from api_fhir_r4.views.fhir.value_sets.pricelist import PricelistValueSetViewSet

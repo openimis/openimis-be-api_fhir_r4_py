@@ -1,10 +1,11 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from graphql_jwt.utils import jwt_payload
 
-from api_fhir_r4.openapi_schema_extensions import get_inline_login_request_serializer, \
-    get_inline_login_200_response_serializer
-from core.jwt import *
-from core.models import User
+from api_fhir_r4.openapi_schema_extensions import (
+    get_inline_login_request_serializer,
+    get_inline_login_200_response_serializer,
+)
+from core.jwt import jwt_encode_user_key
 from core.services import user_authentication
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
@@ -16,10 +17,10 @@ from rest_framework import exceptions
     create=extend_schema(
         request=get_inline_login_request_serializer(),
         responses={
-            (200, 'application/json'): get_inline_login_200_response_serializer(),
+            (200, "application/json"): get_inline_login_200_response_serializer(),
             (400,): None,
-            (401,): None
-        }
+            (401,): None,
+        },
     )
 )
 class LoginView(viewsets.ViewSet):
@@ -29,8 +30,8 @@ class LoginView(viewsets.ViewSet):
         data = request.data
         # check if we have both required data in request payload
 
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get("username")
+        password = data.get("password")
         try:
             request.user = user_authentication(request, username, password)
         except exceptions.ParseError as e:
@@ -47,7 +48,7 @@ class LoginView(viewsets.ViewSet):
                 # return ok
                 response = {
                     "token": token,
-                    "exp": payload['exp'],
+                    "exp": payload["exp"],
                 }
                 return Response(data=response, status=200)
             # return unauthorized

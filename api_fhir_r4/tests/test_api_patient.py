@@ -14,7 +14,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 
-class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, LogInMixin):
+class PatientAPITests(
+    GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase, LogInMixin
+):
     base_url = GeneralConfiguration.get_base_url() + "Patient/"
     _json_repr = "/test/test_patient.json"
     _TEST_LAST_NAME = "TEST_LAST_NAME"
@@ -37,7 +39,7 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
         self.test_user = self.get_or_create_user_api()
         self.test_village = create_test_village()
         self.sub_str[self._TEST_VILLAGE_UUID] = self.test_village.uuid
-        
+
         self._test_request_data = load_and_replace_json(self._json_repr, self.sub_str)
 
     def verify_updated_obj(self, updated_obj):
@@ -139,7 +141,7 @@ class PatientAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
             self.base_url, data=modified_payload, format="json", **headers
         )
         response_json = json.loads(response.content)
-    
+
         if (
             "issue" in response_json
             and len(response_json["issue"]) > 0

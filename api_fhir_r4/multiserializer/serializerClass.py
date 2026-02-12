@@ -3,26 +3,31 @@ from rest_framework.serializers import Serializer
 
 class MultiSerializerSerializerClass(Serializer):
     """
-     Serves as base serializer class for instances using multiserializer mixin.
-     """
+    Serves as base serializer class for instances using multiserializer mixin.
+    """
+
     user = None
-    
+
     def __init__(self, user=None, **kwargs):
         if user:
             self.user = user
         else:
-            context = kwargs.get('context', None)
-            if context and hasattr(context, 'user'):
+            context = kwargs.get("context", None)
+            if context and hasattr(context, "user"):
                 self.user = context.user
         super().__init__(**kwargs)
 
     def update(self, instance, validated_data):
-        raise NotImplementedError("MultiSerializerSerializerClass `update` not supported. Should be"
-                                  "performed by contained serializers")
+        raise NotImplementedError(
+            "MultiSerializerSerializerClass `update` not supported. Should be"
+            "performed by contained serializers"
+        )
 
     def create(self, validated_data):
-        raise NotImplementedError("MultiSerializerSerializerClass `create` not supported. Should be"
-                                  "performed by contained serializers")
+        raise NotImplementedError(
+            "MultiSerializerSerializerClass `create` not supported. Should be"
+            "performed by contained serializers"
+        )
 
     def to_representation(self, instance):
         """

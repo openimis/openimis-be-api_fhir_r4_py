@@ -23,11 +23,11 @@ class FHIRApiPermissions(DjangoModelPermissions):
 
     def __init__(self):
         self.base_class
-        self.perms_map['GET'] = self.permissions_get
-        self.perms_map['POST'] = self.permissions_post
-        self.perms_map['PUT'] = self.permissions_put
-        self.perms_map['PATCH'] = self.permissions_patch
-        self.perms_map['DELETE'] = self.permissions_delete
+        self.perms_map["GET"] = self.permissions_get
+        self.perms_map["POST"] = self.permissions_post
+        self.perms_map["PUT"] = self.permissions_put
+        self.perms_map["PATCH"] = self.permissions_patch
+        self.perms_map["DELETE"] = self.permissions_delete
 
     def get_required_permissions(self, method, model_cls):
         if method not in self.perms_map:

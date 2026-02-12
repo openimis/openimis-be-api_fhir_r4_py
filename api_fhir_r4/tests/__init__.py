@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from api_fhir_r4.tests.mixin.genericTestMixin import GenericTestMixin
 from api_fhir_r4.tests.mixin.locationTestMixin import LocationTestMixin
 from api_fhir_r4.tests.mixin.operationOutcomeTestMixin import OperationOutcomeTestMixin

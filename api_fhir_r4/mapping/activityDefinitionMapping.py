@@ -87,12 +87,12 @@ class VenueMapping(object):
             "system": SYSTEM,
             "code": "IMP",
             "display": "IMP",
-        }
+        },
     }
 
     imis_venue_coding = {
         "AMB": Service.CARE_TYPE_OUT_PATIENT,
-        "IMP": Service.CARE_TYPE_IN_PATIENT
+        "IMP": Service.CARE_TYPE_IN_PATIENT,
     }
 
 

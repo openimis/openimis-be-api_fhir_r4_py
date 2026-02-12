@@ -7,13 +7,19 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_fhir_r4', '0002_auto_20220313_1607'),
+        ("api_fhir_r4", "0002_auto_20220313_1607"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='subscriptionnotificationresult',
-            name='id',
-            field=models.UUIDField(db_column='UUID', default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+            model_name="subscriptionnotificationresult",
+            name="id",
+            field=models.UUIDField(
+                db_column="UUID",
+                default=uuid.uuid4,
+                editable=False,
+                primary_key=True,
+                serialize=False,
+            ),
         ),
     ]
