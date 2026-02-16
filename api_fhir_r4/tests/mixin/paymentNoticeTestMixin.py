@@ -60,44 +60,44 @@ class PaymentNoticeTestMixin(GenericTestMixin):
         return imis_payment, imis_payment_detail
 
     def verify_imis_instance(self, imis_obj):
-        self.assertEquals(
+        self.assertEqual(
             imis_obj.reconciliation_status,
             self._TEST_PAYMENT_NOTICE_IMIS_RECONCILIATION_STATUS,
         )
-        self.assertEquals(
+        self.assertEqual(
             round(float(imis_obj.amount_received), 2),
             round(float(self._TEST_PAYMENT_NOTICE_IMIS_AMOUNT_RECEIVED), 2),
         )
-        self.assertEquals(
+        self.assertEqual(
             f"{imis_obj.date_payment}", self._TEST_PAYMENT_NOTICE_IMIS_DATE_PAYMENT
         )
-        self.assertEquals(
+        self.assertEqual(
             imis_obj.json_ext["reconciliation"]["id"],
             self._TEST_PAYMENT_NOTICE_IMIS_JSON_EXT["reconciliation"]["id"],
         )
-        self.assertEquals(
+        self.assertEqual(
             imis_obj.payer_ref, "PaymentReconciliation/id-renconiliation-test-1"
         )
 
     def verify_imis_detail_instance(self, imis_obj, imis_detail_obj):
-        self.assertEquals(
+        self.assertEqual(
             imis_detail_obj.status, self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_STATUS
         )
-        self.assertEquals(
+        self.assertEqual(
             imis_detail_obj.amount, self._TEST_PAYMENT_NOTICE_IMIS_AMOUNT_RECEIVED
         )
-        self.assertEquals(imis_detail_obj.payment.id, imis_obj.id)
-        self.assertEquals(
+        self.assertEqual(imis_detail_obj.payment.id, imis_obj.id)
+        self.assertEqual(
             imis_detail_obj.subject_id,
             self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_SUBJECT_ID,
         )
-        self.assertEquals(
+        self.assertEqual(
             imis_detail_obj.reconcilation_id,
             self._TEST_PAYMENT_NOTICE_IMIS_DETAILS_RECON_ID,
         )
 
     def verify_imis_invoice_status(self, imis_invoice_status):
-        self.assertEquals(imis_invoice_status, Invoice.Status.PAID)
+        self.assertEqual(imis_invoice_status, Invoice.Status.PAID)
 
     def create_test_fhir_instance(self):
         return {
@@ -126,21 +126,21 @@ class PaymentNoticeTestMixin(GenericTestMixin):
         }
 
     def verify_fhir_instance(self, fhir_obj):
-        self.assertEquals(fhir_obj.status, self._TEST_PAYMENT_NOTICE_FHIR_STATUS)
-        self.assertEquals(
+        self.assertEqual(fhir_obj.status, self._TEST_PAYMENT_NOTICE_FHIR_STATUS)
+        self.assertEqual(
             fhir_obj.request.reference, self._TEST_PAYMENT_NOTICE_FHIR_REQUEST_REFERENCE
         )
-        self.assertEquals(
+        self.assertEqual(
             f"{fhir_obj.paymentDate}", self._TEST_PAYMENT_NOTICE_FHIR_DATE_PAYMENT
         )
-        self.assertEquals(
+        self.assertEqual(
             fhir_obj.recipient.reference, self._TEST_PAYMENT_NOTICE_FHIR_RECIPIENT
         )
-        self.assertEquals(
+        self.assertEqual(
             round(float(fhir_obj.amount.value), 2),
             round(float(self._TEST_PAYMENT_NOTICE_FHIR_AMOUNT_VALUE), 2),
         )
-        self.assertEquals(
+        self.assertEqual(
             fhir_obj.paymentStatus.coding[0].code,
             self._TEST_PAYMENT_NOTICE_FHIR_PAYMENT_STATUS,
         )
