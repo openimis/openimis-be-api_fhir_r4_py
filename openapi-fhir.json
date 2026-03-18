@@ -31,8 +31,8 @@
             "description": "Authentication endpoints for obtaining and managing JWT tokens. All protected endpoints require a valid JWT token obtained through the login endpoint."
         },
         {
-            "name": "Insured Inquiry",
-            "description": "FHIR R4 endpoints for querying insured patient information. These endpoints return patient demographics, insurance coverage details, and related health facility information in FHIR-compliant format.\n\nFor detailed information about FHIR Patient resources, see: [https://fhir.openimis.org/](https://fhir.openimis.org/)"
+            "name": "Insuree / Patient",
+            "description": "FHIR R4 endpoints for managing insuree/patient information. These endpoints allow you to create, retrieve, and update patient demographics, insurance coverage details, and related health facility information in FHIR-compliant format.\n\nFor detailed information about FHIR Patient resources, see: [https://fhir.openimis.org/](https://fhir.openimis.org/)"
         }
     ],
   
@@ -132,6 +132,170 @@
             }
         },
 
+        "/api/api_fhir_r4/Patient/": {
+            "post": {
+                "operationId": "api_fhir_r4_Patient_create",
+                "summary": "Create a new patient/insuree",
+                "description": "## Purpose\n\nCreates a new patient/insuree in the openIMIS system using the FHIR R4 Patient resource format.\n\n## FHIR Patient Resource\n\nThe request must follow the FHIR R4 Patient resource specification. For detailed field descriptions, see: [https://fhir.openimis.org/](https://fhir.openimis.org/)\n\n## Required Fields\n\nThe following fields are typically required when creating a new patient:\n\n### Core Demographics\n- **name**: Patient's full name (family name and given names)\n- **birthDate**: Date of birth in YYYY-MM-DD format\n- **gender**: Administrative gender (male/female/other/unknown)\n\n### Identifiers\n- **identifier**: At least one identifier (e.g., insurance number/CHFID, national ID)\n\n### Contact Information (recommended)\n- **address**: Physical address details\n- **telecom**: Contact information (phone, email)\n\n### Extensions (openIMIS-specific)\n\nYou can include custom extensions for openIMIS-specific attributes:\n- **isHead**: Boolean indicating if patient is head of household\n- **locationCode**: Reference to the patient's administrative location\n- **educationCode**: Patient's education level\n- **professionCode**: Patient's profession/occupation\n- **povertyStatus**: Boolean indicating poverty status\n\n## Authentication\n\nThis endpoint requires a valid JWT token obtained from the `/api/api_fhir_r4/login/` endpoint.\n\n## Response\n\nOn success, returns the created Patient resource with the assigned UUID.\n\n## Error Handling\n\n- **400 Bad Request**: Invalid patient data or missing required fields\n- **401 Unauthorized**: Missing or invalid JWT token\n- **409 Conflict**: Patient with the same identifier already exists",
+                "tags": [
+                    "Insuree / Patient"
+                ],
+                "security": [
+                    {
+                        "JWT Authentication": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatientResource"
+                            },
+                            "example": {
+                                "resourceType": "Patient",
+                                "identifier": [
+                                    {
+                                        "type": {
+                                            "coding": [{
+                                                "code": "SB",
+                                                "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                            }]
+                                        },
+                                        "use": "usual",
+                                        "value": "105000099"
+                                    }
+                                ],
+                                "name": [{
+                                    "use": "usual",
+                                    "family": "Doe",
+                                    "given": ["John"]
+                                }],
+                                "gender": "male",
+                                "birthDate": "1990-05-15",
+                                "address": [{
+                                    "use": "home",
+                                    "type": "physical",
+                                    "text": "123 Main Street, Village"
+                                }],
+                                "telecom": [{
+                                    "system": "phone",
+                                    "value": "+1234567890",
+                                    "use": "mobile"
+                                }],
+                                "maritalStatus": {
+                                    "coding": [{
+                                        "system": "http://hl7.org/fhir/valueset-marital-status.html",
+                                        "code": "M"
+                                    }],
+                                    "text": "Married"
+                                },
+                                "extension": [
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/isHead",
+                                        "valueBoolean": true
+                                    },
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960331788/educationCode",
+                                        "valueCoding": {
+                                            "code": "2",
+                                            "display": "Primary school"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960135203/professionCode",
+                                        "valueCoding": {
+                                            "code": "1",
+                                            "display": "Farmer"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Patient created successfully. Returns the created FHIR Patient resource with assigned UUID.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatientResource"
+                                },
+                                "example": {
+                                    "resourceType": "Patient",
+                                    "id": "9A8B7C6D-5E4F-3A2B-1C0D-9E8F7A6B5C4D",
+                                    "identifier": [
+                                        {
+                                            "type": {
+                                                "coding": [{
+                                                    "code": "UUID",
+                                                    "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                                }]
+                                            },
+                                            "use": "usual",
+                                            "value": "9A8B7C6D-5E4F-3A2B-1C0D-9E8F7A6B5C4D"
+                                        },
+                                        {
+                                            "type": {
+                                                "coding": [{
+                                                    "code": "SB",
+                                                    "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                                }]
+                                            },
+                                            "use": "usual",
+                                            "value": "105000099"
+                                        }
+                                    ],
+                                    "name": [{
+                                        "use": "usual",
+                                        "family": "Doe",
+                                        "given": ["John"]
+                                    }],
+                                    "gender": "male",
+                                    "birthDate": "1990-05-15"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid patient data or missing required fields",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InlineError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Missing or invalid JWT token"
+                    },
+                    "409": {
+                        "description": "Conflict - Patient with the same identifier already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InlineError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-codeSamples": [
+                    {
+                        "lang": "curl",
+                        "label": "CURL",
+                        "source": "# First, authenticate and get token\nTOKEN=$(curl -X POST \"https://demo.openimis.org/api/api_fhir_r4/login/\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"username\":\"your_user\",\"password\":\"your_pass\"}' \\\n  | jq -r '.token')\n\n# Create patient\ncurl -X POST \"https://demo.openimis.org/api/api_fhir_r4/Patient/\" \\\n  -H \"Authorization: Bearer $TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"resourceType\": \"Patient\",\n    \"identifier\": [{\n      \"type\": {\"coding\": [{\"code\": \"SB\"}]},\n      \"value\": \"105000099\"\n    }],\n    \"name\": [{\"family\": \"Doe\", \"given\": [\"John\"]}],\n    \"gender\": \"male\",\n    \"birthDate\": \"1990-05-15\"\n  }'"
+                    },
+                    {
+                        "lang": "python",
+                        "label": "Python",
+                        "source": "import requests\n\n# Step 1: Authenticate\nlogin_url = \"https://demo.openimis.org/api/api_fhir_r4/login/\"\nauth_response = requests.post(login_url, json={\n    \"username\": \"your_username\",\n    \"password\": \"your_password\"\n})\ntoken = auth_response.json()['token']\n\n# Step 2: Create patient\npatient_url = \"https://demo.openimis.org/api/api_fhir_r4/Patient/\"\nheaders = {\n    \"Authorization\": f\"Bearer {token}\",\n    \"Content-Type\": \"application/json\"\n}\n\npatient_data = {\n    \"resourceType\": \"Patient\",\n    \"identifier\": [{\n        \"type\": {\"coding\": [{\"code\": \"SB\"}]},\n        \"value\": \"105000099\"\n    }],\n    \"name\": [{\"family\": \"Doe\", \"given\": [\"John\"]}],\n    \"gender\": \"male\",\n    \"birthDate\": \"1990-05-15\"\n}\n\nresponse = requests.post(patient_url, headers=headers, json=patient_data)\nprint(f\"Created patient with ID: {response.json()['id']}\")"
+                    }
+                ]
+            }
+        },
         "/api/api_fhir_r4/Patient/{identifier}/": {
             "get": {
                 "operationId": "api_fhir_r4_Patient_retrieve",
@@ -151,7 +315,7 @@
                     }
                 ],
                 "tags": [
-                    "Insured Inquiry"
+                    "Insuree / Patient"
                 ],
                 "security": [
                     {
@@ -204,6 +368,212 @@
                         "lang": "javascript",
                         "label": "JavaScript",
                         "source": "// Step 1: Authenticate\nconst loginResponse = await fetch('https://demo.openimis.org/api/api_fhir_r4/login/', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({\n    username: 'your_username',\n    password: 'your_password'\n  })\n});\n\nconst { token } = await loginResponse.json();\n\n// Step 2: Query patient\nconst patientResponse = await fetch(\n  'https://demo.openimis.org/api/api_fhir_r4/Patient/01EEDC6C-436C-465F-86C2-6FF68644D751/',\n  {\n    headers: { 'Authorization': `Bearer ${token}` }\n  }\n);\n\nconst patient = await patientResponse.json();\nconsole.log('Patient:', patient.name[0].given[0], patient.name[0].family);\nconsole.log('Gender:', patient.gender);\nconsole.log('Birth Date:', patient.birthDate);"
+                    }
+                ]
+            },
+            "put": {
+                "operationId": "api_fhir_r4_Patient_update",
+                "summary": "Update an existing patient/insuree",
+                "description": "## Purpose\n\nUpdates an existing patient/insuree in the openIMIS system using the FHIR R4 Patient resource format.\n\n## FHIR Patient Resource\n\nThe request must follow the FHIR R4 Patient resource specification. For detailed field descriptions, see: [https://fhir.openimis.org/](https://fhir.openimis.org/)\n\n## Update Behavior\n\nThis endpoint performs a full update (PUT) of the patient resource. All fields in the request will replace the existing patient data. To partially update specific fields, you may need to:\n1. First retrieve the current patient data using GET\n2. Modify the desired fields\n3. Send the complete updated resource via PUT\n\n## Required Fields\n\n### Path Parameter\n- **identifier**: Patient UUID (must match the UUID in the request body)\n\n### Request Body\nThe request body must include:\n- **resourceType**: Must be \"Patient\"\n- **id**: Patient UUID (must match the path parameter)\n- All fields you want to preserve (name, birthDate, gender, etc.)\n\n## Updatable Fields\n\nYou can update:\n- **name**: Patient's name\n- **birthDate**: Date of birth\n- **gender**: Gender\n- **address**: Physical address\n- **telecom**: Contact information\n- **maritalStatus**: Marital status\n- **extension**: openIMIS-specific attributes (education, profession, etc.)\n\n## Non-Updatable Fields\n\nSome fields may be restricted from updates:\n- **id**: Cannot be changed\n- **identifier**: Primary identifiers may be immutable depending on system configuration\n\n## Authentication\n\nThis endpoint requires a valid JWT token obtained from the `/api/api_fhir_r4/login/` endpoint.\n\n## Response\n\nOn success, returns the updated Patient resource.\n\n## Error Handling\n\n- **400 Bad Request**: Invalid patient data, missing required fields, or UUID mismatch\n- **401 Unauthorized**: Missing or invalid JWT token\n- **404 Not Found**: Patient with the specified UUID does not exist\n- **409 Conflict**: Update conflict (e.g., version mismatch if optimistic locking is used)",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "identifier",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "01EEDC6C-436C-465F-86C2-6FF68644D751"
+                        },
+                        "required": true,
+                        "description": "**Patient UUID** - The openIMIS internal UUID for the patient to update. Must match the UUID in the request body."
+                    }
+                ],
+                "tags": [
+                    "Insuree / Patient"
+                ],
+                "security": [
+                    {
+                        "JWT Authentication": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatientResource"
+                            },
+                            "example": {
+                                "resourceType": "Patient",
+                                "id": "01EEDC6C-436C-465F-86C2-6FF68644D751",
+                                "identifier": [
+                                    {
+                                        "type": {
+                                            "coding": [{
+                                                "code": "UUID",
+                                                "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                            }]
+                                        },
+                                        "use": "usual",
+                                        "value": "01EEDC6C-436C-465F-86C2-6FF68644D751"
+                                    },
+                                    {
+                                        "type": {
+                                            "coding": [{
+                                                "code": "SB",
+                                                "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                            }]
+                                        },
+                                        "use": "usual",
+                                        "value": "105000002"
+                                    }
+                                ],
+                                "name": [{
+                                    "use": "usual",
+                                    "family": "Banda",
+                                    "given": ["James", "Updated"]
+                                }],
+                                "gender": "male",
+                                "birthDate": "1987-01-07",
+                                "address": [{
+                                    "use": "home",
+                                    "type": "physical",
+                                    "text": "10 Tsoka Village - Updated Address"
+                                }],
+                                "telecom": [{
+                                    "system": "phone",
+                                    "value": "+265999888777",
+                                    "use": "mobile"
+                                }],
+                                "maritalStatus": {
+                                    "coding": [{
+                                        "system": "http://hl7.org/fhir/valueset-marital-status.html",
+                                        "code": "M"
+                                    }],
+                                    "text": "Married"
+                                },
+                                "extension": [
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/isHead",
+                                        "valueBoolean": true
+                                    },
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960331788/educationCode",
+                                        "valueCoding": {
+                                            "code": "4",
+                                            "display": "University"
+                                        }
+                                    },
+                                    {
+                                        "url": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960135203/professionCode",
+                                        "valueCoding": {
+                                            "code": "3",
+                                            "display": "Self Employee"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Patient updated successfully. Returns the updated FHIR Patient resource.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PatientResource"
+                                },
+                                "example": {
+                                    "resourceType": "Patient",
+                                    "id": "01EEDC6C-436C-465F-86C2-6FF68644D751",
+                                    "identifier": [
+                                        {
+                                            "type": {
+                                                "coding": [{
+                                                    "code": "UUID",
+                                                    "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                                }]
+                                            },
+                                            "use": "usual",
+                                            "value": "01EEDC6C-436C-465F-86C2-6FF68644D751"
+                                        },
+                                        {
+                                            "type": {
+                                                "coding": [{
+                                                    "code": "SB",
+                                                    "system": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                                }]
+                                            },
+                                            "use": "usual",
+                                            "value": "105000002"
+                                        }
+                                    ],
+                                    "name": [{
+                                        "use": "usual",
+                                        "family": "Banda",
+                                        "given": ["James", "Updated"]
+                                    }],
+                                    "gender": "male",
+                                    "birthDate": "1987-01-07",
+                                    "address": [{
+                                        "use": "home",
+                                        "type": "physical",
+                                        "text": "10 Tsoka Village - Updated Address"
+                                    }]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid patient data, missing required fields, or UUID mismatch between path and body",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InlineError"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Missing or invalid JWT token"
+                    },
+                    "404": {
+                        "description": "Not Found - Patient with the specified UUID does not exist",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InlineError"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - Update conflict (e.g., concurrent modification)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InlineError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "x-codeSamples": [
+                    {
+                        "lang": "curl",
+                        "label": "CURL",
+                        "source": "# First, authenticate and get token\nTOKEN=$(curl -X POST \"https://demo.openimis.org/api/api_fhir_r4/login/\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"username\":\"your_user\",\"password\":\"your_pass\"}' \\\n  | jq -r '.token')\n\n# Update patient\ncurl -X PUT \"https://demo.openimis.org/api/api_fhir_r4/Patient/01EEDC6C-436C-465F-86C2-6FF68644D751/\" \\\n  -H \"Authorization: Bearer $TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"resourceType\": \"Patient\",\n    \"id\": \"01EEDC6C-436C-465F-86C2-6FF68644D751\",\n    \"identifier\": [{\"type\": {\"coding\": [{\"code\": \"UUID\"}]}, \"value\": \"01EEDC6C-436C-465F-86C2-6FF68644D751\"}],\n    \"name\": [{\"family\": \"Banda\", \"given\": [\"James\", \"Updated\"]}],\n    \"gender\": \"male\",\n    \"birthDate\": \"1987-01-07\",\n    \"address\": [{\"text\": \"10 Tsoka Village - Updated\"}]\n  }'"
+                    },
+                    {
+                        "lang": "python",
+                        "label": "Python",
+                        "source": "import requests\n\n# Step 1: Authenticate\nlogin_url = \"https://demo.openimis.org/api/api_fhir_r4/login/\"\nauth_response = requests.post(login_url, json={\n    \"username\": \"your_username\",\n    \"password\": \"your_password\"\n})\ntoken = auth_response.json()['token']\n\n# Step 2: Get current patient data\npatient_id = \"01EEDC6C-436C-465F-86C2-6FF68644D751\"\nget_url = f\"https://demo.openimis.org/api/api_fhir_r4/Patient/{patient_id}/\"\nheaders = {\"Authorization\": f\"Bearer {token}\"}\npatient = requests.get(get_url, headers=headers).json()\n\n# Step 3: Modify patient data\npatient['address'][0]['text'] = \"10 Tsoka Village - Updated Address\"\npatient['name'][0]['given'].append(\"Updated\")\n\n# Step 4: Update patient\nheaders[\"Content-Type\"] = \"application/json\"\nupdate_url = f\"https://demo.openimis.org/api/api_fhir_r4/Patient/{patient_id}/\"\nresponse = requests.put(update_url, headers=headers, json=patient)\nprint(f\"Updated patient: {response.json()['name'][0]['family']}\")"
+                    },
+                    {
+                        "lang": "javascript",
+                        "label": "JavaScript",
+                        "source": "// Step 1: Authenticate\nconst loginResponse = await fetch('https://demo.openimis.org/api/api_fhir_r4/login/', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ username: 'your_username', password: 'your_password' })\n});\nconst { token } = await loginResponse.json();\n\n// Step 2: Get current patient\nconst patientId = '01EEDC6C-436C-465F-86C2-6FF68644D751';\nconst getResponse = await fetch(\n  `https://demo.openimis.org/api/api_fhir_r4/Patient/${patientId}/`,\n  { headers: { 'Authorization': `Bearer ${token}` } }\n);\nconst patient = await getResponse.json();\n\n// Step 3: Modify and update\npatient.address[0].text = '10 Tsoka Village - Updated';\npatient.name[0].given.push('Updated');\n\nconst updateResponse = await fetch(\n  `https://demo.openimis.org/api/api_fhir_r4/Patient/${patientId}/`,\n  {\n    method: 'PUT',\n    headers: {\n      'Authorization': `Bearer ${token}`,\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify(patient)\n  }\n);\n\nconst updated = await updateResponse.json();\nconsole.log('Updated:', updated.name[0].family);"
                     }
                 ]
             }
@@ -298,6 +668,286 @@
                     "resourceType",
                     "issue"
                 ]
+            },
+            "PatientResource": {
+                "type": "object",
+                "description": "FHIR R4 Patient resource representing an insuree/patient in openIMIS. See https://fhir.openimis.org/ for complete documentation.",
+                "required": ["resourceType"],
+                "properties": {
+                    "resourceType": {
+                        "type": "string",
+                        "enum": ["Patient"],
+                        "description": "FHIR resource type - must be 'Patient'",
+                        "example": "Patient"
+                    },
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "openIMIS internal UUID for the patient. Assigned by the system on creation.",
+                        "example": "01EEDC6C-436C-465F-86C2-6FF68644D751"
+                    },
+                    "identifier": {
+                        "type": "array",
+                        "description": "Patient identifiers (UUID, insurance number, national ID, etc.)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "object",
+                                    "description": "Identifier type coding",
+                                    "properties": {
+                                        "coding": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "code": {
+                                                        "type": "string",
+                                                        "description": "Identifier type code (UUID, SB for insurance number, etc.)",
+                                                        "example": "SB"
+                                                    },
+                                                    "system": {
+                                                        "type": "string",
+                                                        "example": "https://hl7.org/fhir/valueset-identifier-type.html"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "use": {
+                                    "type": "string",
+                                    "description": "Identifier usage (usual, official, temp, etc.)",
+                                    "example": "usual"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "description": "The actual identifier value",
+                                    "example": "105000002"
+                                }
+                            }
+                        }
+                    },
+                    "name": {
+                        "type": "array",
+                        "description": "Patient's name(s)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "use": {
+                                    "type": "string",
+                                    "description": "Name usage (usual, official, nickname, etc.)",
+                                    "example": "usual"
+                                },
+                                "family": {
+                                    "type": "string",
+                                    "description": "Family name (surname)",
+                                    "example": "Banda"
+                                },
+                                "given": {
+                                    "type": "array",
+                                    "description": "Given names (first name, middle names)",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "example": ["James"]
+                                }
+                            }
+                        }
+                    },
+                    "gender": {
+                        "type": "string",
+                        "description": "Administrative gender",
+                        "enum": ["male", "female", "other", "unknown"],
+                        "example": "male"
+                    },
+                    "birthDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date of birth in YYYY-MM-DD format",
+                        "example": "1987-01-07"
+                    },
+                    "address": {
+                        "type": "array",
+                        "description": "Patient's address(es)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "use": {
+                                    "type": "string",
+                                    "description": "Address usage (home, work, temp, etc.)",
+                                    "example": "home"
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "description": "Address type (postal, physical, both)",
+                                    "example": "physical"
+                                },
+                                "text": {
+                                    "type": "string",
+                                    "description": "Full address as a single string",
+                                    "example": "5 Tsoka Village"
+                                },
+                                "line": {
+                                    "type": "array",
+                                    "description": "Street address lines",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "city": {
+                                    "type": "string",
+                                    "description": "City/town"
+                                },
+                                "district": {
+                                    "type": "string",
+                                    "description": "District/county"
+                                },
+                                "state": {
+                                    "type": "string",
+                                    "description": "State/province/region"
+                                },
+                                "postalCode": {
+                                    "type": "string",
+                                    "description": "Postal/zip code"
+                                },
+                                "country": {
+                                    "type": "string",
+                                    "description": "Country"
+                                }
+                            }
+                        }
+                    },
+                    "telecom": {
+                        "type": "array",
+                        "description": "Contact information (phone, email, etc.)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "system": {
+                                    "type": "string",
+                                    "description": "Contact type (phone, email, fax, etc.)",
+                                    "enum": ["phone", "fax", "email", "pager", "url", "sms", "other"],
+                                    "example": "phone"
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "description": "The actual contact value",
+                                    "example": "+265999123456"
+                                },
+                                "use": {
+                                    "type": "string",
+                                    "description": "Contact usage (home, work, mobile, etc.)",
+                                    "example": "mobile"
+                                }
+                            }
+                        }
+                    },
+                    "maritalStatus": {
+                        "type": "object",
+                        "description": "Marital status",
+                        "properties": {
+                            "coding": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "system": {
+                                            "type": "string",
+                                            "example": "http://hl7.org/fhir/valueset-marital-status.html"
+                                        },
+                                        "code": {
+                                            "type": "string",
+                                            "description": "Marital status code (M=Married, S=Single, D=Divorced, etc.)",
+                                            "example": "M"
+                                        }
+                                    }
+                                }
+                            },
+                            "text": {
+                                "type": "string",
+                                "description": "Human-readable marital status",
+                                "example": "Married"
+                            }
+                        }
+                    },
+                    "photo": {
+                        "type": "array",
+                        "description": "Patient photo(s)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "contentType": {
+                                    "type": "string",
+                                    "description": "Image MIME type",
+                                    "example": "image/jpeg"
+                                },
+                                "url": {
+                                    "type": "string",
+                                    "description": "URL to the photo",
+                                    "format": "uri"
+                                },
+                                "data": {
+                                    "type": "string",
+                                    "description": "Base64 encoded image data",
+                                    "format": "byte"
+                                }
+                            }
+                        }
+                    },
+                    "extension": {
+                        "type": "array",
+                        "description": "openIMIS-specific extensions for additional patient attributes",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "description": "Extension identifier URL",
+                                    "example": "https://openimis.atlassian.net/wiki/spaces/OP/pages/960069653/isHead"
+                                },
+                                "valueBoolean": {
+                                    "type": "boolean",
+                                    "description": "Boolean value (for isHead, povertyStatus, etc.)"
+                                },
+                                "valueCoding": {
+                                    "type": "object",
+                                    "description": "Coded value (for educationCode, professionCode, etc.)",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "description": "Code value"
+                                        },
+                                        "display": {
+                                            "type": "string",
+                                            "description": "Human-readable display text"
+                                        }
+                                    }
+                                },
+                                "valueDateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Date/time value (for registrationDate, etc.)"
+                                },
+                                "valueReference": {
+                                    "type": "object",
+                                    "description": "Reference to another resource (for locationCode, etc.)",
+                                    "properties": {
+                                        "reference": {
+                                            "type": "string",
+                                            "description": "Resource reference",
+                                            "example": "Location/12345"
+                                        },
+                                        "display": {
+                                            "type": "string",
+                                            "description": "Display text for the reference"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "securitySchemes": {
