@@ -64,4 +64,5 @@ class SubscriptionNotificationResult(models.Model):
 
     class Meta:
         managed = True
+        app_label = 'api_fhir_r4'
         db_table = "tblSubscriptionNotificationResult"
