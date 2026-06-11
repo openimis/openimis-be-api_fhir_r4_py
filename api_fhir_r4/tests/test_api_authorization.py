@@ -58,6 +58,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         )
         response_json = response.json()
         token = response_json["token"]
+        self.client.logout()
         headers = {
             "Content-Type": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {token}ssdd",
@@ -77,6 +78,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         )
         response_json = response.json()
         token = response_json["token"]
+        self.client.logout()
         headers = {"Content-Type": "application/json", "HTTP_AUTHORIZATION": f"{token}"}
         response = self.client.get(
             self.url_to_test_authorization, format="json", **headers
@@ -95,6 +97,7 @@ class AuthorizationAPITests(GenericFhirAPITestMixin, APITestCase):
         )
         response_json = response.json()
         token = response_json["token"]
+        self.client.logout()
         headers = {
             "Content-Type": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {token} xxxxx xxxxxx",
