@@ -95,11 +95,11 @@ def bind_service_signals():
             """      
             try:
                 model = kwargs.get('result', None)
-                audit_user_id = None
                 try:
-                    user = User.objects.get(claim_admin_id=kwargs.get('data')[0][0].get('admin_id'))
-                except User.DoesNotExist:
-                    logger.error(f"User with id {audit_user_id} not found. Aborting notification.")
+                    admin_id = kwargs.get('data')[0][0].get('admin_id')
+                    user = User.objects.get(claim_admin_id=admin_id)
+                except (User.DoesNotExist, IndexError, KeyError, TypeError):
+                    logger.error(f"User with claim_admin_id {admin_id if 'admin_id' in locals() else 'unknown'} not found or invalid data. Aborting notification.")
                     return
 
                 #Instantiate the correct converter (ClaimResponseConverter) with the user
