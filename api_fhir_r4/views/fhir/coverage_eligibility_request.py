@@ -14,4 +14,6 @@ class CoverageEligibilityRequestViewSet(BaseFHIRView, GenericViewSet):
 
     def get_queryset(self):
         queryset = Insuree.get_queryset(None, self.request.user)
-        return ValidityFromRequestParameterFilter(self.request).filter_queryset(queryset)
+        return ValidityFromRequestParameterFilter(self.request).filter_queryset(
+            queryset
+        )

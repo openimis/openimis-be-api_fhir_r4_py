@@ -1,5 +1,4 @@
 import hashlib
-import urllib
 from api_fhir_r4.configurations import GeneralConfiguration
 from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleLink
 from rest_framework.pagination import PageNumberPagination
@@ -11,8 +10,8 @@ from django.db.models.query import QuerySet
 class FhirBundleResultsSetPagination(PageNumberPagination):
 
     page_size = GeneralConfiguration.get_default_response_page_size()
-    page_query_param = 'page-offset'
-    page_size_query_param = '_count'
+    page_query_param = "page-offset"
+    page_size_query_param = "_count"
 
     def get_paginated_response(self, data):
         return Response(self.build_bundle_set(data).dict())
@@ -36,21 +35,24 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
 
     def build_bundle_link(self, bundle, relation, url):
         self_link = {}
-        self_link['url'] = urllib.parse.quote_plus(url)
-        self_link['relation'] = relation
+        self_link["url"] = url  # urllib.parse.quote_plus(url)
+        self_link["relation"] = relation
         bundle_link = BundleLink(**self_link)
         if type(bundle.link) is not list:
-           bundle.link = [bundle_link]
+            bundle.link = [bundle_link]
         else:
-           bundle.link.append(bundle_link)
+            bundle.link.append(bundle_link)
 
     def build_bundle_entry(self, bundle, data):
         bundle.entry = []
         for obj in data:
             entry = {}
-            entry['fullUrl'] = self.build_full_url_for_resource(obj)
-            entry['resource'] = obj
-            bundle_entry = BundleEntry(**entry)
+            entry["fullUrl"] = self.build_full_url_for_resource(obj)
+            entry["resource"] = obj
+            try:
+                bundle_entry = BundleEntry(**entry)
+            except Exception:
+                raise ValueError(f"malformed entry {entry['fullUrl']}")
             bundle.entry.append(bundle_entry)
 
     def build_full_url_for_resource(self, fhir_object):
@@ -65,7 +67,7 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
     def get_object_pk(self, fhir_object):
         pk_id = None
         if isinstance(fhir_object, dict):
-            pk_id = fhir_object.get('id')
+            pk_id = fhir_object.get("id")
         return str(pk_id) if pk_id else None
 
     def exclude_query_parameter_from_url(self, url):
@@ -77,21 +79,23 @@ class FhirBundleResultsSetPagination(PageNumberPagination):
         return o._replace(query=None).geturl()
 
     def paginate_queryset(self, queryset, *args, **kwargs):
-        if isinstance(queryset, QuerySet) and hasattr(queryset, 'count'):
+        if isinstance(queryset, QuerySet) and hasattr(queryset, "count"):
             queryset = CachedCountQueryset(queryset)
         return super().paginate_queryset(queryset, *args, **kwargs)
 
 
-def CachedCountQueryset(queryset, timeout=60*60, cache_name='default'):
+def CachedCountQueryset(queryset, timeout=60 * 60, cache_name="default"):
     """
-        Return copy of queryset with queryset.count() wrapped to cache result for `timeout` seconds.
+    Return copy of queryset with queryset.count() wrapped to cache result for `timeout` seconds.
     """
     cache = caches[cache_name]
     queryset = queryset._chain()
     real_count = queryset.count
 
     def count(queryset):
-        cache_key = 'query-count:' + hashlib.md5(str(queryset.query).encode('utf8')).hexdigest()
+        cache_key = (
+            "query-count:" + hashlib.md5(str(queryset.query).encode("utf8")).hexdigest()
+        )
 
         # return existing value, if any
         value = cache.get(cache_key)

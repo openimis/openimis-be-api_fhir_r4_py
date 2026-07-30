@@ -14,7 +14,9 @@ class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
 
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request, *args, **kwargs):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -24,14 +26,14 @@ class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                "model_name": 'Diagnosis',
-                "code_field": 'code',
-                "display_field": 'name',
-                "id": 'diagnosis-ICD10-level1',
-                "name": 'DiagnosisICD10Level1CS',
-                "title": 'ICD 10 Level 1 diagnosis (Claim)',
+                "model_name": "Diagnosis",
+                "code_field": "code",
+                "display_field": "name",
+                "id": "diagnosis-ICD10-level1",
+                "name": "DiagnosisICD10Level1CS",
+                "title": "ICD 10 Level 1 diagnosis (Claim)",
                 "description": "The actual list of diagnosis configured in openIMIS.",
-                "url": self.request.build_absolute_uri()
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)

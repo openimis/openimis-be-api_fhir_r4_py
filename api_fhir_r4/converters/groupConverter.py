@@ -9,18 +9,20 @@ from location.models import Location
 from api_fhir_r4.configurations import R4IdentifierConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter, ReferenceConverterMixin
 from api_fhir_r4.converters.locationConverter import LocationConverter
-from core.models import InteractiveUser
 from api_fhir_r4.mapping.groupMapping import GroupTypeMapping, ConfirmationTypeMapping
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.group import Group, GroupMember
 from api_fhir_r4.utils import DbManagerUtils
 from api_fhir_r4.exceptions import FHIRException
-from core.utils import filter_validity
+from core.utils import get_current_user
+
 
 class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
     @classmethod
-    def to_fhir_obj(cls, imis_family, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls, imis_family, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE
+    ):
         fhir_family = {}
         # create two obligatory field
         cls.build_fhir_actual(fhir_family, imis_family)
@@ -40,32 +42,40 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def to_imis_obj(cls, fhir_family, audit_user_id):
         errors = []
         fhir_family = Group(**fhir_family)
-        head_code = cls.get_fhir_identifier_by_code(fhir_family.identifier, cls.get_fhir_code_identifier_type())
-        family_uuid = cls.get_fhir_identifier_by_code(fhir_family.identifier, cls.get_fhir_uuid_identifier_type())
+        head_code = cls.get_fhir_identifier_by_code(
+            fhir_family.identifier, cls.get_fhir_code_identifier_type()
+        )
+        family_uuid = cls.get_fhir_identifier_by_code(
+            fhir_family.identifier, cls.get_fhir_uuid_identifier_type()
+        )
         cls._validate_fhir_family_identifier_code(head_code)
-        imis_family = Family.objects.filter(Q(head_insuree__chf_id=head_code) | Q(uuid=family_uuid), *filter_validity()).first()
+        imis_family = Family.objects.filter(
+            Q(head_insuree__chf_id=head_code) | Q(uuid=family_uuid), *Family.filter_validity()
+        ).first()
         if imis_family:
-            saved_members = imis_family.members.filter(*filter_validity())
+            saved_members = imis_family.members.filter(*Insuree.filter_validity())
             if saved_members and all([m.chf_id != head_code for m in saved_members]):
-                raise FHIRException("Group is using an UUID of a group not associated the head")
+                raise FHIRException(
+                    "Group is using an UUID of a group not associated the head"
+                )
         else:
             imis_family = Family()
         imis_family.audit_user_id = audit_user_id
-        cls.build_family_members(imis_family, fhir_family, head_code, audit_user_id, errors)
+        cls.build_family_members(
+            imis_family, fhir_family, head_code, audit_user_id, errors
+        )
         cls.build_imis_extentions(imis_family, fhir_family)
         cls.check_errors(errors)
         return imis_family
 
-
     @classmethod
     def get_fhir_code_identifier_type(cls):
         return R4IdentifierConfig.get_fhir_generic_type_code()
-    
-    
+
     @classmethod
     def get_fhir_uuid_identifier_type(cls):
         return R4IdentifierConfig.get_fhir_uuid_type_code()
-    
+
     @classmethod
     def get_reference_obj_id(cls, imis_family):
         return imis_family.id
@@ -84,9 +94,8 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
         return DbManagerUtils.get_object_or_none(
-            Family,
-            **cls.get_database_query_id_parameteres_from_reference(reference))
-
+            Family, **cls.get_database_query_id_parameteres_from_reference(reference)
+        )
 
     @classmethod
     def build_human_names(cls, fhir_family, imis_family):
@@ -97,25 +106,29 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             fhir_family.head.append(name)
 
     @classmethod
-    def build_family_members(cls, imis_family, fhir_family, head_code, user_audit_id, errors):
+    def build_family_members(
+        cls, imis_family, fhir_family, head_code, user_audit_id, errors
+    ):
         members = fhir_family.member
         imis_family.members_family = []
-        if cls.valid_condition(members is None, _('Missing `member` attribute'), errors) \
-                or cls.valid_condition(members is None, _('Missing member should not be empty'), errors):
+        if cls.valid_condition(
+            members is None, _("Missing `member` attribute"), errors
+        ) or cls.valid_condition(
+            members is None, _("Missing member should not be empty"), errors
+        ):
             return
         for member in members:
             insuree = cls._insuree_from_reference(member.entity)
             try:
                 # we are changeing family
-                InsureeService(user=cls.user).change_family(insuree, imis_family)
+                InsureeService(user=get_current_user()).change_family(insuree, imis_family)
 
             except ValueError as e:
                 raise FHIRException(e)
             if insuree.chf_id == head_code:
                 imis_family.head_insuree = insuree
             imis_family.members_family.append(insuree)
-        
-        
+
     @classmethod
     def build_fhir_identifiers(cls, fhir_family, imis_family):
         identifiers = []
@@ -134,42 +147,42 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
         head_id = cls.build_fhir_identifier(
             imis_family.head_insuree.chf_id,
             R4IdentifierConfig.get_fhir_identifier_type_system(),
-            R4IdentifierConfig.get_fhir_generic_type_code()
+            R4IdentifierConfig.get_fhir_generic_type_code(),
         )
         identifiers.append(head_id)
 
-
-
     @classmethod
     def build_fhir_name(cls, fhir_family, imis_family):
-      if imis_family.head_insuree is not None:
-          fhir_family.name = imis_family.head_insuree.last_name
-    
+        if imis_family.head_insuree is not None:
+            fhir_family.name = imis_family.head_insuree.last_name
+
     @classmethod
     def build_fhir_actual(cls, fhir_family, imis_family):
-        fhir_family['actual'] = True
-    
+        fhir_family["actual"] = True
+
     @classmethod
     def build_fhir_type(cls, fhir_family, imis_family):
         # according to the IMIS profile - always 'Person' value
-        fhir_family['type'] = "Person"
-        
+        fhir_family["type"] = "Person"
+
     @classmethod
     def build_fhir_active(cls, fhir_family, imis_family):
         number_of_active_policy = InsureePolicy.objects.filter(
             Q(insuree__family__uuid=imis_family.uuid),
             Q(policy__status=Policy.STATUS_ACTIVE),
-            Q(validity_to__isnull=True)
+            Q(validity_to__isnull=True),
         ).count()
         fhir_family.active = True if number_of_active_policy > 0 else False
 
     @classmethod
-    def build_fhir_member(cls,fhir_family, imis_family, reference_type):
+    def build_fhir_member(cls, fhir_family, imis_family, reference_type):
         fhir_family.member = cls.build_fhir_members(imis_family)
 
     @classmethod
-    def build_fhir_quantity(cls,fhir_family, imis_family):
-        quantity = Insuree.objects.filter(family__uuid=imis_family.uuid, validity_to__isnull=True).count()
+    def build_fhir_quantity(cls, fhir_family, imis_family):
+        quantity = Insuree.objects.filter(
+            family__uuid=imis_family.uuid, validity_to__isnull=True
+        ).count()
         fhir_family.quantity = quantity
 
     @classmethod
@@ -179,7 +192,9 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
         def build_extension(fhir_family, imis_family, value):
             extension = Extension.construct()
             if value == "group-address":
-                cls._build_extension_address(extension, fhir_family, imis_family, reference_type=reference_type)
+                cls._build_extension_address(
+                    extension, fhir_family, imis_family, reference_type=reference_type
+                )
 
             elif value == "group-poverty-status":
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-poverty-status"
@@ -187,17 +202,25 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
 
             elif value == "group-type":
                 extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-type"
-                if hasattr(imis_family, "family_type") and imis_family.family_type is not None:
+                if (
+                    hasattr(imis_family, "family_type")
+                    and imis_family.family_type is not None
+                ):
                     GroupTypeMapping.load()
-                    display = GroupTypeMapping.group_type[str(imis_family.family_type.code)]
+                    display = GroupTypeMapping.group_type[
+                        str(imis_family.family_type.code)
+                    ]
                     system = "CodeSystem/group-type"
-                    extension.valueCodeableConcept = cls.build_codeable_concept(code=str(imis_family.family_type.code),
-                                                                                system=system)
+                    extension.valueCodeableConcept = cls.build_codeable_concept(
+                        code=str(imis_family.family_type.code), system=system
+                    )
                     if len(extension.valueCodeableConcept.coding) == 1:
                         extension.valueCodeableConcept.coding[0].display = display
             # group-confirmation
             else:
-                cls._build_extension_group_confirmation(extension, fhir_family, imis_family)
+                cls._build_extension_group_confirmation(
+                    extension, fhir_family, imis_family
+                )
 
             if type(fhir_family.extension) is not list:
                 fhir_family.extension = [extension]
@@ -211,50 +234,75 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             build_extension(fhir_family, imis_family, "group-poverty-status")
         if imis_family.family_type is not None:
             build_extension(fhir_family, imis_family, "group-type")
-        if imis_family.confirmation_type is not None and imis_family.confirmation_no is not None:
+        if (
+            imis_family.confirmation_type is not None
+            and imis_family.confirmation_no is not None
+        ):
             build_extension(fhir_family, imis_family, "group-confirmation")
 
     @classmethod
     def build_imis_extentions(cls, imis_family, fhir_family):
         cls._validate_fhir_extension_is_exist(fhir_family)
         for extension in fhir_family.extension:
-            if extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-address":
+            if (
+                extension.url
+                == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-address"
+            ):
                 address = extension.valueAddress
                 # insuree use temp address
                 if address and address.use == "home" and address.type == "physical":
                     imis_family.address = address.text
                     for ext in address.extension:
                         if "StructureDefinition/address-location-reference" in ext.url:
-                                imis_family.location= Location.objects.filter(validity_to__isnull=True,**LocationConverter.get_database_query_id_parameteres_from_reference(ext.valueReference)).first()
+                            imis_family.location = Location.objects.filter(
+                                validity_to__isnull=True,
+                                **LocationConverter.get_database_query_id_parameteres_from_reference(
+                                    ext.valueReference
+                                ),
+                            ).first()
 
-            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-poverty-status":
+            elif (
+                extension.url
+                == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-poverty-status"
+            ):
                 imis_family.poverty = extension.valueBoolean
 
-            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-type":
+            elif (
+                extension.url
+                == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-type"
+            ):
                 try:
-                    imis_family.family_type = FamilyType.objects.get(code=extension.valueCodeableConcept.coding[0].code)
-                except:
+                    imis_family.family_type = FamilyType.objects.get(
+                        code=extension.valueCodeableConcept.coding[0].code
+                    )
+                except Exception:
                     imis_family.family_type = None
 
-            elif extension.url == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-confirmation":
+            elif (
+                extension.url
+                == f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-confirmation"
+            ):
                 try:
                     for ext in extension.extension:
                         if ext.url == "number":
                             fhir_family.confirmation_no = ext.valueString
                         if ext.url == "type":
-                            fhir_family.confirmation_type = ConfirmationType.objects.get(
-                                code=ext.valueCodeableConcept.coding[0].code)
-                except:
+                            fhir_family.confirmation_type = (
+                                ConfirmationType.objects.get(
+                                    code=ext.valueCodeableConcept.coding[0].code
+                                )
+                            )
+                except Exception:
                     imis_family.confirmation_no = None
                     imis_family.confirmation_type = None
             else:
                 pass
         cls._validate_imis_family_location(imis_family)
 
-
-
     @classmethod
-    def _build_extension_address(cls, extension, fhir_family, imis_family, reference_type):
+    def _build_extension_address(
+        cls, extension, fhir_family, imis_family, reference_type
+    ):
         extension.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/group-address"
         family_address = cls.build_fhir_address(imis_family.address, "home", "physical")
         if imis_family.location:
@@ -262,15 +310,22 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
             family_address.district = imis_family.location.parent.parent.name
             # municipality extension
             extension_address = Extension.construct()
-            extension_address.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-municipality"
+            extension_address.url = f"""{
+                GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/address-municipality"""
             extension_address.valueString = imis_family.location.parent.name
             family_address.extension = [extension_address]
 
             # address location reference extension
             extension_address = Extension.construct()
-            extension_address.url = f"{GeneralConfiguration.get_system_base_url()}StructureDefinition/address-location-reference"
-            extension_address.valueReference = LocationConverter\
-                .build_fhir_resource_reference(imis_family.location, 'Location', reference_type=reference_type)
+            extension_address.url = f"""{
+                GeneralConfiguration.get_system_base_url()
+            }StructureDefinition/address-location-reference"""
+            extension_address.valueReference = (
+                LocationConverter.build_fhir_resource_reference(
+                    imis_family.location, "Location", reference_type=reference_type
+                )
+            )
             family_address.extension.append(extension_address)
             family_address.city = imis_family.location.name
         extension.valueAddress = family_address
@@ -288,11 +343,14 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
                 # add identifier extension
                 nested_extension = Extension.construct()
                 nested_extension.url = "type"
-                system = "CodeSystem/group-confirmation-type" 
+                system = "CodeSystem/group-confirmation-type"
                 ConfirmationTypeMapping.load()
-                display = ConfirmationTypeMapping.confirmation_type[str(imis_family.confirmation_type.code)]
+                display = ConfirmationTypeMapping.confirmation_type[
+                    str(imis_family.confirmation_type.code)
+                ]
                 nested_extension.valueCodeableConcept = cls.build_codeable_concept(
-                    code=imis_family.confirmation_type.code, system=system)
+                    code=imis_family.confirmation_type.code, system=system
+                )
                 if len(nested_extension.valueCodeableConcept.coding) == 1:
                     nested_extension.valueCodeableConcept.coding[0].display = display
                 extension.extension.append(nested_extension)
@@ -300,13 +358,17 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def build_fhir_names_for_person(cls, person_obj):
         try:
-            return HumanName(**{
-                'use': 'usual',
-                'family': person_obj.last_name,
-                'given': [person_obj.other_names]
-            })
+            return HumanName(
+                **{
+                    "use": "usual",
+                    "family": person_obj.last_name,
+                    "given": [person_obj.other_names],
+                }
+            )
         except AttributeError as e:
-            raise FHIRException([_('Missing `last_name` and `other_names` for IMIS object')]) from e
+            raise FHIRException(
+                [_("Missing `last_name` and `other_names` for IMIS object")]
+            ) from e
 
     @classmethod
     def build_fhir_members(cls, family):
@@ -326,23 +388,19 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     @classmethod
     def _validate_fhir_identifier_is_exist(cls, fhir_family):
         if not fhir_family.identifier or len(fhir_family.identifier) == 0:
-            raise FHIRException(
-                _('FHIR Group entity without identifier')
-            )
+            raise FHIRException(_("FHIR Group entity without identifier"))
 
     # fhir validations
     @classmethod
     def _validate_fhir_extension_is_exist(cls, fhir_family):
         if not fhir_family.extension or len(fhir_family.extension) == 0:
-            raise FHIRException(
-                _('At least one extension with address is required')
-            )
+            raise FHIRException(_("At least one extension with address is required"))
 
     @classmethod
     def _validate_fhir_family_identifier_code(cls, fhir_family_identifier_code):
         if not fhir_family_identifier_code:
             raise FHIRException(
-                _('Family Group FHIR without code - this field is obligatory')
+                _("Family Group FHIR without code - this field is obligatory")
             )
 
     # imis validations
@@ -350,7 +408,8 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
     def _validate_imis_identifier_code(cls, imis_family):
         if not imis_family.head_insuree.chf_id:
             raise FHIRException(
-                _('Family %(family_uuid)s without code') % {'family_uuid': imis_family.uuid}
+                _("Family %(family_uuid)s without code")
+                % {"family_uuid": imis_family.uuid}
             )
 
     @classmethod
@@ -358,31 +417,30 @@ class GroupConverter(BaseFHIRConverter, ReferenceConverterMixin):
         if not imis_family.location:
             if imis_family.uuid:
                 raise FHIRException(
-                    _('Family %(family_uuid)s without location') % {'family_uuid': imis_family.uuid}
+                    _("Family %(family_uuid)s without location")
+                    % {"family_uuid": imis_family.uuid}
                 )
             else:
-                raise FHIRException(
-                    _('new Family without location')
-                )
+                raise FHIRException(_("new Family without location"))
 
     @classmethod
     def _create_group_member(cls, insuree):
         # Due to circular dependency import has to be done inside of method
         from api_fhir_r4.converters import PatientConverter
+
         reference = PatientConverter.build_fhir_resource_reference(
-            insuree,
-            type='Patient',
-            display=insuree.chf_id
+            insuree, type="Patient", display=insuree.chf_id
         )
         return GroupMember(entity=reference)
 
     @classmethod
     def _insuree_from_reference(cls, reference):
         from api_fhir_r4.converters import PatientConverter
+
         insuree = PatientConverter.get_imis_obj_by_fhir_reference(reference)
         if insuree is None:
-            raise FHIRException(f"Invalid Family member reference. "
-                                f"Insuree with identifier `{reference}` does not exist")
+            raise FHIRException(
+                f"Invalid Family member reference. "
+                f"Insuree with identifier `{reference}` does not exist"
+            )
         return insuree
-
-

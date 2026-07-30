@@ -12,7 +12,9 @@ class OperationOutcomeTestMixin(GenericTestMixin):
 
     def create_test_imis_instance(self):
         errors = []
-        BaseFHIRConverter.valid_condition(self.__VALID_CONDITION, self.__ERROR_MESSAGE, errors)
+        BaseFHIRConverter.valid_condition(
+            self.__VALID_CONDITION, self.__ERROR_MESSAGE, errors
+        )
         return FHIRRequestProcessException(errors)
 
     def create_test_fhir_instance(self):
@@ -23,8 +25,13 @@ class OperationOutcomeTestMixin(GenericTestMixin):
         issues = fhir_obj.issue
         self.assertEqual(1, len(issues))
         first_issue = issues[0]
-        self.assertEqual(first_issue.code, R4IssueTypeConfig.get_fhir_code_for_exception())
+        self.assertEqual(
+            first_issue.code, R4IssueTypeConfig.get_fhir_code_for_exception()
+        )
         self.assertEqual(first_issue.severity, "error")
         details = first_issue.details
         self.assertTrue(isinstance(details, CodeableConcept))
-        self.assertEqual(details.text, "The request cannot be processed due to the following issues:\nError message")
+        self.assertEqual(
+            details.text,
+            "The request cannot be processed due to the following issues:\nError message",
+        )

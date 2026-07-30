@@ -1,0 +1,75 @@
+{
+  "resourceType": "Organization",
+  "type": [
+    {
+      "coding": [
+        {
+          "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/organization-type",
+          "code": "bus",
+          "display": "Business"
+        }
+      ]
+    }
+  ],
+  "name": "Test PolicyHolder",
+  "identifier": [
+    {
+      "use": "usual",
+      "type": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/openimis-identifiers",
+            "code": "Code"
+          }
+        ]
+      },
+      "value": "TestPHCode"
+    }
+  ],
+  "telecom": [
+    {
+      "system": "email",
+      "value": "test@example.com"
+    },
+    {
+      "system": "phone",
+      "value": "+1234567890"
+    }
+  ],
+  "address": [
+    {
+      "use": "work",
+      "type": "physical",
+      "text": "123 Test Street",
+      "city": "Test City",
+      "district": "Test District",
+      "state": "Test State"
+    }
+  ],
+  "extension": [
+    {
+      "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/organization-legal-form",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/organization-legal-form",
+            "code": "1",
+            "display": "Personal Company"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://openimis.github.io/openimis_fhir_r4_ig/StructureDefinition/organization-activity",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "system": "https://openimis.github.io/openimis_fhir_r4_ig/CodeSystem/organization-activity",
+            "code": "1",
+            "display": "Activity 1"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -4,15 +4,29 @@ from claim.models import Claim
 from core.models import User
 
 from api_fhir_r4.converters import ClaimResponseConverter
-from api_fhir_r4.serializers import BaseFHIRSerializer
+from api_fhir_r4.serializers.baseSerializer import BaseFHIRSerializer
 
 
 class ClaimResponseSerializer(BaseFHIRSerializer):
 
     fhirConverter = ClaimResponseConverter
 
-    UPDATABLE_FIELDS = ['status', 'rejection_reason', 'date_from', 'date_to', 'feedback', 'visit_type',
-                        'review_status', 'health_facility', 'adjustment', 'icd', 'icd_1', 'icd_2', 'icd_3', 'icd_4']
+    UPDATABLE_FIELDS = [
+        "status",
+        "rejection_reason",
+        "date_from",
+        "date_to",
+        "feedback",
+        "visit_type",
+        "review_status",
+        "health_facility",
+        "adjustment",
+        "icd",
+        "icd_1",
+        "icd_2",
+        "icd_3",
+        "icd_4",
+    ]
 
     def update(self, instance: Claim, validated_data):
         self._assign_values_if_available(instance, validated_data)
@@ -31,11 +45,11 @@ class ClaimResponseSerializer(BaseFHIRSerializer):
                 setattr(instance, next_field, new_value)
 
     def _save_claim_serviced_items(self, instance, validated_data):
-        items = validated_data.get('claim_items', [])
-        services = validated_data.get('claim_services', [])
+        items = validated_data.get("claim_items", [])
+        services = validated_data.get("claim_services", [])
         audit_user_id = self.get_audit_user_id()
 
-        for serviced in items+services:
+        for serviced in items + services:
             serviced.claim = instance
             self._assign_audit_user_id(serviced, audit_user_id)
             serviced.save()

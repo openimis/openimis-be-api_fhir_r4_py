@@ -20,62 +20,208 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Subscription',
+            name="Subscription",
             fields=[
-                ('id', models.UUIDField(db_column='UUID', default=None, editable=False, primary_key=True, serialize=False)),
-                ('is_deleted', models.BooleanField(db_column='isDeleted', default=False)),
-                ('json_ext', models.JSONField(blank=True, db_column='Json_ext', null=True)),
-                ('date_created', core.fields.DateTimeField(db_column='DateCreated', null=True)),
-                ('date_updated', core.fields.DateTimeField(db_column='DateUpdated', null=True)),
-                ('version', models.IntegerField(default=1)),
-                ('date_valid_from', core.fields.DateTimeField(db_column='DateValidFrom', default=datetime.datetime.now)),
-                ('date_valid_to', core.fields.DateTimeField(blank=True, db_column='DateValidTo', null=True)),
-                ('replacement_uuid', models.UUIDField(db_column='ReplacementUUID', null=True)),
-                ('status', models.SmallIntegerField(choices=[(0, 'inactive'), (1, 'active')], db_column='Status')),
-                ('channel', models.SmallIntegerField(choices=[(0, 'rest-hook')], db_column='Channel')),
-                ('endpoint', models.CharField(db_column='Endpoint', max_length=255)),
-                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', max_length=255, null=True))),
-                ('criteria', models.JSONField(db_column='Criteria', null=True)),
-                ('expiring', models.DateTimeField(db_column='Expiring')),
-                ('user_created', models.ForeignKey(db_column='UserCreatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='subscription_user_created', to=settings.AUTH_USER_MODEL)),
-                ('user_updated', models.ForeignKey(db_column='UserUpdatedUUID', on_delete=django.db.models.deletion.DO_NOTHING, related_name='subscription_user_updated', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        db_column="UUID",
+                        default=None,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "is_deleted",
+                    models.BooleanField(db_column="isDeleted", default=False),
+                ),
+                (
+                    "json_ext",
+                    models.JSONField(blank=True, db_column="Json_ext", null=True),
+                ),
+                (
+                    "date_created",
+                    core.fields.DateTimeField(db_column="DateCreated", null=True),
+                ),
+                (
+                    "date_updated",
+                    core.fields.DateTimeField(db_column="DateUpdated", null=True),
+                ),
+                ("version", models.IntegerField(default=1)),
+                (
+                    "date_valid_from",
+                    core.fields.DateTimeField(
+                        db_column="DateValidFrom", default=datetime.datetime.now
+                    ),
+                ),
+                (
+                    "date_valid_to",
+                    core.fields.DateTimeField(
+                        blank=True, db_column="DateValidTo", null=True
+                    ),
+                ),
+                (
+                    "replacement_uuid",
+                    models.UUIDField(db_column="ReplacementUUID", null=True),
+                ),
+                (
+                    "status",
+                    models.SmallIntegerField(
+                        choices=[(0, "inactive"), (1, "active")], db_column="Status"
+                    ),
+                ),
+                (
+                    "channel",
+                    models.SmallIntegerField(
+                        choices=[(0, "rest-hook")], db_column="Channel"
+                    ),
+                ),
+                ("endpoint", models.CharField(db_column="Endpoint", max_length=255)),
+                (
+                    "headers",
+                    django_cryptography.fields.encrypt(
+                        models.TextField(db_column="Headers", max_length=255, null=True)
+                    ),
+                ),
+                ("criteria", models.JSONField(db_column="Criteria", null=True)),
+                ("expiring", models.DateTimeField(db_column="Expiring")),
+                (
+                    "user_created",
+                    models.ForeignKey(
+                        db_column="UserCreatedUUID",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="subscription_user_created",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user_updated",
+                    models.ForeignKey(
+                        db_column="UserUpdatedUUID",
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="subscription_user_updated",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'tblSubscription',
-                'managed': True,
+                "db_table": "tblSubscription",
+                "managed": True,
             },
             bases=(dirtyfields.dirtyfields.DirtyFieldsMixin, models.Model),
         ),
         migrations.CreateModel(
-            name='HistoricalSubscription',
+            name="HistoricalSubscription",
             fields=[
-                ('id', models.UUIDField(db_column='UUID', db_index=True, default=None, editable=False)),
-                ('is_deleted', models.BooleanField(db_column='isDeleted', default=False)),
-                ('json_ext', models.JSONField(blank=True, db_column='Json_ext', null=True)),
-                ('date_created', core.fields.DateTimeField(db_column='DateCreated', null=True)),
-                ('date_updated', core.fields.DateTimeField(db_column='DateUpdated', null=True)),
-                ('version', models.IntegerField(default=1)),
-                ('date_valid_from', core.fields.DateTimeField(db_column='DateValidFrom', default=datetime.datetime.now)),
-                ('date_valid_to', core.fields.DateTimeField(blank=True, db_column='DateValidTo', null=True)),
-                ('replacement_uuid', models.UUIDField(db_column='ReplacementUUID', null=True)),
-                ('status', models.SmallIntegerField(choices=[(0, 'inactive'), (1, 'active')], db_column='Status')),
-                ('channel', models.SmallIntegerField(choices=[(0, 'rest-hook')], db_column='Channel')),
-                ('endpoint', models.CharField(db_column='Endpoint', max_length=255)),
-                ('headers', django_cryptography.fields.encrypt(models.TextField(db_column='Headers', max_length=255, null=True))),
-                ('criteria', models.JSONField(db_column='Criteria', null=True)),
-                ('expiring', models.DateTimeField(db_column='Expiring')),
-                ('history_id', models.AutoField(primary_key=True, serialize=False)),
-                ('history_date', models.DateTimeField()),
-                ('history_change_reason', models.CharField(max_length=100, null=True)),
-                ('history_type', models.CharField(choices=[('+', 'Created'), ('~', 'Changed'), ('-', 'Deleted')], max_length=1)),
-                ('history_user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('user_created', models.ForeignKey(blank=True, db_column='UserCreatedUUID', db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('user_updated', models.ForeignKey(blank=True, db_column='UserUpdatedUUID', db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        db_column="UUID", db_index=True, default=None, editable=False
+                    ),
+                ),
+                (
+                    "is_deleted",
+                    models.BooleanField(db_column="isDeleted", default=False),
+                ),
+                (
+                    "json_ext",
+                    models.JSONField(blank=True, db_column="Json_ext", null=True),
+                ),
+                (
+                    "date_created",
+                    core.fields.DateTimeField(db_column="DateCreated", null=True),
+                ),
+                (
+                    "date_updated",
+                    core.fields.DateTimeField(db_column="DateUpdated", null=True),
+                ),
+                ("version", models.IntegerField(default=1)),
+                (
+                    "date_valid_from",
+                    core.fields.DateTimeField(
+                        db_column="DateValidFrom", default=datetime.datetime.now
+                    ),
+                ),
+                (
+                    "date_valid_to",
+                    core.fields.DateTimeField(
+                        blank=True, db_column="DateValidTo", null=True
+                    ),
+                ),
+                (
+                    "replacement_uuid",
+                    models.UUIDField(db_column="ReplacementUUID", null=True),
+                ),
+                (
+                    "status",
+                    models.SmallIntegerField(
+                        choices=[(0, "inactive"), (1, "active")], db_column="Status"
+                    ),
+                ),
+                (
+                    "channel",
+                    models.SmallIntegerField(
+                        choices=[(0, "rest-hook")], db_column="Channel"
+                    ),
+                ),
+                ("endpoint", models.CharField(db_column="Endpoint", max_length=255)),
+                (
+                    "headers",
+                    django_cryptography.fields.encrypt(
+                        models.TextField(db_column="Headers", max_length=255, null=True)
+                    ),
+                ),
+                ("criteria", models.JSONField(db_column="Criteria", null=True)),
+                ("expiring", models.DateTimeField(db_column="Expiring")),
+                ("history_id", models.AutoField(primary_key=True, serialize=False)),
+                ("history_date", models.DateTimeField()),
+                ("history_change_reason", models.CharField(max_length=100, null=True)),
+                (
+                    "history_type",
+                    models.CharField(
+                        choices=[("+", "Created"), ("~", "Changed"), ("-", "Deleted")],
+                        max_length=1,
+                    ),
+                ),
+                (
+                    "history_user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user_created",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="UserCreatedUUID",
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user_updated",
+                    models.ForeignKey(
+                        blank=True,
+                        db_column="UserUpdatedUUID",
+                        db_constraint=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="+",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'historical subscription',
-                'ordering': ('-history_date', '-history_id'),
-                'get_latest_by': 'history_date',
+                "verbose_name": "historical subscription",
+                "ordering": ("-history_date", "-history_id"),
+                "get_latest_by": "history_date",
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),

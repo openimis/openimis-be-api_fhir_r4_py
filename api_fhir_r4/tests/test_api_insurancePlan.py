@@ -1,14 +1,15 @@
-from django.utils.translation import gettext as _
 from rest_framework.test import APITestCase
 from fhir.resources.R4B.insuranceplan import InsurancePlan
-from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiCreateTestMixin, \
-    FhirApiUpdateTestMixin, FhirApiReadTestMixin
-from api_fhir_r4.configurations import  GeneralConfiguration
+from api_fhir_r4.tests import (
+    GenericFhirAPITestMixin,
+    FhirApiReadTestMixin,
+)
+from api_fhir_r4.configurations import GeneralConfiguration
 
 
 class InsurancePlanAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase):
 
-    base_url = GeneralConfiguration.get_base_url()+'InsurancePlan/'
+    base_url = GeneralConfiguration.get_base_url() + "InsurancePlan/"
     _test_json_path = "/test/test_insurance_plan.json"
     _TEST_PRODUCT_CODE = "Test0001"
     _TEST_MAX_INSTALLMENTS = 4
@@ -22,7 +23,9 @@ class InsurancePlanAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITe
         for extension in updated_obj.extension:
             if "max-installments" in extension.url:
                 max_installments_data = extension
-        self.assertEqual(self._TEST_MAX_INSTALLMENTS, max_installments_data.valueUnsignedInt)
+        self.assertEqual(
+            self._TEST_MAX_INSTALLMENTS, max_installments_data.valueUnsignedInt
+        )
 
     def update_resource(self, data):
         for extension in data["extension"]:

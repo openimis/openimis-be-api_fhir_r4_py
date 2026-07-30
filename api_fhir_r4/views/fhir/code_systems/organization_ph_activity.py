@@ -12,7 +12,9 @@ from policyholder.services import PolicyHolderActivity
 class CodeSystemOrganizationPHActivityViewSet(viewsets.ViewSet):
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -20,15 +22,15 @@ class CodeSystemOrganizationPHActivityViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                'data': PolicyHolderActivity(request.user).get_all()['data'],
-                'code_field': 'code',
-                'display_field': 'display',
-                'id': 'organization-ph-activity',
-                "name": 'OrganizationPHActivityCS',
-                "title": 'Activity (Organization)',
+                "data": PolicyHolderActivity(request.user).get_all()["data"],
+                "code_field": "code",
+                "display_field": "display",
+                "id": "organization-ph-activity",
+                "name": "OrganizationPHActivityCS",
+                "title": "Activity (Organization)",
                 "description": "Indicates the activity of the PolicyHolder Organization. "
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                "Values defined by openIMIS. Can be extended.",
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)

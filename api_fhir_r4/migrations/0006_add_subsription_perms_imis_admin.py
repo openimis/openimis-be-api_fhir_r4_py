@@ -17,31 +17,43 @@ def add_rights(apps, schema_editor):
     """
     Add subscription CRUD permission to the IMIS Administrator.
     """
-    insert_role_right_for_system(IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_SEARCH_ROLE_RIGHT_ID, apps)
-    insert_role_right_for_system(IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_CREATE_ROLE_RIGHT_ID, apps)
-    insert_role_right_for_system(IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_UPDATE_ROLE_RIGHT_ID, apps)
-    insert_role_right_for_system(IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_DELETE_ROLE_RIGHT_ID, apps)
+    insert_role_right_for_system(
+        IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_SEARCH_ROLE_RIGHT_ID, apps
+    )
+    insert_role_right_for_system(
+        IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_CREATE_ROLE_RIGHT_ID, apps
+    )
+    insert_role_right_for_system(
+        IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_UPDATE_ROLE_RIGHT_ID, apps
+    )
+    insert_role_right_for_system(
+        IMIS_ADMIN_ROLE_IS_SYSTEM, SUB_DELETE_ROLE_RIGHT_ID, apps
+    )
 
 
 def remove_rights(apps, schema_editor):
     """
     Remove subscription CRUD permissions to the IMIS Administrator.
     """
-    RoleRight = apps.get_model('core', 'RoleRight')
+    RoleRight = apps.get_model("core", "RoleRight")
 
     RoleRight.objects.filter(
         role__is_system=IMIS_ADMIN_ROLE_IS_SYSTEM,
-        right_id__in=[SUB_CREATE_ROLE_RIGHT_ID, SUB_DELETE_ROLE_RIGHT_ID,
-                      SUB_SEARCH_ROLE_RIGHT_ID, SUB_UPDATE_ROLE_RIGHT_ID],
-        validity_to__isnull=True
+        right_id__in=[
+            SUB_CREATE_ROLE_RIGHT_ID,
+            SUB_DELETE_ROLE_RIGHT_ID,
+            SUB_SEARCH_ROLE_RIGHT_ID,
+            SUB_UPDATE_ROLE_RIGHT_ID,
+        ],
+        validity_to__isnull=True,
     ).delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_fhir_r4', '0005_auto_20221012_0818'),
-        ('core', '0015_missing_roles')
+        ("api_fhir_r4", "0005_auto_20221012_0818"),
+        ("core", "0015_missing_roles"),
     ]
 
     operations = [

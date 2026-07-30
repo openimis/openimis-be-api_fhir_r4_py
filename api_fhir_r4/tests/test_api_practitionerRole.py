@@ -3,9 +3,11 @@ from api_fhir_r4.configurations import GeneralConfiguration
 from rest_framework.test import APITestCase
 
 
-class PractitionerRoleAPITests(GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase):
+class PractitionerRoleAPITests(
+    GenericFhirAPITestMixin, FhirApiReadTestMixin, APITestCase
+):
 
-    base_url = GeneralConfiguration.get_base_url()+'PractitionerRole/'
+    base_url = GeneralConfiguration.get_base_url() + "PractitionerRole/"
     _test_json_path = "/test/test_claimAdminPractitionerRole.json"
 
     def setUp(self):

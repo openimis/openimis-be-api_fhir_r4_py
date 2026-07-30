@@ -14,7 +14,9 @@ class CodeSystemOpenIMISGroupConfirmationTypeViewSet(viewsets.ViewSet):
 
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -24,15 +26,15 @@ class CodeSystemOpenIMISGroupConfirmationTypeViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                "model_name": 'ConfirmationType',
-                "code_field": 'code',
-                "display_field": 'confirmationtype',
-                "id": 'group-confirmation-type',
-                "name": 'GroupConfirmationTypeCS',
-                "title": 'Confirmation Types (Group)',
+                "model_name": "ConfirmationType",
+                "code_field": "code",
+                "display_field": "confirmationtype",
+                "id": "group-confirmation-type",
+                "name": "GroupConfirmationTypeCS",
+                "title": "Confirmation Types (Group)",
                 "description": "Indicates the confirmation type for the Group. "
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                "Values defined by openIMIS. Can be extended.",
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)

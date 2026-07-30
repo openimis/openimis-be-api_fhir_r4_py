@@ -1,12 +1,9 @@
 from rest_framework import viewsets
 
-from api_fhir_r4.mixins import (
-    MultiIdentifierRetrieverMixin,
-    MultiIdentifierUpdateMixin
-)
+from api_fhir_r4.mixins import MultiIdentifierRetrieverMixin, MultiIdentifierUpdateMixin
 from api_fhir_r4.model_retrievers import (
     UUIDIdentifierModelRetriever,
-    GroupIdentifierModelRetriever
+    GroupIdentifierModelRetriever,
 )
 from api_fhir_r4.paymentNotice import PaymentNoticeSerializer
 from api_fhir_r4.permissions import FHIRApiPaymentPermissions
@@ -19,7 +16,7 @@ class PaymentNoticeViewSet(
     BaseFHIRView,
     MultiIdentifierRetrieverMixin,
     MultiIdentifierUpdateMixin,
-    viewsets.ModelViewSet
+    viewsets.ModelViewSet,
 ):
     retrievers = [UUIDIdentifierModelRetriever, GroupIdentifierModelRetriever]
     serializer_class = PaymentNoticeSerializer
@@ -29,10 +26,12 @@ class PaymentNoticeViewSet(
         queryset = self.get_queryset()
         identifier = request.GET.get("identifier")
         if identifier:
-            return self.retrieve(request, *args, **{**kwargs, 'identifier': identifier})
+            return self.retrieve(request, *args, **{**kwargs, "identifier": identifier})
         else:
             queryset = queryset.filter(is_deleted=False)
-        serializer = PaymentNoticeSerializer(self.paginate_queryset(queryset), many=True, user=request.user)
+        serializer = PaymentNoticeSerializer(
+            self.paginate_queryset(queryset), many=True, user=request.user
+        )
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, *args, **kwargs):
@@ -40,5 +39,7 @@ class PaymentNoticeViewSet(
         return response
 
     def get_queryset(self):
-        queryset = PaymentInvoice.objects.filter(is_deleted=False).order_by('date_created')
+        queryset = PaymentInvoice.objects.filter(is_deleted=False).order_by(
+            "date_created"
+        )
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)

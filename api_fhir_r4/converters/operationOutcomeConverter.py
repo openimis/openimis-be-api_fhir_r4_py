@@ -3,7 +3,9 @@ from claim.services import ClaimSubmitError
 from django.db import IntegrityError
 from django.http import Http404
 from django.http.response import HttpResponse
-from rest_framework.exceptions import APIException, ErrorDetail, NotAuthenticated, AuthenticationFailed
+from rest_framework.exceptions import (
+    APIException,
+)
 
 from api_fhir_r4.configurations import R4IssueTypeConfig
 from api_fhir_r4.converters import BaseFHIRConverter
@@ -92,7 +94,7 @@ class OperationOutcomeConverter(BaseFHIRConverter):
     def build_for_key_error(cls, obj):
         severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
-        details_text = cls.get_last_message(obj) + ' is missing'
+        details_text = cls.get_last_message(obj) + " is missing"
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
@@ -138,7 +140,7 @@ class OperationOutcomeConverter(BaseFHIRConverter):
             issue_data["details"] = cls.build_simple_codeable_concept(text=details_text)
         issue = OperationOutcomeIssue(**issue_data)
         if type(outcome.issue) is not list:
-           outcome.issue = [issue]
+            outcome.issue = [issue]
         else:
-           outcome.issue.append(issue)
+            outcome.issue.append(issue)
         return outcome

@@ -11,8 +11,12 @@ class PersonConverterMixin(object):
 
     @classmethod
     def build_fhir_names_for_person(cls, person_obj):
-        if not hasattr(person_obj, 'last_name') and not hasattr(person_obj, 'other_names'):
-            raise FHIRRequestProcessException([gettext('Missing `last_name` and `other_names` for IMIS object')])
+        if not hasattr(person_obj, "last_name") and not hasattr(
+            person_obj, "other_names"
+        ):
+            raise FHIRRequestProcessException(
+                [gettext("Missing `last_name` and `other_names` for IMIS object")]
+            )
         name = HumanName.construct()
         name.use = "usual"
         name.family = person_obj.last_name
@@ -37,10 +41,14 @@ class PersonConverterMixin(object):
     def build_fhir_telecom_for_person(cls, phone=None, email=None):
         telecom = []
         if phone:
-            phone = BaseFHIRConverter.build_fhir_contact_point(phone, ContactPointSystem.PHONE, ContactPointUse.HOME)
+            phone = BaseFHIRConverter.build_fhir_contact_point(
+                phone, ContactPointSystem.PHONE, ContactPointUse.HOME
+            )
             telecom.append(phone)
         if email:
-            email = BaseFHIRConverter.build_fhir_contact_point(email, ContactPointSystem.EMAIL, ContactPointUse.HOME)
+            email = BaseFHIRConverter.build_fhir_contact_point(
+                email, ContactPointSystem.EMAIL, ContactPointUse.HOME
+            )
             telecom.append(email)
         return telecom
 

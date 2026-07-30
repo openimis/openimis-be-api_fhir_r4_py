@@ -1,20 +1,32 @@
 from rest_framework.test import APITestCase
 from api_fhir_r4.configurations import GeneralConfiguration
-from api_fhir_r4.tests import GenericFhirAPITestMixin, FhirApiCreateTestMixin, FhirApiReadTestMixin, \
-    FhirApiDeleteTestMixin, FhirApiUpdateTestMixin
+from api_fhir_r4.tests import (
+    GenericFhirAPITestMixin,
+    FhirApiCreateTestMixin,
+    FhirApiReadTestMixin,
+    FhirApiDeleteTestMixin,
+    FhirApiUpdateTestMixin,
+)
 from api_fhir_r4.tests.mixin.SubscriptionTestMixin import SubscriptionTestMixin
 from api_fhir_r4.tests.mixin.logInMixin import LogInMixin
 
 
-class SubscriptionAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin, FhirApiCreateTestMixin,
-                           FhirApiReadTestMixin, FhirApiDeleteTestMixin, FhirApiUpdateTestMixin,
-                           SubscriptionTestMixin):
-    base_url = GeneralConfiguration.get_base_url() + 'Subscription/'
+class SubscriptionAPITests(
+    GenericFhirAPITestMixin,
+    APITestCase,
+    LogInMixin,
+    FhirApiCreateTestMixin,
+    FhirApiReadTestMixin,
+    FhirApiDeleteTestMixin,
+    FhirApiUpdateTestMixin,
+    SubscriptionTestMixin,
+):
+    base_url = GeneralConfiguration.get_base_url() + "Subscription/"
     _test_json_path = "/test/test_subscription.json"
-    _updated_endpoint = 'https://modifiedendpoint.com'
+    _updated_endpoint = "https://modifiedendpoint.com"
 
     def update_resource(self, data):
-        data['channel']['endpoint'] = self._updated_endpoint
+        data["channel"]["endpoint"] = self._updated_endpoint
 
     def verify_updated_obj(self, obj):
         self.assertEqual(obj.channel.endpoint, self._updated_endpoint)
@@ -27,4 +39,4 @@ class SubscriptionAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin, Fhi
         subscription.save(username=user.username)
 
     def get_id_for_created_resource(self, response):
-        return response.data['id']
+        return response.data["id"]

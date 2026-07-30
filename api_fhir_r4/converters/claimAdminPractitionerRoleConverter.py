@@ -1,21 +1,38 @@
 from api_fhir_r4.configurations import GeneralConfiguration, R4IdentifierConfig
-from api_fhir_r4.converters import BaseFHIRConverter, ClaimAdminPractitionerConverter, ReferenceConverterMixin
-from api_fhir_r4.converters.healthFacilityOrganisationConverter import HealthFacilityOrganisationConverter, PersonConverterMixin
+from api_fhir_r4.converters import (
+    BaseFHIRConverter,
+    ClaimAdminPractitionerConverter,
+    ReferenceConverterMixin,
+)
+from api_fhir_r4.converters.healthFacilityOrganisationConverter import (
+    HealthFacilityOrganisationConverter,
+    PersonConverterMixin,
+)
 from api_fhir_r4.utils import DbManagerUtils
 from core.models.user import ClaimAdmin
 from django.utils.translation import gettext as _
 from fhir.resources.R4B.practitionerrole import PractitionerRole
 
 
-class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin):
+class ClaimAdminPractitionerRoleConverter(
+    BaseFHIRConverter, PersonConverterMixin, ReferenceConverterMixin
+):
 
     @classmethod
-    def to_fhir_obj(cls, imis_claim_admin, reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE):
+    def to_fhir_obj(
+        cls,
+        imis_claim_admin,
+        reference_type=ReferenceConverterMixin.UUID_REFERENCE_TYPE,
+    ):
         fhir_practitioner_role = PractitionerRole.construct()
         cls.build_fhir_pk(fhir_practitioner_role, imis_claim_admin, reference_type)
         cls.build_fhir_identifiers(fhir_practitioner_role, imis_claim_admin)
-        cls.build_fhir_practitioner_reference(fhir_practitioner_role, imis_claim_admin, reference_type)
-        cls.build_fhir_healthcare_service_references(fhir_practitioner_role, imis_claim_admin, reference_type)
+        cls.build_fhir_practitioner_reference(
+            fhir_practitioner_role, imis_claim_admin, reference_type
+        )
+        cls.build_fhir_healthcare_service_references(
+            fhir_practitioner_role, imis_claim_admin, reference_type
+        )
         cls.build_fhir_code(fhir_practitioner_role)
         cls.build_fhir_telecom(fhir_practitioner_role, imis_claim_admin)
         return fhir_practitioner_role
@@ -25,11 +42,15 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
         errors = []
         fhir_practitioner_role = PractitionerRole(**fhir_practitioner_role)
         practitioner = fhir_practitioner_role.practitioner
-        claim_admin = ClaimAdminPractitionerConverter.get_imis_obj_by_fhir_reference(practitioner, errors)
+        claim_admin = ClaimAdminPractitionerConverter.get_imis_obj_by_fhir_reference(
+            practitioner, errors
+        )
         hf_references = fhir_practitioner_role.organization
         health_facility = cls.get_healthcare_service_by_reference(hf_references, errors)
 
-        if not cls.valid_condition(claim_admin is None, "Practitioner doesn't exists", errors):
+        if not cls.valid_condition(
+            claim_admin is None, "Practitioner doesn't exists", errors
+        ):
             claim_admin.health_facility = health_facility
         cls.check_errors(errors)
         return claim_admin
@@ -58,8 +79,8 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
     def get_imis_obj_by_fhir_reference(cls, reference, errors=None):
         return DbManagerUtils.get_object_or_none(
             ClaimAdmin,
-            **cls.get_database_query_id_parameteres_from_reference(reference))
-
+            **cls.get_database_query_id_parameteres_from_reference(reference),
+        )
 
     @classmethod
     def build_fhir_identifiers(cls, fhir_practitioner_role, imis_claim_admin):
@@ -70,21 +91,35 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
     @classmethod
     def build_fhir_code_identifier(cls, identifiers, imis_claim_admin):
         if imis_claim_admin.code:
-            identifier = cls.build_fhir_identifier(imis_claim_admin.code,
-                                                   R4IdentifierConfig.get_fhir_identifier_type_system(),
-                                                   R4IdentifierConfig.get_fhir_generic_type_code())
+            identifier = cls.build_fhir_identifier(
+                imis_claim_admin.code,
+                R4IdentifierConfig.get_fhir_identifier_type_system(),
+                R4IdentifierConfig.get_fhir_generic_type_code(),
+            )
             identifiers.append(identifier)
 
     @classmethod
-    def build_fhir_practitioner_reference(cls, fhir_practitioner_role, imis_claim_admin, reference_type):
-        fhir_practitioner_role.practitioner = ClaimAdminPractitionerConverter\
-            .build_fhir_resource_reference(imis_claim_admin, reference_type=reference_type)
+    def build_fhir_practitioner_reference(
+        cls, fhir_practitioner_role, imis_claim_admin, reference_type
+    ):
+        fhir_practitioner_role.practitioner = (
+            ClaimAdminPractitionerConverter.build_fhir_resource_reference(
+                imis_claim_admin, reference_type=reference_type
+            )
+        )
 
     @classmethod
-    def build_fhir_healthcare_service_references(cls, fhir_practitioner_role, imis_claim_admin, reference_type):
+    def build_fhir_healthcare_service_references(
+        cls, fhir_practitioner_role, imis_claim_admin, reference_type
+    ):
         if imis_claim_admin.health_facility:
-            reference = HealthFacilityOrganisationConverter.build_fhir_resource_reference(
-                imis_claim_admin.health_facility, 'Organization', reference_type=reference_type)
+            reference = (
+                HealthFacilityOrganisationConverter.build_fhir_resource_reference(
+                    imis_claim_admin.health_facility,
+                    "Organization",
+                    reference_type=reference_type,
+                )
+            )
             fhir_practitioner_role.organization = reference
 
     @classmethod
@@ -92,7 +127,11 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
         health_facility = None
         if organization_references:
             location = cls.get_first_location(organization_references)
-            health_facility = HealthFacilityOrganisationConverter.get_imis_obj_by_fhir_reference(location, errors)
+            health_facility = (
+                HealthFacilityOrganisationConverter.get_imis_obj_by_fhir_reference(
+                    location, errors
+                )
+            )
         return health_facility
 
     @classmethod
@@ -102,15 +141,14 @@ class ClaimAdminPractitionerRoleConverter(BaseFHIRConverter, PersonConverterMixi
     @classmethod
     def build_fhir_code(cls, fhir_practitioner_role):
         system = f"{GeneralConfiguration.get_system_base_url()}CodeSystem/practitioner-qualification-type"
-        fhir_practitioner_role.code = [cls.build_codeable_concept(
-            system=system,
-            code="CA",
-            display=_("Claim Administrator")
-        )]
+        fhir_practitioner_role.code = [
+            cls.build_codeable_concept(
+                system=system, code="CA", display=_("Claim Administrator")
+            )
+        ]
 
     @classmethod
     def build_fhir_telecom(cls, fhir_practitioner_role, imis_claim_admin):
         fhir_practitioner_role.telecom = cls.build_fhir_telecom_for_person(
-            phone=imis_claim_admin.phone,
-            email=imis_claim_admin.email_id
+            phone=imis_claim_admin.phone, email=imis_claim_admin.email_id
         )

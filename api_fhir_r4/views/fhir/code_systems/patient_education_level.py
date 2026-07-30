@@ -14,7 +14,9 @@ class CodeSystemOpenIMISPatientEducationLevelViewSet(viewsets.ViewSet):
 
     serializer_class = CodeSystemSerializer
     permission_classes = (IsAuthenticated,)
-    authentication_classes = [CsrfExemptSessionAuthentication] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
+    authentication_classes = [
+        CsrfExemptSessionAuthentication
+    ] + APIView.settings.DEFAULT_AUTHENTICATION_CLASSES
 
     def list(self, request):
         # we don't use typical instance, we only indicate the model and the field to be mapped into CodeSystem
@@ -24,15 +26,15 @@ class CodeSystemOpenIMISPatientEducationLevelViewSet(viewsets.ViewSet):
             user=request.user,
             instance=None,
             **{
-                "model_name": 'Education',
-                "code_field": 'id',
-                "display_field": 'education',
-                "id": 'patient-education-level',
-                "name": 'PatientEducationLevelCS',
-                "title": 'Education Level (Patient)',
+                "model_name": "Education",
+                "code_field": "id",
+                "display_field": "education",
+                "id": "patient-education-level",
+                "name": "PatientEducationLevelCS",
+                "title": "Education Level (Patient)",
                 "description": "Indicates the Education level of a Patient. "
-                               "Values defined by openIMIS. Can be extended.",
-                "url": self.request.build_absolute_uri()
+                "Values defined by openIMIS. Can be extended.",
+                "url": self.request.build_absolute_uri(),
             }
         )
         data = serializer.to_representation(obj=None)
