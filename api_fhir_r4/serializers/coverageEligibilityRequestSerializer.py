@@ -1,5 +1,5 @@
 import logging
-from policy.services import ByPolicyRequest, ByPolicyResponse, ByPolicyService
+from policy.services import ByPolicyRequest, ByPolicyResponse, ByPolicyService, EligibilityRequest, EligibilityService, EligibilityResponse
 from api_fhir_r4.converters import CoverageEligibilityRequestConverter
 from api_fhir_r4.serializers.baseSerializer import BaseFHIRSerializer
 from django.http.response import HttpResponseBase
@@ -21,10 +21,14 @@ class CoverageEligibilityRequestSerializer(BaseFHIRSerializer):
 
     def create(self, validated_data):
         request = self.context.get("request")
-        eligibility_request_sp = CoverageEligibilityRequestConverter.to_imis_obj(validated_data, request.user.id)
-        eligibility_request = ByPolicyRequest(chf_id=validated_data.get("chf_id"))
+        eligibility_request_sp = EligibilityRequest(
+            validated_data.get("chf_id"),
+            validated_data.get("service_code"),
+            validated_data.get("item_code"),
+            validated_data.get("policy_uuid")
+        )
         try:
-            response = ByPolicyService(request.user).request(eligibility_request)
+            response = EligibilityService(request.user).request(eligibility_request_sp)
         except TypeError:
             self.logger.warning(
                 "The insuree with chfid `{}` is not connected with policy. "
@@ -32,9 +36,9 @@ class CoverageEligibilityRequestSerializer(BaseFHIRSerializer):
                     validated_data.get("chf_id")
                 )
             )
-            response = self.create_default_eligibility_response()
+            response = self.create_default_eligibility_response(eligibility_request_sp)
         output_response = [response, eligibility_request_sp]
         return output_response
 
-    def create_default_eligibility_response(self):
-        return ByPolicyResponse(by_insuree_request=None, items=[])
+    def create_default_eligibility_response(self, request):
+        return EligibilityResponse(eligibility_request=request)
