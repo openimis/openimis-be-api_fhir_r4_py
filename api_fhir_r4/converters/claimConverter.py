@@ -676,7 +676,7 @@ class ClaimConverter(BaseFHIRConverter, ReferenceConverterMixin):
         attachment_data = {
             "title": valueAttachment.title,
             "filename": valueAttachment.title,
-            "document": valueAttachment.data,
+            "document": valueAttachment.data.decode("utf-8") if isinstance(valueAttachment.data, bytes) else valueAttachment.data,
             "mime": valueAttachment.contentType,
             "date": TimeUtils.str_to_date(valueAttachment.creation),
         }
