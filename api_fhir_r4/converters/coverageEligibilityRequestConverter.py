@@ -67,7 +67,7 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
 
     @classmethod
     def to_imis_obj(cls, fhir_coverage_eligibility_request, audit_user_id):
-        print("DATA PASSED TO PYDANTIC:", fhir_coverage_eligibility_request);        fhir_coverage_eligibility_request = FHIRCoverageEligibilityRequest(
+        fhir_coverage_eligibility_request = FHIRCoverageEligibilityRequest(
             **fhir_coverage_eligibility_request
         )
         chf_id = cls.build_imis_chf(fhir_coverage_eligibility_request)
