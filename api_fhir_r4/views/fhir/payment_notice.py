@@ -39,7 +39,7 @@ class PaymentNoticeViewSet(
         return response
 
     def get_queryset(self):
-        queryset = PaymentInvoice.objects.filter(is_deleted=False).order_by(
+        queryset = PaymentInvoice.get_queryset(None, self.request.user).order_by(
             "date_created"
         )
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)

@@ -35,19 +35,28 @@ def load_and_replace_json(path=None, sub_str={}):
 #        self.json_representation = load_and_replace_json(_test_json_request_path,self.sub_str)
 _TEST_USER_NAME = "Admin"
 _TEST_USER_PASSWORD = "admin123"
-_TEST_DATA_USER = {
-    "username": _TEST_USER_NAME,
-    "password": _TEST_USER_PASSWORD,
-    "language": "en",
-    "roles": [create_admin_role().id],
-}
 
 
-def get_connection_payload(userdata=_TEST_DATA_USER):
+def _default_test_data_user():
+    # Built lazily (not as a module-level/default-argument value) so importing
+    # this module never touches the database - eager DB access at import time
+    # breaks test collection under pytest-django, which blocks DB access
+    # outside of a test's "django_db" context.
+    return {
+        "username": _TEST_USER_NAME,
+        "password": _TEST_USER_PASSWORD,
+        "language": "en",
+        "roles": [create_admin_role().id],
+    }
+
+
+def get_connection_payload(userdata=None):
+    userdata = userdata or _default_test_data_user()
     return {"username": userdata["username"], "password": userdata["password"]}
 
 
-def get_or_create_user_api(userdata=_TEST_DATA_USER):
+def get_or_create_user_api(userdata=None):
+    userdata = userdata or _default_test_data_user()
     user = create_test_interactive_user(**userdata)
     return user
 

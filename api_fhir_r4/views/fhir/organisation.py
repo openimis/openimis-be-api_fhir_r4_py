@@ -253,7 +253,7 @@ class OrganisationViewSet(
         return HealthFacility.objects
 
     def _hf_queryset(self):
-        queryset = HealthFacility.objects.filter(validity_to__isnull=True).order_by(
+        queryset = HealthFacility.get_queryset(None, self.request.user).order_by(
             "validity_from"
         )
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
@@ -261,9 +261,9 @@ class OrganisationViewSet(
         )
 
     def _ph_queryset(self):
-        queryset = PolicyHolder.objects.filter(is_deleted=False).order_by(
-            "date_created"
-        )
+        queryset = PolicyHolder.get_queryset(None, self.request.user).filter(
+            is_deleted=False
+        ).order_by("date_created")
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def _io_queryset(self):
