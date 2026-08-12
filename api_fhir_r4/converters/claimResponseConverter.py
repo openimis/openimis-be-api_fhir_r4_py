@@ -3,7 +3,7 @@ from core.models.user import ClaimAdmin
 from django.db.models import Subquery
 from medical.models import Item, Service
 import core
-from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig
+from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig, R4IdentifierConfig
 from api_fhir_r4.converters.baseFHIRConverter import BaseFHIRConverter
 from api_fhir_r4.converters.communicationRequestConverter import CommunicationRequestConverter
 from api_fhir_r4.converters.referenceConverterMixin import ReferenceConverterMixin
@@ -273,7 +273,8 @@ class ClaimResponseConverter(BaseFHIRConverter):
     @classmethod
     def build_fhir_insurer(cls, fhir_claim_response):
         fhir_claim_response.insurer = Reference.construct()
-        fhir_claim_response.insurer.reference = "openIMIS"
+        resource_id = R4ClaimConfig.get_fhir_claim_organization_code()
+        fhir_claim_response.insurer.reference = f"Organization/{resource_id}"
 
     @classmethod
     def build_fhir_items(cls, fhir_claim_response, imis_claim, reference_type):
@@ -655,6 +656,9 @@ class ClaimResponseConverter(BaseFHIRConverter):
     def build_fhir_request(
         cls, fhir_claim_response: ClaimResponse, imis_claim: Claim, reference_type
     ):
-        fhir_claim_response.request = ClaimConverter.build_fhir_resource_reference(
+        request_ref = ClaimConverter.build_fhir_resource_reference(
             imis_claim, reference_type=reference_type
         )
+        if request_ref and request_ref.reference and request_ref.reference.startswith("ClaimV2/"):
+            request_ref.reference = request_ref.reference.replace("ClaimV2/", "Claim/")
+        fhir_claim_response.request = request_ref
