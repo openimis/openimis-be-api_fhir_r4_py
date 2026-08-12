@@ -186,77 +186,77 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
         )
         cls.__build_item_product_name(fhir_item=item, prod_id=response.prod_id)
         item.benefit = []
-        if response.total_admissions_left:
+        if response.total_admissions_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="admissions_left",
                 display="total_admissions",
                 value=response.total_admissions_left,
             )
-        if response.total_consultations_left:
+        if response.total_consultations_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="consultations_left",
                 display="total_consultations",
                 value=response.total_consultations_left,
             )
-        if response.total_surgeries_left:
+        if response.total_surgeries_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="surgeries_left",
                 display="total_surgeries",
                 value=response.total_surgeries_left,
             )
-        if response.total_deliveries_left:
+        if response.total_deliveries_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="deliveries_left",
                 display="total_deliveries",
                 value=response.total_deliveries_left,
             )
-        if response.total_visits_left:
+        if response.total_visits_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="visits_left",
                 display="total_visits",
                 value=response.total_visits_left,
             )
-        if response.total_antenatal_left:
+        if response.total_antenatal_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="antenatal_left",
                 display="total_antenatal",
                 value=response.total_antenatal_left,
             )
-        if response.hospitalization_amount_left:
+        if response.hospitalization_amount_left is not None:
             cls.build_fhir_money_item_benefit_element(
                 item=item,
                 code="hospitalization_amount",
                 display="hospitalization_amount",
                 value=response.hospitalization_amount_left,
             )
-        if response.delivery_amount_left:
+        if response.delivery_amount_left is not None:
             cls.build_fhir_money_item_benefit_element(
                 item=item,
                 code="delivery_amount",
                 display="delivery_amount",
                 value=response.delivery_amount_left,
             )
-        if response.surgery_amount_left:
+        if response.surgery_amount_left is not None:
             cls.build_fhir_money_item_benefit_element(
                 item=item,
                 code="surgery_amount",
                 display="surgery_amount",
                 value=response.surgery_amount_left,
             )
-        if response.consultation_amount_left:
+        if response.consultation_amount_left is not None:
             cls.build_fhir_money_item_benefit_element(
                 item=item,
                 code="consultation_amount",
                 display="consultation_amount",
                 value=response.consultation_amount_left,
             )
-        if response.antenatal_amount_left:
+        if response.antenatal_amount_left is not None:
             cls.build_fhir_money_item_benefit_element(
                 item=item,
                 code="antenatal_amount",
@@ -280,12 +280,12 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                 display="Mininum date",
                 value=response.min_date_item,
             )
-        if response.item_left:
+        if response.item_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="item_left",
                 display="Items left",
-                value=response.service_left,
+                value=response.item_left,
             )
         code = stored_item.code
         item.productOrService = cls.build_simple_codeable_concept(code)
@@ -309,12 +309,12 @@ class CoverageEligibilityRequestConverter(BaseFHIRConverter):
                 display="Mininum date",
                 value=response.min_date_item,
             )
-        if response.item_left:
+        if response.service_left is not None:
             cls.build_fhir_int_item_benefit_element(
                 item=item,
                 code="service_left",
                 display="Services left",
-                value=response.item_left,
+                value=response.service_left,
             )
         code = stored_service.code
         item.productOrService = cls.build_simple_codeable_concept(code)
