@@ -39,7 +39,7 @@ class CommunicationViewSet(
         return response
 
     def get_queryset(self):
-        queryset = Feedback.objects.all().order_by("validity_from")
+        queryset = Feedback.get_queryset(None, self.request.user).order_by("validity_from")
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
             queryset
         )

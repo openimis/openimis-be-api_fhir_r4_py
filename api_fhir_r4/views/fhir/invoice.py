@@ -92,11 +92,11 @@ class InvoiceViewSet(
         return Invoice.objects
 
     def _invoice_queryset(self):
-        queryset = Invoice.objects.filter(is_deleted=False).order_by("date_created")
+        queryset = Invoice.get_queryset(None, self.request.user).order_by("date_created")
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def _bill_queryset(self):
-        queryset = Bill.objects.filter(is_deleted=False).order_by("date_created")
+        queryset = Bill.get_queryset(None, self.request.user).order_by("date_created")
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     @classmethod

@@ -93,17 +93,18 @@ class PractitionerViewSet(
         return ClaimAdmin.objects
 
     def _ca_queryset(self):
-        queryset = ClaimAdmin.objects.filter(validity_to__isnull=True).all()
+        queryset = ClaimAdmin.get_queryset(None, self.request.user)
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
             queryset
         )
 
     def _eo_queryset(self):
-        queryset = (
+        base_queryset = (
             Officer.objects.filter(validity_to__isnull=True)
             .order_by("validity_from")
             .all()
         )
+        queryset = Officer.get_queryset(base_queryset, self.request.user)
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
             queryset
         )

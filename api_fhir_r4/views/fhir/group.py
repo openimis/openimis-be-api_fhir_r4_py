@@ -39,7 +39,7 @@ class GroupViewSet(
         return response
 
     def get_queryset(self):
-        queryset = Family.objects.all().order_by("validity_from")
+        queryset = Family.get_queryset(None, self.request.user).order_by("validity_from")
         return ValidityFromRequestParameterFilter(self.request).filter_queryset(
             queryset
         )

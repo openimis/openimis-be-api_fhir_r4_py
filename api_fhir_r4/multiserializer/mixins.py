@@ -38,7 +38,7 @@ def _MultiserializerPermissionClassWrapper(PermissionClass):
 
         # read access can be defined by the ability to get a queryset
         if request.method == "GET" and self.base_class:
-            qs = self.base_class.get_queryset()
+            qs = self.base_class.get_queryset(None, request.user)
             if qs is None:
                 return False
             filter_values = qs.filter_values()
