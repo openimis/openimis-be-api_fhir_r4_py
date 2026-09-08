@@ -41,7 +41,7 @@ from product.apps import ProductConfig
 CLAIM_VIEW = ClaimConfig.gql_query_claims_perms
 CLAIM_ADD = ClaimConfig.gql_mutation_create_claims_perms
 
-CALIM_SUBMIT = ClaimConfig.gql_mutation_submit_claims_perms
+CLAIM_SUBMIT = ClaimConfig.gql_mutation_submit_claims_perms
 # The REST create path (serializers/claimSerializer.py::_create_claim_from_validated_data)
 # checks create-OR-submit, unlike GraphQL's CreateClaimMutation which only checks create.
 # Matching the real (broader) check the serializer performs, not just the mutation's name.
