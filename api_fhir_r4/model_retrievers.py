@@ -93,14 +93,12 @@ class CHFIdentifierModelRetriever(CodeIdentifierModelRetriever):
 
     @classmethod
     def identifier_validator(cls, identifier_value):
-        # From model specification
-        # Fix: Modified condition to check if validate_insuree_number returns an empty array
-        # Original condition incorrectly evaluated validate_insuree_number as False when it returned an empty array []
-        # New condition explicitly checks for an empty array using len(validate_insuree_number(identifier_value)) == 0
-        # This ensures that a valid insuree number (returning empty array) is correctly evaluated as True
+        # From model specification.
+        # new=False: this is an identifier lookup, so the number is expected to
+        # belong to an existing insuree; only its format is checked here.
         return (
             isinstance(identifier_value, str)
-            and len(validate_insuree_number(identifier_value)) == 0
+            and len(validate_insuree_number(identifier_value, new=False)) == 0
         )
 
 

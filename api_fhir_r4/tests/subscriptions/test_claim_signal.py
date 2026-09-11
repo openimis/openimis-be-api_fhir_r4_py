@@ -11,17 +11,18 @@ class TestClaimSubscriptionSignal(TestCase):
     @patch('api_fhir_r4.signals.R4ClaimConfig.get_subscribe_claim_signal')
     @patch('api_fhir_r4.signals.bind_service_signal')
     @patch('api_fhir_r4.signals.notify_subscribers')
-    @patch('api_fhir_r4.signals.User.objects.get')
+    @patch('api_fhir_r4.signals.get_current_user')
     def test_claim_create_or_update_signal(
-            self, mock_user_get, mock_notify, mock_bind_service_signal, mock_get_config
+            self, mock_get_current_user, mock_notify, mock_bind_service_signal, mock_get_config
     ):
         # 1. Setup mocks
         mock_get_config.return_value = True
         
-        # Create a dummy user
+        # The handler notifies on behalf of whoever is acting - the claim's
+        # own admin is no longer looked up.
         dummy_user = MagicMock()
         dummy_user.username = "testadmin"
-        mock_user_get.return_value = dummy_user
+        mock_get_current_user.return_value = dummy_user
 
         # Create a dummy claim model
         dummy_model = MagicMock()
@@ -47,8 +48,8 @@ class TestClaimSubscriptionSignal(TestCase):
         }
         claim_handler(**kwargs)
 
-        # 4. Assert the user was fetched with the correct admin_id
-        mock_user_get.assert_called_once_with(claim_admin_id=123)
+        # 4. Assert the acting user was resolved
+        mock_get_current_user.assert_called_once_with()
 
         # 5. Assert notify_subscribers was called correctly
         mock_notify.assert_called_once()
