@@ -39,6 +39,14 @@ def get_inline_login_request_serializer():
         fields={
             "username": fields.CharField(),
             "password": fields.CharField(),
+            "otp": fields.CharField(
+                required=False,
+                help_text="Second-factor code, required once the user has enrolled a device",
+            ),
+            "otp_device": fields.CharField(
+                required=False,
+                help_text="Device the code is for (django-otp persistent id); unset tries all",
+            ),
         },
     )
 
