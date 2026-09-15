@@ -2,11 +2,25 @@ from rest_framework.response import Response
 from rest_framework import exceptions, status, views
 from api_fhir_r4.exceptions import FHIRException
 
-from django.conf import settings
-import traceback
 import logging
 
+try:
+    from sentry_sdk import capture_exception
+    from sentry_sdk.integrations.logging import ignore_logger
+except ImportError:  # sentry_sdk is optional (see sentry-requirements.txt)
+    def capture_exception(_exception):
+        """No-op when sentry_sdk is not installed."""
+        return None
+
+    def ignore_logger(_name):
+        return None
+
 logger = logging.getLogger(__name__)
+
+# Unexpected failures are reported explicitly below; let Sentry's logging
+# integration skip this logger rather than raise a second event for the same
+# exception.
+ignore_logger(__name__)
 
 
 def call_default_exception_handler(exc, context):
@@ -19,6 +33,16 @@ def call_default_exception_handler(exc, context):
     return response
 
 
+# Exceptions that describe the caller's own request: their message is written
+# for the client, and they are not server faults worth a traceback.
+EXPECTED_EXCEPTIONS = (
+    exceptions.NotAuthenticated,
+    exceptions.AuthenticationFailed,
+    exceptions.PermissionDenied,
+    FHIRException,
+)
+
+
 def fhir_api_exception_handler(exc, context):
     response = call_default_exception_handler(exc, context)
 
@@ -26,21 +50,24 @@ def fhir_api_exception_handler(exc, context):
     if "api_fhir_r4" in request_path:
         from api_fhir_r4.converters import OperationOutcomeConverter
 
-        fhir_outcome = OperationOutcomeConverter.to_fhir_obj(exc)
-        if settings.DEBUG and not isinstance(
-            exc,
-            (
-                exceptions.NotAuthenticated,
-                exceptions.AuthenticationFailed,
-                exceptions.PermissionDenied,
-                FHIRException,
-            ),
-        ):
-            trace = traceback.extract_tb(traceback.sys.exc_info()[2])
-            logger.debug(
-                "Unexpected {exc.__class__.__name__} trace:\n"
-                + "".join(traceback.format_list(trace))
+        unexpected = not isinstance(exc, EXPECTED_EXCEPTIONS)
+        if unexpected:
+            # Was previously guarded by settings.DEBUG, which is False in
+            # production -- so the one environment where an unexpected FHIR
+            # failure matters was the one that recorded nothing about it.
+            # exc_info=exc rather than sys.exc_info(): correct even when this
+            # runs outside the original except block.
+            logger.error(
+                "Unexpected %s handling %s",
+                exc.__class__.__name__,
+                request_path,
+                exc_info=exc,
             )
+            # DRF turns this into a response, so it is a *handled* exception and
+            # Sentry's Django integration never sees it.
+            capture_exception(exc)
+
+        fhir_outcome = OperationOutcomeConverter.to_fhir_obj(exc)
 
         if not response:
             response = __create_server_error_response()
