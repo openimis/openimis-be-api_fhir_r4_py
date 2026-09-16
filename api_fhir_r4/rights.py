@@ -67,10 +67,6 @@ CLAIM_FEEDBACK_SKIP = ClaimConfig.gql_mutation_skip_claim_feedback_perms
 
 # --- core.ClaimAdmin ("core.<action>_claimadministrator") -------------------
 CLAIM_ADMINISTRATOR_VIEW = CoreConfig.gql_query_claim_administrator_perms
-# Distinct, dedicated right - NOT the same as CoreConfig.gql_query_claim_admins_perms
-# (default empty, i.e. open to anyone) used by core.schema.resolve_claim_admins. That
-# resolver's empty default looks like a separate, pre-existing bug; this dedicated right
-# is the correct one to require here rather than replicating that bug into the FHIR API.
 CLAIM_ADMINISTRATOR_ADD = CoreConfig.gql_mutation_create_claim_administrator_perms
 CLAIM_ADMINISTRATOR_CHANGE = CoreConfig.gql_mutation_update_claim_administrator_perms
 CLAIM_ADMINISTRATOR_DELETE = CoreConfig.gql_mutation_delete_claim_administrator_perms
