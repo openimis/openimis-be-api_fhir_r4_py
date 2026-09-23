@@ -82,9 +82,9 @@ class FHIRPermissionAlignmentTestCase(TestCase):
 
     def test_group_verbs_resolve_from_the_family_model(self):
         """
-        Group est insuree.Family : le droit vient du modele proprietaire, pas d'un
-        instantane de `rights.FAMILY_*`. Les valeurs sont les memes - c'est le moment
-        de la lecture qui change.
+        Group is insuree.Family: the right comes from the owning model, not from a
+        snapshot of `rights.FAMILY_*`. The values are the same - what changes is when
+        the read happens.
         """
         from api_fhir_r4.permissions import FHIRApiGroupPermissions
         from insuree.models import Family
@@ -105,7 +105,7 @@ class FHIRPermissionAlignmentTestCase(TestCase):
                 )
 
     def test_group_resolution_matches_the_previous_snapshot(self):
-        """Le passage au modele ne change aucune valeur exigee aujourd'hui."""
+        """Moving to the model changes no value required today."""
         from api_fhir_r4.permissions import FHIRApiGroupPermissions
         from insuree.models import Family
 
@@ -205,12 +205,12 @@ class FHIRPermissionAlignmentTestCase(TestCase):
 
 class DenySentinelTestCase(TestCase):
     """
-    `DENY` ([-1]) refuse, `[]` autorise - et les deux se ressemblent a la lecture.
+    `DENY` ([-1]) refuses, `[]` allows - and the two look alike when read.
 
-    `has_perms([])` renvoie True par construction (core.models.user.User.has_perms), donc
-    une liste vide **ouvre** un verbe au lieu de le fermer. -1 n'etant pas un identifiant
-    de droit valide, aucun role ne peut le detenir : c'est la maniere d'ecrire "ce verbe
-    n'est pas expose". Les superusers et imis_admin passent outre, comme pour tout droit.
+    `has_perms([])` returns True by construction (core.models.user.User.has_perms), so
+    an empty list **opens** a verb instead of closing it. Since -1 is not a valid right
+    identifier, no role can hold it: that is how to write "this verb is not exposed".
+    Superusers and imis_admin bypass it, as they do for any right.
     """
 
     def test_deny_is_refused_and_empty_is_granted(self):
@@ -222,7 +222,7 @@ class DenySentinelTestCase(TestCase):
 
     def test_base_class_defaults_are_closed(self):
         """
-        Une sous-classe qui oublie un verbe doit le refuser, pas l'ouvrir a tous.
+        A subclass that forgets a verb has to refuse it, not open it to everybody.
         """
         for verb in ("get", "post", "put", "patch", "delete"):
             with self.subTest(verb=verb):
@@ -230,8 +230,8 @@ class DenySentinelTestCase(TestCase):
 
     def test_open_reads_stay_explicitly_open(self):
         """
-        L'exemption OMT-281 : ces lectures sont volontairement publiques et doivent le
-        redeclarer explicitement, sinon elles heriteraient du refus.
+        The OMT-281 exemption: these reads are deliberately public and have to
+        redeclare that explicitly, otherwise they would inherit the refusal.
         """
         from api_fhir_r4.permissions import (
             FHIRApiActivityDefinitionPermissions,
@@ -250,9 +250,9 @@ class DenySentinelTestCase(TestCase):
 
     def test_multiserializer_views_only_require_authentication(self):
         """
-        Le droit reel vient du tuple de chaque serializer enregistre. L'attribut de
-        classe declare ici masquait la propriete du mixin, si bien que ces vues
-        s'appuyaient sur FHIRApiPermissions et ses listes vides.
+        The real right comes from each registered serializer's tuple. The class
+        attribute declared here shadowed the mixin's property, so that these views
+        relied on FHIRApiPermissions and its empty lists.
         """
         from rest_framework.permissions import IsAuthenticated
 
