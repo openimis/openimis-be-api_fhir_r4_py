@@ -1,21 +1,22 @@
 """
-Garde-fous sur la declaration des droits d'api_fhir_r4.
+Guard rails on api_fhir_r4's rights declaration.
 
-Meme structure que `claim`, `core` ou `api_etl` : `DJANGO_PERMS` par entite puis par
-action, `_PERM_CFG` qui en derive les cles de config, et `Subscription.get_rights` comme
-point d'acces. La particularite de ce module est qu'il n'a presque pas de droits a lui :
-sa couche REST/FHIR *emprunte* ceux des modules metier (`api_fhir_r4/rights.py`). Seule
-la souscription FHIR lui appartient - un concept sans equivalent GraphQL, dont le modele
-vit ici - et c'est la seule chose que `DJANGO_PERMS` doit declarer.
+Same structure as `claim`, `core` or `api_etl`: `DJANGO_PERMS` by entity then by
+action, `_PERM_CFG` deriving the config keys from it, and `Subscription.get_rights` as
+the access point. What is particular to this module is that it has almost no rights of
+its own: its REST/FHIR layer *borrows* those of the business modules
+(`api_fhir_r4/rights.py`). Only the FHIR subscription belongs to it - a concept with no
+GraphQL equivalent, whose model lives here - and that is the only thing `DJANGO_PERMS`
+has to declare.
 
-Ce qui est verrouille ici :
-  * les identifiants 158001-158004, tels que deployes et tels que les porte
-    `permissions_map.json` - en changer un retire l'acces aux roles qui le detiennent ;
-  * le fait que `DJANGO_PERMS` **ne redeclare aucun droit emprunte** : un identifiant
-    d'un autre module recopie ici serait une seconde definition, libre de diverger ;
-  * une cle de config sans attribut de classe n'est jamais chargee et sa lecture leve
-    AttributeError - le droit devient inapplicable ;
-  * `has_perms([])` renvoie True, donc une liste vide accorde a tous.
+What is locked down here:
+  * the identifiers 158001-158004, as deployed and as `permissions_map.json` carries
+    them - changing one withdraws access from the roles that hold it;
+  * the fact that `DJANGO_PERMS` **redeclares no borrowed right**: another module's
+    identifier copied here would be a second definition, free to diverge;
+  * a config key with no class attribute is never loaded and reading it raises
+    AttributeError - the right becomes unenforceable;
+  * `has_perms([])` returns True, so an empty list grants to everybody.
 """
 
 import json
@@ -34,8 +35,8 @@ from api_fhir_r4.apps import (
 from api_fhir_r4.models import Subscription
 from api_fhir_r4.models.subscription import SubscriptionNotificationResult
 
-# Les identifiants tels que deployes. En changer un est incompatible avec les roles
-# existants : il faut mettre ce test a jour *et* accorder le nouveau droit.
+# The identifiers as deployed. Changing one is incompatible with the existing roles:
+# this test has to be updated *and* the new right granted.
 EXPECTED_RIGHTS = {
     "fhir_sub_search_perms": ["158001"],
     "fhir_sub_create_perms": ["158002"],
@@ -43,7 +44,7 @@ EXPECTED_RIGHTS = {
     "fhir_sub_delete_perms": ["158004"],
 }
 
-# Les cles de `permissions_map.json` qui portent ces memes identifiants.
+# The `permissions_map.json` keys that carry these same identifiers.
 EXPECTED_MAP_ENTRIES = {
     "api_fhir_r4.fhir_sub_search": "158001",
     "api_fhir_r4.fhir_sub_create": "158002",
@@ -53,7 +54,7 @@ EXPECTED_MAP_ENTRIES = {
 
 
 def _load_permissions_map():
-    """`permissions_map.json` vit dans l'assemblage, pas dans le paquet."""
+    """`permissions_map.json` lives in the assembly, not in the package."""
     from django.conf import settings
 
     candidates = [
@@ -92,31 +93,31 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
 
     def test_attributes_carry_the_declared_right(self):
         """
-        Les droits sont des constantes posees depuis DJANGO_PERMS : l'attribut doit
-        valoir la declaration, sans passer par la config.
+        The rights are constants set from DJANGO_PERMS: the attribute must equal the
+        declaration, without going through the config.
         """
         for key, (entity, action) in _PERM_CFG.items():
             with self.subTest(key=key):
                 self.assertEqual(getattr(ApiFhirConfig, key), perms(entity, action))
 
-    # --- le module ne declare que ce qui lui appartient -------------------
+    # --- the module declares only what belongs to it ----------------------
     def test_only_the_subscription_entity_is_declared(self):
         """
-        Les droits que la couche FHIR emprunte aux modules metier ne sont pas
-        redeclares ici : leur source de verite est le `DJANGO_PERMS` du proprietaire,
-        accessible par `Model.get_rights(action)`.
+        The rights the FHIR layer borrows from the business modules are not redeclared
+        here: their source of truth is the owner's `DJANGO_PERMS`, reachable through
+        `Model.get_rights(action)`.
         """
         self.assertEqual(set(DJANGO_PERMS), {"subscription"})
 
     def test_every_declared_id_is_in_this_module_block(self):
-        """158xxx est le bloc de ce module dans le catalogue openIMIS."""
+        """158xxx is this module's block in the openIMIS catalogue."""
         for entity, actions in DJANGO_PERMS.items():
             for action, (_, right_id) in actions.items():
                 with self.subTest(entity=entity, action=action):
                     self.assertTrue(158000 <= right_id < 159000, right_id)
 
     def test_no_shared_right_ids(self):
-        """Aucun partage d'identifiant n'est prevu dans ce module."""
+        """No identifier sharing is intended in this module."""
         seen = {}
         for entity, actions in DJANGO_PERMS.items():
             for action, (_, right_id) in actions.items():
@@ -133,7 +134,7 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
         self.assertEqual(shared, {})
 
     def test_django_permission_names_use_the_app_label(self):
-        """L'app_label du modele Subscription dans cet assemblage est `api_fhir_r4`."""
+        """The Subscription model's app_label in this assembly is `api_fhir_r4`."""
         self.assertEqual(Subscription._meta.app_label, "api_fhir_r4")
         for entity, actions in DJANGO_PERMS.items():
             for action, (name, _) in actions.items():
@@ -158,14 +159,14 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
             ApiFhirConfig.fhir_sub_search_perms = original
 
     def test_configured_returns_none_for_an_undeclared_action(self):
-        """None signifie "aucune regle" : l'appelant doit echouer ferme."""
+        """None means "no rule": the caller must fail closed."""
         self.assertIsNone(configured_perms("subscription", "nosuchaction"))
 
     def test_ids_match_permissions_map(self):
-        """La carte des droits de l'assemblage doit porter les memes entiers."""
+        """The assembly's rights map must carry the same integers."""
         mapping = _load_permissions_map()
         if mapping is None:
-            self.skipTest("permissions_map.json introuvable dans cet assemblage")
+            self.skipTest("permissions_map.json not found in this assembly")
         for key, right_id in EXPECTED_MAP_ENTRIES.items():
             with self.subTest(key=key):
                 self.assertEqual(str(mapping.get(key)), right_id)
@@ -176,7 +177,7 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
         }
         self.assertEqual(set(EXPECTED_MAP_ENTRIES.values()), declared_ids)
 
-    # --- le point d'acces par le modele -----------------------------------
+    # --- the access point through the model -------------------------------
     def test_model_exposes_every_action_of_its_entity(self):
         for action in DJANGO_PERMS["subscription"]:
             with self.subTest(action=action):
@@ -200,8 +201,8 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
 
     def test_notification_result_inherits_the_subscription_rights(self):
         """
-        Une notification n'existe que pour une souscription et n'a pas de droits a elle :
-        `scope_parent` remonte la chaine jusqu'a `Subscription.get_rights`.
+        A notification exists only for a subscription and has no rights of its own:
+        `scope_parent` walks the chain up to `Subscription.get_rights`.
         """
         from core.rights_scope import model_rights, scope_parent_of
 
@@ -214,7 +215,7 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
                 )
 
     def test_permission_class_resolves_from_the_model(self):
-        """Le controle REST doit lire le modele, pas l'instantane d'import."""
+        """The REST check must read the model, not the import-time snapshot."""
         from api_fhir_r4.permissions import FHIRApiSubscriptionPermissions
 
         permission = FHIRApiSubscriptionPermissions()

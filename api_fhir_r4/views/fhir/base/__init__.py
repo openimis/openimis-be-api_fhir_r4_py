@@ -34,13 +34,13 @@ class BaseMultiserializerFHIRView(
 ):
     user = None
     pagination_class = FhirBundleResultsSetPagination
-    # Authentification seulement : sur une vue multiserializer, le droit reel est porte
-    # par le tuple de permissions de chaque serializer enregistre, et
-    # `_get_eligible_from_user_permissions` refuse si aucun ne passe. C'est ce que dit
-    # deja la docstring de GenericMultiSerializerViewsetMixin.permission_classes - mais
-    # cette propriete est **masquee** par l'attribut de classe declare ici, plus haut
-    # dans le MRO. Ces vues s'appuyaient donc en fait sur FHIRApiPermissions, dont les
-    # listes vides laissent tout passer : un controle d'apparence, pas un controle.
+    # Authentication only: on a multiserializer view, the real right is carried by the
+    # permissions tuple of each registered serializer, and
+    # `_get_eligible_from_user_permissions` refuses when none passes. That is what
+    # GenericMultiSerializerViewsetMixin.permission_classes' docstring already says -
+    # but that property is **shadowed** by the class attribute declared here, higher up
+    # in the MRO. So these views in fact relied on FHIRApiPermissions, whose empty
+    # lists let everything through: a check in appearance, not a check.
     permission_classes = (IsAuthenticated,)
     authentication_classes = [
         CsrfExemptSessionAuthentication

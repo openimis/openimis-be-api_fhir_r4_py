@@ -12,28 +12,28 @@ class R4SubscriptionConfig(SubscriptionConfiguration):
 
     @classmethod
     def get_fhir_sub_search_perms(cls):
-        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        # The AppConfig constant, no longer the config: a right is not overridden.
         from django.apps import apps as django_apps
 
         return django_apps.get_app_config("api_fhir_r4").fhir_sub_search_perms
 
     @classmethod
     def get_fhir_sub_create_perms(cls):
-        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        # The AppConfig constant, no longer the config: a right is not overridden.
         from django.apps import apps as django_apps
 
         return django_apps.get_app_config("api_fhir_r4").fhir_sub_create_perms
 
     @classmethod
     def get_fhir_sub_update_perms(cls):
-        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        # The AppConfig constant, no longer the config: a right is not overridden.
         from django.apps import apps as django_apps
 
         return django_apps.get_app_config("api_fhir_r4").fhir_sub_update_perms
 
     @classmethod
     def get_fhir_sub_delete_perms(cls):
-        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        # The AppConfig constant, no longer the config: a right is not overridden.
         from django.apps import apps as django_apps
 
         return django_apps.get_app_config("api_fhir_r4").fhir_sub_delete_perms

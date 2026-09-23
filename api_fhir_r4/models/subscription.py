@@ -14,16 +14,17 @@ class Subscription(HistoryBusinessModel):
     @classmethod
     def get_rights(cls, action):
         """
-        Les droits régissant une action sur cette entité, pour REST et FHIR.
+        The rights governing an action on this entity, for REST and FHIR.
 
-        Ne redéclare rien : la table des droits est `api_fhir_r4.apps.DJANGO_PERMS`, par
-        entité puis par action, et `configured_perms` y lit la valeur *configurée* -
-        celle que ModuleConfiguration a pu surcharger - et non le défaut déclaré. Ce
-        modèle n'est que le point d'accès, comme `get_queryset` l'est pour les lignes.
+        Redeclares nothing: the rights table is `api_fhir_r4.apps.DJANGO_PERMS`, by
+        entity then by action, and `configured_perms` reads the *configured* value
+        there - the one ModuleConfiguration may have overridden - and not the declared
+        default. This model is only the access point, as `get_queryset` is for the
+        rows.
 
-        La lecture se fait ici, à l'appel : les attributs `_perms` ne valent leur valeur
-        qu'après `ready()`, et un instantané pris à l'import capturerait le placeholder,
-        donc une liste vide - que `has_perms` accorde à tout le monde.
+        The read happens here, at call time: the `_perms` attributes only hold their
+        value after `ready()`, and a snapshot taken at import would capture the
+        placeholder, hence an empty list - which `has_perms` grants to everybody.
         """
         from api_fhir_r4.apps import configured_perms
 
@@ -63,9 +64,9 @@ class SubscriptionNotificationResultManager(models.Manager):
 
 
 class SubscriptionNotificationResult(models.Model):
-    # Sous-ressource : une notification n'existe que pour une souscription, et c'est la
-    # seule clé étrangère du modèle - il n'y a donc pas d'ambiguïté sur le propriétaire.
-    # Elle n'a pas de droits à elle : `model_rights` remonte à Subscription.get_rights.
+    # A sub-resource: a notification exists only for a subscription, and that is the
+    # model's only foreign key - so there is no ambiguity about the owner. It has no
+    # rights of its own: `model_rights` walks up to Subscription.get_rights.
     scope_parent = "subscription"
 
     id = models.UUIDField(

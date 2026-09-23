@@ -5,14 +5,14 @@ from rest_framework.permissions import DjangoModelPermissions
 from api_fhir_r4 import rights
 from core.rights_scope import VERB_ACTIONS, model_rights
 
-# Un droit qu'aucun role ne peut detenir : -1 n'est pas un identifiant de droit valide,
-# donc `has_perms([-1])` est False pour tout le monde (les superusers et imis_admin
-# passent outre, comme pour n'importe quel droit).
+# A right no role can hold: -1 is not a valid right identifier, so `has_perms([-1])`
+# is False for everybody (superusers and imis_admin bypass it, as they do for any
+# right).
 #
-# A utiliser pour dire "ce verbe n'est pas expose". C'est l'oppose de [], qui ne refuse
-# rien : `has_perms([])` renvoie True par construction, donc une liste vide **ouvre**
-# l'acces a tout le monde au lieu de le fermer. Les deux se ressemblent a la lecture,
-# d'ou la constante nommee plutot qu'un -1 nu.
+# To be used to say "this verb is not exposed". It is the opposite of [], which refuses
+# nothing: `has_perms([])` returns True by construction, so an empty list **opens**
+# access to everybody instead of closing it. The two look alike when read, hence the
+# named constant rather than a bare -1.
 DENY = [-1]
 
 
@@ -37,10 +37,10 @@ class FHIRApiPermissions(DjangoModelPermissions):
     because it is a deliberate divergence rather than an oversight.
     """
 
-    # Valeurs par defaut fermees : une sous-classe qui oublie un verbe le refuse au
-    # lieu de l'ouvrir a tous. Les ressources dont une lecture est volontairement
-    # publique (exemption OMT-281) redeclarent explicitement [] - c'est alors une
-    # decision lisible, et non un oubli.
+    # Closed defaults: a subclass that forgets a verb refuses it instead of opening it
+    # to everybody. The resources whose read is deliberately public (OMT-281
+    # exemption) explicitly redeclare [] - which is then a readable decision, and not
+    # an oversight.
     permissions_get = DENY
     permissions_post = DENY
     permissions_put = DENY
@@ -201,8 +201,8 @@ class FHIRApiMedicationPermissions(FHIRApiPermissions):
     permissions_delete = rights.MEDICAL_ITEM_DELETE
 
 
-# Aucun viewset ne l'utilise et aucune route ne l'expose. Les valeurs fermees heritees
-# de la classe de base la rendent sans danger si elle est un jour cablee.
+# No viewset uses it and no route exposes it. The closed values inherited from the
+# base class make it harmless should it ever be wired up.
 class FHIRApiConditionPermissions(FHIRApiPermissions):
     # Dead: no FHIR "Condition" resource (viewset/serializer/model) exists in this
     # module at all. This class is unused; kept only in case it's wired up later.
@@ -287,9 +287,9 @@ class FHIRApiPaymentPermissions(FHIRApiPermissions):
 
 
 class FHIRApiSubscriptionPermissions(FHIRApiPermissions):
-    # La souscription est la seule entite dont ce module est proprietaire : ses droits
-    # sont declares dans `api_fhir_r4.apps.DJANGO_PERMS` et lus par
-    # `Subscription.get_rights`, au moment du controle et non a l'import.
+    # The subscription is the only entity this module owns: its rights are declared in
+    # `api_fhir_r4.apps.DJANGO_PERMS` and read by `Subscription.get_rights`, at check
+    # time and not at import time.
     @property
     def rights_model(self):
         from api_fhir_r4.models import Subscription
