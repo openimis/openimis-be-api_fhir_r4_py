@@ -184,10 +184,6 @@ DEFAULT_CFG = {
         "subscribe_invoice_signal": False,
     },
     "R4_fhir_subscription_config": {
-        "fhir_sub_search_perms": ["158001"],
-        "fhir_sub_create_perms": ["158002"],
-        "fhir_sub_update_perms": ["158003"],
-        "fhir_sub_delete_perms": ["158004"],
         "fhir_sub_channel_rest_hook": "rest-hook",
         "fhir_sub_status_off": "off",
         "fhir_sub_status_active": "active",

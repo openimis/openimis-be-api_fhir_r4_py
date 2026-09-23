@@ -1,13 +1,29 @@
 """
 Named permission constants for the FHIR R4 API (see `api_fhir_r4.permissions`).
 
-Each constant below is an ALIAS for the right-ID list already exposed by the
-owning module's Config class (e.g. `PolicyConfig.gql_mutation_create_policies_perms`),
-never a hardcoded numeric ID. Aliasing preserves openIMIS's existing
-admin-configurable-rights behaviour: a deployment's `ModuleConfiguration` can
-still override the underlying right ID(s) at runtime, exactly as it does
-today for the GraphQL layer - this file only gives that existing value a
-stable, readable name.
+**Ce fichier ne declare aucun droit.** A une exception pres (la souscription FHIR, en
+fin de fichier), ce module n'a pas de droits a lui : il *emprunte* ceux des modules
+metier. La source de verite d'un droit emprunte est le `DJANGO_PERMS` du module
+proprietaire - `claim.apps.DJANGO_PERMS`, `insuree.apps.DJANGO_PERMS`, etc. - et le
+point d'acces canonique est `Model.get_rights(action)`, qui lit la valeur *configuree*
+au moment du controle (cf. `core.rights_scope`). Redeclarer ici un identifiant appartenant
+a un autre module en ferait une seconde definition, libre de diverger en silence.
+
+Chaque constante ci-dessous est donc un ALIAS de la liste d'identifiants deja exposee par
+la classe de config du module proprietaire (p. ex.
+`PolicyConfig.gql_mutation_create_policies_perms`), jamais un entier en dur.
+
+Deux limites, assumees :
+
+  * un alias est un **instantane pris a l'import**. Cela ne tient que parce que rien
+    n'importe ce module avant que tous les `AppConfig.ready()` aient tourne. La forme
+    sans instantane est `rights_model` dans `api_fhir_r4/permissions.py`, qui appelle
+    `Model.get_rights(action)` a chaque controle ; les constantes d'ici restent le repli
+    pour les modeles qui ne declarent pas encore leurs droits (aujourd'hui : tous sauf
+    claim.Claim, insuree.Insuree, insuree.Family et api_fhir_r4.Subscription).
+  * un module proprietaire converti a `DJANGO_PERMS` n'expose pas forcement une entite
+    par ressource FHIR : tant qu'il n'y a pas de `get_rights` sur le modele concerne,
+    l'alias par la cle `_perms` reste la seule facon de nommer le droit.
 
 Names follow Django's built-in permission-codename convention
 (`view`/`add`/`change`/`delete` per model, i.e. `"<app_label>.<action>_<model>"`,
@@ -38,6 +54,9 @@ from product.apps import ProductConfig
 
 
 # --- claim.Claim ("claim.<action>_claim") -----------------------------------
+# Emprunt : source de verite `claim.apps.DJANGO_PERMS`, entite "claim". Le controle
+# passe par `Claim.get_rights(action)` (FHIRApiClaimPermissions.rights_model) ; ces
+# constantes ne sont plus que le repli et le nom lisible.
 CLAIM_VIEW = ClaimConfig.gql_query_claims_perms
 CLAIM_ADD = ClaimConfig.gql_mutation_create_claims_perms
 
@@ -128,6 +147,8 @@ HEALTH_FACILITY_DELETE = LocationConfig.gql_mutation_delete_health_facilities_pe
 # "OMT-281 allow anyone to query, limited by the get_queryset").
 
 # --- insuree.Insuree / Patient ("insuree.<action>_insuree") -----------------
+# Emprunt : source de verite `insuree.apps.DJANGO_PERMS`, entite "insuree". Le controle
+# passe par `Insuree.get_rights(action)` (FHIRApiInsureePermissions.rights_model).
 INSUREE_VIEW = InsureeConfig.gql_query_insurees_perms
 INSUREE_ADD = InsureeConfig.gql_mutation_create_insurees_perms
 INSUREE_CHANGE = InsureeConfig.gql_mutation_update_insurees_perms
@@ -138,6 +159,8 @@ INSUREE_CHANGE = InsureeConfig.gql_mutation_update_insurees_perms
 INSUREE_DELETE = InsureeConfig.gql_mutation_delete_insurees_perms
 
 # --- insuree.Family / Group ("insuree.<action>_family") ---------------------
+# Emprunt : source de verite `insuree.apps.DJANGO_PERMS`, entite "family". Le controle
+# passe par `Family.get_rights(action)` (FHIRApiGroupPermissions.rights_model).
 FAMILY_VIEW = InsureeConfig.gql_query_families_perms
 FAMILY_ADD = InsureeConfig.gql_mutation_create_families_perms
 FAMILY_CHANGE = InsureeConfig.gql_mutation_update_families_perms
@@ -214,14 +237,18 @@ INVOICE_PAYMENT_DELETE = InvoiceConfig.gql_invoice_payment_delete_perms
 # ModelViewSet (unlike Invoice/Bill's multiserializer viewset), so DELETE is routed.
 
 # --- api_fhir_r4.Subscription ("api_fhir_r4.<action>_subscription") --------
+# La seule entite dont ce module soit proprietaire. Sa source de verite est desormais
+# `api_fhir_r4.apps.DJANGO_PERMS` (entite "subscription", identifiants 158001-158004) et
+# le controle passe par `Subscription.get_rights(action)`
+# (FHIRApiSubscriptionPermissions.rights_model). Les constantes ci-dessous restent des
+# alias des memes valeurs, via les constantes de l'AppConfig.
 SUBSCRIPTION_VIEW = R4SubscriptionConfig.get_fhir_sub_search_perms()
 SUBSCRIPTION_ADD = R4SubscriptionConfig.get_fhir_sub_create_perms()
 SUBSCRIPTION_CHANGE = R4SubscriptionConfig.get_fhir_sub_update_perms()
 SUBSCRIPTION_DELETE = R4SubscriptionConfig.get_fhir_sub_delete_perms()
-# Subscription is a FHIR-only concept (no core GraphQL equivalent) whose rights are
-# defined and consumed entirely within this module (R4SubscriptionConfig), so unlike
-# every other constant above there is no separate "ground truth" to alias - this
-# assignment IS the source of truth. SubscriptionSerializer additionally layers on two
+# Subscription is a FHIR-only concept (no core GraphQL equivalent) whose model and
+# rights live entirely in this module - unlike every other constant above, there is no
+# other module to borrow from. SubscriptionSerializer additionally layers on two
 # independent checks on top of this (not a substitute for it): the requester must also
 # hold the read permission for whatever resource type they're subscribing to
 # (check_resource_rights), and update/delete additionally require being the

@@ -12,27 +12,31 @@ class R4SubscriptionConfig(SubscriptionConfiguration):
 
     @classmethod
     def get_fhir_sub_search_perms(cls):
-        return cls.get_config_attribute("R4_fhir_subscription_config").get(
-            "fhir_sub_search_perms", ["158001"]
-        )
+        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        from django.apps import apps as django_apps
+
+        return django_apps.get_app_config("api_fhir_r4").fhir_sub_search_perms
 
     @classmethod
     def get_fhir_sub_create_perms(cls):
-        return cls.get_config_attribute("R4_fhir_subscription_config").get(
-            "fhir_sub_create_perms", ["158002"]
-        )
+        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        from django.apps import apps as django_apps
+
+        return django_apps.get_app_config("api_fhir_r4").fhir_sub_create_perms
 
     @classmethod
     def get_fhir_sub_update_perms(cls):
-        return cls.get_config_attribute("R4_fhir_subscription_config").get(
-            "fhir_sub_update_perms", ["158003"]
-        )
+        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        from django.apps import apps as django_apps
+
+        return django_apps.get_app_config("api_fhir_r4").fhir_sub_update_perms
 
     @classmethod
     def get_fhir_sub_delete_perms(cls):
-        return cls.get_config_attribute("R4_fhir_subscription_config").get(
-            "fhir_sub_delete_perms", ["158004"]
-        )
+        # La constante de l'AppConfig, plus la config : un droit ne se surcharge plus.
+        from django.apps import apps as django_apps
+
+        return django_apps.get_app_config("api_fhir_r4").fhir_sub_delete_perms
 
     @classmethod
     def get_fhir_subscription_channel_rest_hook(cls):

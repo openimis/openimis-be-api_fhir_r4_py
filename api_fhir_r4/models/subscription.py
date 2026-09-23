@@ -11,6 +11,24 @@ from core.models import HistoryBusinessModel
 
 
 class Subscription(HistoryBusinessModel):
+    @classmethod
+    def get_rights(cls, action):
+        """
+        Les droits régissant une action sur cette entité, pour REST et FHIR.
+
+        Ne redéclare rien : la table des droits est `api_fhir_r4.apps.DJANGO_PERMS`, par
+        entité puis par action, et `configured_perms` y lit la valeur *configurée* -
+        celle que ModuleConfiguration a pu surcharger - et non le défaut déclaré. Ce
+        modèle n'est que le point d'accès, comme `get_queryset` l'est pour les lignes.
+
+        La lecture se fait ici, à l'appel : les attributs `_perms` ne valent leur valeur
+        qu'après `ready()`, et un instantané pris à l'import capturerait le placeholder,
+        donc une liste vide - que `has_perms` accorde à tout le monde.
+        """
+        from api_fhir_r4.apps import configured_perms
+
+        return configured_perms("subscription", action)
+
     class SubscriptionStatus(models.IntegerChoices):
         INACTIVE = 0, _("inactive")
         ACTIVE = 1, _("active")
@@ -45,6 +63,11 @@ class SubscriptionNotificationResultManager(models.Manager):
 
 
 class SubscriptionNotificationResult(models.Model):
+    # Sous-ressource : une notification n'existe que pour une souscription, et c'est la
+    # seule clé étrangère du modèle - il n'y a donc pas d'ambiguïté sur le propriétaire.
+    # Elle n'a pas de droits à elle : `model_rights` remonte à Subscription.get_rights.
+    scope_parent = "subscription"
+
     id = models.UUIDField(
         primary_key=True, db_column="UUID", default=uuid.uuid4, editable=False
     )

@@ -230,6 +230,15 @@ class FHIRApiHealthServicePermissions(FHIRApiPermissions):
 
 
 class FHIRApiGroupPermissions(FHIRApiPermissions):
+    # Group maps onto insuree.Family and its rights are that model's CRUD rights - the
+    # same four `insuree.apps` entries the `rights.FAMILY_*` aliases below name, read at
+    # call time instead of snapshotted at import. The lists stay as the fallback.
+    @property
+    def rights_model(self):
+        from insuree.models import Family
+
+        return Family
+
     permissions_get = rights.FAMILY_VIEW
     permissions_post = rights.FAMILY_ADD
     permissions_put = rights.FAMILY_CHANGE
@@ -278,6 +287,15 @@ class FHIRApiPaymentPermissions(FHIRApiPermissions):
 
 
 class FHIRApiSubscriptionPermissions(FHIRApiPermissions):
+    # La souscription est la seule entite dont ce module est proprietaire : ses droits
+    # sont declares dans `api_fhir_r4.apps.DJANGO_PERMS` et lus par
+    # `Subscription.get_rights`, au moment du controle et non a l'import.
+    @property
+    def rights_model(self):
+        from api_fhir_r4.models import Subscription
+
+        return Subscription
+
     permissions_get = rights.SUBSCRIPTION_VIEW
     permissions_post = rights.SUBSCRIPTION_ADD
     permissions_put = rights.SUBSCRIPTION_CHANGE

@@ -80,6 +80,48 @@ class FHIRPermissionAlignmentTestCase(TestCase):
         finally:
             InsureeConfig.gql_query_insurees_perms = original
 
+    def test_group_verbs_resolve_from_the_family_model(self):
+        """
+        Group est insuree.Family : le droit vient du modele proprietaire, pas d'un
+        instantane de `rights.FAMILY_*`. Les valeurs sont les memes - c'est le moment
+        de la lecture qui change.
+        """
+        from api_fhir_r4.permissions import FHIRApiGroupPermissions
+        from insuree.models import Family
+
+        permission = FHIRApiGroupPermissions()
+        self.assertIs(permission.rights_model, Family)
+        for verb, action in (
+            ("GET", "query"),
+            ("POST", "create"),
+            ("PUT", "update"),
+            ("PATCH", "update"),
+            ("DELETE", "delete"),
+        ):
+            with self.subTest(verb=verb):
+                self.assertEqual(
+                    permission.get_required_permissions(verb, Family),
+                    list(Family.get_rights(action)),
+                )
+
+    def test_group_resolution_matches_the_previous_snapshot(self):
+        """Le passage au modele ne change aucune valeur exigee aujourd'hui."""
+        from api_fhir_r4.permissions import FHIRApiGroupPermissions
+        from insuree.models import Family
+
+        permission = FHIRApiGroupPermissions()
+        for verb, expected in (
+            ("GET", rights.FAMILY_VIEW),
+            ("POST", rights.FAMILY_ADD),
+            ("PUT", rights.FAMILY_CHANGE),
+            ("PATCH", rights.FAMILY_CHANGE),
+            ("DELETE", rights.FAMILY_DELETE),
+        ):
+            with self.subTest(verb=verb):
+                self.assertEqual(
+                    permission.get_required_permissions(verb, Family), list(expected)
+                )
+
     # --- the documented override ------------------------------------------
     def test_claim_post_accepts_create_or_submit_as_a_flat_list(self):
         permission = FHIRApiClaimPermissions()
