@@ -69,9 +69,19 @@ class LoginAPITests(
         pass
 
 
-class LoginSecondFactorAPITests(LoginAPITests):
+class LoginSecondFactorAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
     """The REST login takes the same second factor as tokenAuth: it mints the
     same JWT, so a password alone must not be enough here either."""
+
+    base_url = LoginAPITests.base_url
+    _test_json_path = LoginAPITests._test_json_path
+
+    def setUp(self):
+        super().setUp()
+        self.get_or_create_user_api()
+
+    def test_get_should_required_login(self):
+        pass
 
     def _enrol(self):
         user = User.objects.get(username=self._TEST_USER_NAME)
@@ -110,3 +120,14 @@ class LoginSecondFactorAPITests(LoginAPITests):
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.json()["detail"], "INVALID_SECOND_FACTOR")
+
+    def test_post_while_backing_off_says_when_it_lifts(self):
+        self._enrol()
+        wrong = {**self._test_request_data, "otp": "000000"}
+        self.client.post(self.base_url, data=wrong, format="json")
+
+        response = self.client.post(self.base_url, data=wrong, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.json()["detail"], "SECOND_FACTOR_THROTTLED")
+        self.assertTrue(response.json()["locked_until"])
