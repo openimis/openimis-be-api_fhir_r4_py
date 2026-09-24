@@ -147,8 +147,9 @@ HEALTH_FACILITY_DELETE = LocationConfig.gql_mutation_delete_health_facilities_pe
 # "OMT-281 allow anyone to query, limited by the get_queryset").
 
 # --- insuree.Insuree / Patient ("insuree.<action>_insuree") -----------------
-# Emprunt : source de verite `insuree.apps.DJANGO_PERMS`, entite "insuree". Le controle
-# passe par `Insuree.get_rights(action)` (FHIRApiInsureePermissions.rights_model).
+# A borrowing: source of truth `insuree.apps.DJANGO_PERMS`, entity "insuree". The
+# check goes through `Insuree.get_rights(action)`
+# (FHIRApiInsureePermissions.rights_model).
 INSUREE_VIEW = InsureeConfig.gql_query_insurees_perms
 INSUREE_ADD = InsureeConfig.gql_mutation_create_insurees_perms
 INSUREE_CHANGE = InsureeConfig.gql_mutation_update_insurees_perms
@@ -159,8 +160,8 @@ INSUREE_CHANGE = InsureeConfig.gql_mutation_update_insurees_perms
 INSUREE_DELETE = InsureeConfig.gql_mutation_delete_insurees_perms
 
 # --- insuree.Family / Group ("insuree.<action>_family") ---------------------
-# Emprunt : source de verite `insuree.apps.DJANGO_PERMS`, entite "family". Le controle
-# passe par `Family.get_rights(action)` (FHIRApiGroupPermissions.rights_model).
+# A borrowing: source of truth `insuree.apps.DJANGO_PERMS`, entity "family". The check
+# goes through `Family.get_rights(action)` (FHIRApiGroupPermissions.rights_model).
 FAMILY_VIEW = InsureeConfig.gql_query_families_perms
 FAMILY_ADD = InsureeConfig.gql_mutation_create_families_perms
 FAMILY_CHANGE = InsureeConfig.gql_mutation_update_families_perms
