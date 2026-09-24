@@ -2,6 +2,7 @@ import json
 import os
 import time
 
+from django.utils import timezone
 from django_otp.oath import TOTP
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from rest_framework import status
@@ -122,11 +123,18 @@ class LoginSecondFactorAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin
         self.assertEqual(response.json()["detail"], "INVALID_SECOND_FACTOR")
 
     def test_post_while_backing_off_says_when_it_lifts(self):
-        self._enrol()
-        wrong = {**self._test_request_data, "otp": "000000"}
-        self.client.post(self.base_url, data=wrong, format="json")
+        device = self._enrol()
+        # Into back-off from the counters, not the clock: a run slower than
+        # django-otp's one-second first back-off would read INVALID instead.
+        TOTPDevice.objects.filter(pk=device.pk).update(
+            throttling_failure_count=1, throttling_failure_timestamp=timezone.now()
+        )
 
-        response = self.client.post(self.base_url, data=wrong, format="json")
+        response = self.client.post(
+            self.base_url,
+            data={**self._test_request_data, "otp": "000000"},
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.json()["detail"], "SECOND_FACTOR_THROTTLED")
