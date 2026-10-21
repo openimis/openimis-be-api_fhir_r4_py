@@ -67,6 +67,7 @@ DEFAULT_CFG = {
         "fhir_claim_item_explanation_code": "item_explanation",
         "fhir_claim_item_code": "item",
         "fhir_claim_service_code": "service",
+        "fhir_claim_status_error_code": "error",
         "fhir_claim_status_rejected_code": "rejected",
         "fhir_claim_status_entered_code": "entered",
         "fhir_claim_status_checked_code": "checked",

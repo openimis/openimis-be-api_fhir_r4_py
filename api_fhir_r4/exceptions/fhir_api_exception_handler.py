@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import exceptions, status, views
 from api_fhir_r4.exceptions import FHIRException
+from claim.services import ClaimSubmitError
 
 import logging
 
@@ -27,6 +28,11 @@ def call_default_exception_handler(exc, context):
     # Call REST framework's default exception handler first, to get the standard error response.
     response = views.exception_handler(exc, context)
 
+    if response is None and isinstance(exc, ClaimSubmitError):
+        # the claim sent is wrong (e.g. its care ends before it starts), the
+        # server is not
+        return Response(None, status=status.HTTP_400_BAD_REQUEST)
+
     if isinstance(exc, (exceptions.AuthenticationFailed, exceptions.NotAuthenticated)):
         response.status_code = status.HTTP_401_UNAUTHORIZED
         return response
@@ -40,6 +46,7 @@ EXPECTED_EXCEPTIONS = (
     exceptions.AuthenticationFailed,
     exceptions.PermissionDenied,
     FHIRException,
+    ClaimSubmitError,
 )
 
 

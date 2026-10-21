@@ -1,4 +1,9 @@
-from claim.services import ClaimSubmitService, ClaimConfig
+from claim.services import (
+    ClaimSubmitService,
+    ClaimConfig,
+    ClaimSubmitError,
+    get_saved_claim_field_errors,
+)
 from claim.gql_mutations import create_attachments
 from claim.models import Claim, ClaimItem, ClaimService
 from typing import List, Union
@@ -202,6 +207,11 @@ class ClaimSerializer(ContainedContentSerializerMixin, BaseFHIRSerializer):
 
         attachments = validated_data.get("claim_attachments", [])
         self.create_claim_attachments(claim.code, attachments)
+        if claim.status == Claim.STATUS_ERROR:
+            # the claim is kept in Error, not submitted: refuse the request with
+            # the code GraphQL reports for the same field error
+            field_errors = get_saved_claim_field_errors(claim)
+            raise ClaimSubmitError(field_errors[0]["code"], field_errors[0]["message"])
         return claim
 
     def _claim_input_from_validated_claim_data(self, validated_data, contained):

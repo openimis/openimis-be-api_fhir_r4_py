@@ -264,6 +264,12 @@ class ClaimConfiguration(BaseConfiguration):  # pragma: no cover
         )
 
     @classmethod
+    def get_fhir_claim_status_error_code(cls):
+        raise NotImplementedError(
+            "`get_fhir_claim_status_error_code()` must be implemented."
+        )
+
+    @classmethod
     def get_fhir_claim_status_rejected_code(cls):
         raise NotImplementedError(
             "`get_fhir_claim_status_rejected_code()` must be implemented."
