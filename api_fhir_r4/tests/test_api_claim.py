@@ -15,7 +15,7 @@ from core.test_helpers import create_admin_role
 from claim.models import Claim
 from location.models import UserDistrict
 from claim.test_helpers import create_test_claim_context, full_delete_claim
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
@@ -187,6 +187,41 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
                     )
                     # 2 not in price list
                     self.assertEqual(adjudication["reason"]["coding"][0]["code"], "2")
+
+    def test_post_end_before_start_saved_in_error(self):
+        # OP-3239: a claim whose care ends before it starts is kept in Error (0),
+        # not submitted, and refused with the same entry error code as GraphQL:
+        # 4, "End date is smaller than start date"
+        response = self.client.post(
+            GeneralConfiguration.get_base_url() + "login/",
+            data=get_connection_payload(self._TEST_DATA_USER),
+            format="json",
+        )
+        token = response.json()["token"]
+        headers = {
+            "Content-Type": "application/json",
+            "HTTP_AUTHORIZATION": f"Bearer {token}",
+        }
+        data = load_and_replace_json(self._test_json_path, self.sub_str)
+        start = datetime.strptime(data["billablePeriod"]["start"], "%Y-%m-%d")
+        data["billablePeriod"]["end"] = (start - timedelta(days=1)).strftime("%Y-%m-%d")
+
+        response = self._post_claim(data, headers)
+
+        self.assertEqual(
+            response.status_code, status.HTTP_400_BAD_REQUEST, response.content
+        )
+        outcome = response.json()
+        self.assertEqual(outcome["resourceType"], "OperationOutcome")
+        issue = outcome["issue"][0]
+        self.assertEqual(issue["severity"], "error")
+        self.assertEqual(issue["details"]["coding"][0]["code"], "4")
+        claim = Claim.objects.filter(
+            code=data["identifier"][0]["value"], validity_to__isnull=True
+        ).first()
+        self.assertIsNotNone(claim, "the claim must be saved despite the field error")
+        self.assertEqual(claim.status, 0, "claim status should be Error (0)")
+        self.assertIsNone(claim.audit_user_id_submit, "claim was submitted")
 
     def test_get_should_return_200_claim_response(self):
         # test if get ClaimResponse return 200
