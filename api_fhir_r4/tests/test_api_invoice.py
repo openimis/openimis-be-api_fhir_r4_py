@@ -76,6 +76,11 @@ class InvoiceListRobustnessAPITests(
         return body, [entry["resource"] for entry in body.get("entry", [])]
 
     @staticmethod
+    def _code(resource):
+        values = [identifier.get("value") for identifier in resource.get("identifier", [])]
+        return next((v for v in values if v and v.startswith("OP3254-")), None)
+
+    @staticmethod
     def _codes(resources):
         return {
             identifier.get("value")
@@ -93,9 +98,18 @@ class InvoiceListRobustnessAPITests(
         self.assertIn("OP3254-DEL", self._codes(resources))
         self.assertNotIn("OP3254-LIVE", self._codes(resources))
 
+    def test_an_invoice_for_a_policy_is_rendered_with_the_policy_type(self):
+        policy = create_test_policy2(create_test_product("OP3254P"), self.test_insuree)[0]
+        self._invoice("OP3254-POL", subject=policy)
+        body, resources = self._entries(self.base_url + "&_count=100")
+
+        invoices = {self._code(r): r for r in resources if r["resourceType"] == "Invoice"}
+        self.assertIn("OP3254-POL", invoices)
+        self.assertEqual(invoices["OP3254-POL"]["type"]["coding"][0]["code"], "policy")
+
     def test_an_invoice_that_cannot_be_converted_does_not_fail_the_list(self):
-        broken = self._invoice("OP3254-POL", subject=create_test_policy2(
-            create_test_product("OP3254P"), self.test_insuree)[0])
+        # an invoice whose subject type has no FHIR invoice type
+        broken = self._invoice("OP3254-INS", subject=self.test_insuree)
         with mock.patch("api_fhir_r4.serializers.baseSerializer.capture_exception", create=True) as capture:
             body, resources = self._entries(self.base_url + "&_count=100")
 
