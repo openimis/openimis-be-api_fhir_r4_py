@@ -33,6 +33,8 @@ class InvoiceTypeMapping(object):
             "system": SYSTEM,
         },
         "contract": {"code": "contract", "display": _("Contract"), "system": SYSTEM},
+        # invoices created by the policy-creation signal (OP-3254)
+        "policy": {"code": "policy", "display": _("Policy"), "system": SYSTEM},
     }
 
 

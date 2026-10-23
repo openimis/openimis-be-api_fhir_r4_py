@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from api_fhir_r4.permissions import FHIRApiPermissions
 from api_fhir_r4.views import CsrfExemptSessionAuthentication
+from api_fhir_r4.views.filters import IsDeletedFilterBackend
 from api_fhir_r4.mixins import (
     UpdateModelMixin,
     CreateModelMixin,
@@ -21,6 +22,8 @@ class BaseFHIRView(
 ):
     user = None
     pagination_class = FhirBundleResultsSetPagination
+    # Soft-deleted rows stay hidden unless isDeleted=true is asked for (OP-3254).
+    filter_backends = (IsDeletedFilterBackend,)
     permission_classes = (FHIRApiPermissions,)
     authentication_classes = [
         CsrfExemptSessionAuthentication
@@ -34,6 +37,7 @@ class BaseMultiserializerFHIRView(
 ):
     user = None
     pagination_class = FhirBundleResultsSetPagination
+    filter_backends = (IsDeletedFilterBackend,)
     # Authentication only: on a multiserializer view, the real right is carried by the
     # permissions tuple of each registered serializer, and
     # `_get_eligible_from_user_permissions` refuses when none passes. That is what
