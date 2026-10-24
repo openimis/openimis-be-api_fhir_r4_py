@@ -84,6 +84,8 @@ DEFAULT_CFG = {
         "fhir_claim_visit_type_system": "CodeSystem/claim-visit-type",
         "fhir_claim_item_category_system": "CodeSystem/claim-item-category",
         "fhir_claim_diagnosis_system": "CodeSystem/diagnosis-ICD10-level1",
+        "fhir_claim_diagnosis_system_version": None,
+        "fhir_claim_diagnosis_value_set": "ValueSet/diagnosis",
         "fhir_claim_allowed_mime_types_regex": "|".join(
             [
                 r"application/pdf",  # noqa: W605

@@ -136,6 +136,18 @@ class R4ClaimConfig(ClaimConfiguration):
         )
 
     @classmethod
+    def get_fhir_claim_diagnosis_system_version(cls):
+        return cls.get_config_attribute("R4_fhir_claim_config").get(
+            "fhir_claim_diagnosis_system_version"
+        )
+
+    @classmethod
+    def get_fhir_claim_diagnosis_value_set(cls):
+        return cls.get_config_attribute("R4_fhir_claim_config").get(
+            "fhir_claim_diagnosis_value_set", "ValueSet/diagnosis"
+        )
+
+    @classmethod
     def get_fhir_claim_attachment_system(cls):
         pass
 
