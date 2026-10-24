@@ -5,6 +5,7 @@ from django.test import TestCase
 # Import the signal binding function
 from api_fhir_r4.signals import bind_service_signals
 
+
 class TestClaimSubscriptionSignal(TestCase):
 
     @patch('api_fhir_r4.signals.imis_modules', ['claim'])
@@ -17,7 +18,7 @@ class TestClaimSubscriptionSignal(TestCase):
     ):
         # 1. Setup mocks
         mock_get_config.return_value = True
-        
+
         # The handler notifies on behalf of whoever is acting - the claim's
         # own admin is no longer looked up.
         dummy_user = MagicMock()
