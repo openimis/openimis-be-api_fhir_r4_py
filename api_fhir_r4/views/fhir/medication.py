@@ -35,7 +35,7 @@ class MedicationViewSet(
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, *args, **kwargs):
-        response = super().retrieve(self, *args, **kwargs)
+        response = super().retrieve(*args, **kwargs)
         return response
 
     def get_queryset(self):
