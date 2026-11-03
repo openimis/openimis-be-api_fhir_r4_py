@@ -215,7 +215,10 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
         self.assertEqual(outcome["resourceType"], "OperationOutcome")
         issue = outcome["issue"][0]
         self.assertEqual(issue["severity"], "error")
-        self.assertEqual(issue["details"]["coding"][0]["code"], "4")
+        # the response body tells why the claim was refused when it is not this code (OP-3316)
+        self.assertEqual(
+            issue.get("details", {}).get("coding", [{}])[0].get("code"), "4", response.content
+        )
         claim = Claim.objects.filter(
             code=data["identifier"][0]["value"], validity_to__isnull=True
         ).first()
@@ -247,7 +250,10 @@ class ClaimAPITests(GenericFhirAPITestMixin, APITestCase, LogInMixin):
             response.status_code, status.HTTP_400_BAD_REQUEST, response.content
         )
         issue = response.json()["issue"][0]
-        self.assertEqual(issue["details"]["coding"][0]["code"], "11")
+        # the response body tells why the claim was refused when it is not this code (OP-3316)
+        self.assertEqual(
+            issue.get("details", {}).get("coding", [{}])[0].get("code"), "11", response.content
+        )
         claim = Claim.objects.filter(
             code=data["identifier"][0]["value"], validity_to__isnull=True
         ).first()
