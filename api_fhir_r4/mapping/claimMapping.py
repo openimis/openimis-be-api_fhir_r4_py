@@ -67,6 +67,7 @@ class ClaimResponseMapping(object):
         f"{GeneralConfiguration.get_system_base_url()}CodeSystem/claim-status"
     )
     claim_status = {
+        f"{Claim.STATUS_ERROR}": R4ClaimConfig.get_fhir_claim_status_error_code(),
         f"{Claim.STATUS_REJECTED}": R4ClaimConfig.get_fhir_claim_status_rejected_code(),
         f"{Claim.STATUS_ENTERED}": R4ClaimConfig.get_fhir_claim_status_entered_code(),
         f"{Claim.STATUS_CHECKED}": R4ClaimConfig.get_fhir_claim_status_checked_code(),
@@ -75,6 +76,8 @@ class ClaimResponseMapping(object):
     }
 
     claim_outcome = {
+        # saved with a field error and not submitted (ClaimResponse.outcome "error")
+        f"{Claim.STATUS_ERROR}": _("error"),
         f"{Claim.STATUS_REJECTED}": _("complete"),
         f"{Claim.STATUS_ENTERED}": _("queued"),
         f"{Claim.STATUS_CHECKED}": _("partial"),

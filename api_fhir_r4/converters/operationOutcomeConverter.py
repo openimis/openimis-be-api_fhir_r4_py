@@ -7,7 +7,7 @@ from rest_framework.exceptions import (
     APIException,
 )
 
-from api_fhir_r4.configurations import R4IssueTypeConfig
+from api_fhir_r4.configurations import R4IssueTypeConfig, GeneralConfiguration
 from api_fhir_r4.converters import BaseFHIRConverter
 from api_fhir_r4.exceptions import FHIRException
 from api_fhir_r4.models import OperationOutcomeV2
@@ -120,7 +120,15 @@ class OperationOutcomeConverter(BaseFHIRConverter):
         severity = "error"
         code = R4IssueTypeConfig.get_fhir_code_for_exception()
         details_text = obj.msg
-        return cls.build_outcome(severity, code, details_text)
+        # the ClaimSubmitError code is the one GraphQL reports for the same error
+        return cls.build_outcome(
+            severity,
+            code,
+            details_text,
+            details_code=obj.code,
+            details_system=f"{GeneralConfiguration.get_system_base_url()}"
+            "CodeSystem/claim-submit-error",
+        )
 
     @classmethod
     def build_for_IntegrityError(cls, obj):
@@ -130,12 +138,18 @@ class OperationOutcomeConverter(BaseFHIRConverter):
         return cls.build_outcome(severity, code, details_text)
 
     @classmethod
-    def build_outcome(cls, severity, code, details_text=None):
+    def build_outcome(
+        cls, severity, code, details_text=None, details_code=None, details_system=None
+    ):
         outcome = OperationOutcomeV2.construct()
         issue_data = {}
         issue_data["severity"] = severity
         issue_data["code"] = code
-        if details_text:
+        if details_code is not None:
+            issue_data["details"] = cls.build_codeable_concept(
+                details_code, system=details_system, text=details_text
+            )
+        elif details_text:
             # if type(details_text) is str:
             issue_data["details"] = cls.build_simple_codeable_concept(text=details_text)
         issue = OperationOutcomeIssue(**issue_data)

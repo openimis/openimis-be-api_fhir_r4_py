@@ -155,7 +155,9 @@ class PatientAPITests(
             severity = "error"
         else:
             severity = f"no error in {response.content}"
-        self.assertTrue(response.status_code, 500)
+        self.assertTrue(
+            status.is_client_error(response.status_code), response.status_code
+        )
         self.assertEqual(severity, "error")
 
     def test_post_should_raise_error_no_extensions(self):
@@ -268,8 +270,8 @@ class PatientAPITests(
         response = self.client.post(self.base_url, data=modified_payload, format="json")
         json_response = response.json()
 
-        # Missing mandatory field should result in operation failure.
-        self.assertEqual(response.status_code, 500)
+        # A missing mandatory element is the client's error, not the server's.
+        self.assertEqual(response.status_code, 400)
         # Information regarding failure reason should be provided
         self.assertIsNotNone(self.get_response_details(json_response))
         # Information regarding field should be part of failure reason

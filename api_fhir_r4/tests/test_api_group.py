@@ -127,7 +127,7 @@ class GroupAPITests(
             data=self._test_request_data
         )
         response = self.client.post(self.base_url, data=modified_payload, format="json")
-        self.assertTrue(status.is_server_error(response.status_code))
+        self.assertTrue(status.is_client_error(response.status_code))
 
         response_json = response.json()
         self.assertIsNotNone(self.get_response_details(response_json))
@@ -140,7 +140,7 @@ class GroupAPITests(
         )
         response = self.client.post(self.base_url, data=modified_payload, format="json")
 
-        self.assertTrue(status.is_server_error(response.status_code))
+        self.assertTrue(status.is_client_error(response.status_code))
 
         response_json = response.json()
         self.assertIsNotNone(self.get_response_details(response_json))

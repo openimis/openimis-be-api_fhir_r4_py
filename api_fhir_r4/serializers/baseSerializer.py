@@ -5,13 +5,20 @@ from django.http.response import HttpResponseBase
 from fhir.resources.R4B import FHIRAbstractModel
 from rest_framework import serializers
 
-from api_fhir_r4.configurations import GeneralConfiguration
+from api_fhir_r4.configurations import GeneralConfiguration, R4IssueTypeConfig
 from api_fhir_r4.converters import (
     BaseFHIRConverter,
     OperationOutcomeConverter,
     ReferenceConverterMixin,
 )
 from core.models import User, TechnicalUser
+
+try:
+    from sentry_sdk import capture_exception
+except ImportError:  # sentry_sdk is optional (see sentry-requirements.txt)
+    def capture_exception(_exception):
+        """No-op when sentry_sdk is not installed."""
+        return None
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +56,28 @@ class BaseFHIRSerializer(serializers.Serializer):
 
             if settings.DEBUG:
                 self._print_debug_log(e)
+            if isinstance(self.parent, serializers.ListSerializer):
+                return self._unrenderable_entry(obj, e)
             raise e
+
+    def _unrenderable_entry(self, obj, error):
+        """
+        In a list, a record that can't be converted (e.g. an invoice whose type
+        isn't mapped) used to fail the whole Bundle with a 500. It is reported to
+        Sentry and rendered as an OperationOutcome in its place, so the Bundle's
+        total and paging still count it (OP-3254).
+        """
+        record = f"{type(obj).__name__} {getattr(obj, 'pk', '')}".strip()
+        capture_exception(error)
+        logger.exception("FHIR list: %s could not be rendered", record)
+        outcome = OperationOutcomeConverter.build_outcome(
+            "error",
+            R4IssueTypeConfig.get_fhir_code_for_exception(),
+            details_text=f"{record} could not be rendered: {type(error).__name__}: {error}",
+        ).dict()
+        if getattr(obj, "pk", None) is not None:
+            outcome["id"] = str(obj.pk)
+        return outcome
 
     def to_internal_value(self, data):
         audit_user_id = self.get_audit_user_id()

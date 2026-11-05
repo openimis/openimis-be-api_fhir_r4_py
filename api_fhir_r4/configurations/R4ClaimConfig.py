@@ -38,6 +38,12 @@ class R4ClaimConfig(ClaimConfiguration):
         )
 
     @classmethod
+    def get_fhir_claim_status_error_code(cls):
+        return cls.get_config_attribute("R4_fhir_claim_config").get(
+            "fhir_claim_status_error_code", "error"
+        )
+
+    @classmethod
     def get_fhir_claim_status_rejected_code(cls):
         return cls.get_config_attribute("R4_fhir_claim_config").get(
             "fhir_claim_status_rejected_code", "rejected"
