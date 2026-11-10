@@ -5,8 +5,8 @@ from api_fhir_r4.openapi_schema_extensions import (
     get_inline_login_request_serializer,
     get_inline_login_200_response_serializer,
 )
+from core.auth.login import SecondFactorError, authenticate_login
 from core.jwt import jwt_encode_user_key
-from core.services import user_authentication
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -33,11 +33,24 @@ class LoginView(viewsets.ViewSet):
         username = data.get("username")
         password = data.get("password")
         try:
-            request.user = user_authentication(request, username, password)
+            # Same flow as tokenAuth - password, then the second factor - so
+            # a token minted here is worth exactly what one minted there is.
+            request.user = authenticate_login(
+                request,
+                username,
+                password,
+                otp=data.get("otp"),
+                otp_device=data.get("otp_device"),
+            )
         except exceptions.ParseError as e:
             return Response(str(e), status=400)
         except exceptions.AuthenticationFailed as e:
             return Response(str(e), status=401)
+        except SecondFactorError as e:
+            body = {"detail": e.code}
+            if e.extensions.get("lockedUntil"):
+                body["locked_until"] = e.extensions["lockedUntil"]
+            return Response(body, status=401)
         if request.user:
             # take the payload base on user data - using same mechanism as
             # in graphql_jwt with generating payload.
