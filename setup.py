@@ -24,7 +24,7 @@ setup(
         "django-db-signals",
         "djangorestframework",
         "pydantic<2",
-        "aiohttp~=3.13.3",
+        "aiohttp>=3.14.4,<4",
         "fhir.resources~=7.0.2",
         "asynctest==0.13.0",
         "openimis-be-core",
