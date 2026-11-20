@@ -39,6 +39,20 @@ ActivityDefinition
 
 CommunicationRequest
 CoverageEligibilityRequest
+ValueSet (diagnosis)
+
+The diagnosis master data is available as a FHIR ValueSet definition and through
+the standard `$expand` operation:
+
+```text
+GET /api_fhir_r4/ValueSet/diagnosis/
+GET /api_fhir_r4/ValueSet/diagnosis/$expand/?filter=malaria&count=20&offset=0
+```
+
+`R4_fhir_claim_config.fhir_claim_diagnosis_system` identifies the underlying
+code system. Set `fhir_claim_diagnosis_system_version` when the deployment uses
+a specific ICD release. The API route remains the same when changing from
+ICD-10 to ICD-11.
 
 
 ## Implementation setup

@@ -145,6 +145,11 @@ if "claim" in imis_modules:
         fhir_viewsets.CodeSystemOpenIMISDiagnosisViewSet,
         basename="CodeSystem/diagnosis_R4",
     )
+    router.register(
+        r"ValueSet",
+        fhir_viewsets.DiagnosisValueSetViewSet,
+        basename="ValueSet_R4",
+    )
 
 # register endpoint for policy if used
 if "policy" in imis_modules:

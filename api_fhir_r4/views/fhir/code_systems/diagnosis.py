@@ -1,3 +1,6 @@
+from urllib.parse import urljoin
+
+from api_fhir_r4.configurations import GeneralConfiguration, R4ClaimConfig
 from api_fhir_r4.serializers import CodeSystemSerializer
 
 from rest_framework import viewsets
@@ -33,7 +36,10 @@ class CodeSystemOpenIMISDiagnosisViewSet(viewsets.ViewSet):
                 "name": "DiagnosisICD10Level1CS",
                 "title": "ICD 10 Level 1 diagnosis (Claim)",
                 "description": "The actual list of diagnosis configured in openIMIS.",
-                "url": self.request.build_absolute_uri(),
+                "url": urljoin(
+                    GeneralConfiguration.get_system_base_url(),
+                    R4ClaimConfig.get_fhir_claim_diagnosis_system(),
+                ),
             }
         )
         data = serializer.to_representation(obj=None)
