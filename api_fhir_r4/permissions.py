@@ -296,6 +296,20 @@ class FHIRApiSubscriptionPermissions(FHIRApiPermissions):
 
         return Subscription
 
+    @property
+    def permission_overrides(self):
+        # Reading takes either right (OP-3351): `query` reads one's own subscriptions,
+        # `query_all` every subscription. Which rows each one shows is decided by
+        # SubscriptionViewSet.get_queryset; here, either is enough to get in. Read
+        # from the model at check time, so a configured override is honoured. A
+        # missing declaration contributes nothing, so the check fails closed.
+        from api_fhir_r4.models import Subscription
+
+        read_rights = []
+        for action in ("query", "query_all"):
+            read_rights.extend(Subscription.get_rights(action) or [])
+        return {"GET": read_rights or DENY}
+
     permissions_get = rights.SUBSCRIPTION_VIEW
     permissions_post = rights.SUBSCRIPTION_ADD
     permissions_put = rights.SUBSCRIPTION_CHANGE

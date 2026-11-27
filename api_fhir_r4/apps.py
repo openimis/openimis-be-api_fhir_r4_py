@@ -23,11 +23,16 @@ MODULE_NAME = "api_fhir_r4"
 # second definition, free to diverge with nothing to report it.
 #
 # The FHIR subscription is the only entity this module owns: it is a purely FHIR
-# concept (no GraphQL equivalent), its model lives here and its four rights
-# (158001-158004) are in block 158 of permissions_map.json.
+# concept (no GraphQL equivalent), its model lives here and its rights
+# (158001-158005) are in block 158 of permissions_map.json.
+#
+# Reading is split in two (OP-3351): `query` (158001) reads the caller's own
+# subscriptions, `query_all` (158005) reads every subscription - an administrator's
+# right, since a subscription carries its owner's endpoint and headers.
 DJANGO_PERMS = {
     "subscription": {
         "query": ("api_fhir_r4.view_subscription", 158001),
+        "query_all": ("api_fhir_r4.view_all_subscription", 158005),
         "create": ("api_fhir_r4.add_subscription", 158002),
         "update": ("api_fhir_r4.change_subscription", 158003),
         "delete": ("api_fhir_r4.delete_subscription", 158004),
@@ -36,9 +41,10 @@ DJANGO_PERMS = {
 
 # The config keys keep their historical name (`fhir_sub_*_perms`): they are read by
 # `R4SubscriptionConfig.get_fhir_sub_*_perms()` and named in permissions_map.json under
-# "api_fhir_r4.fhir_sub_search/create/update/delete".
+# "api_fhir_r4.fhir_sub_search/search_all/create/update/delete".
 _PERM_CFG = {
     "fhir_sub_search_perms": ("subscription", "query"),
+    "fhir_sub_search_all_perms": ("subscription", "query_all"),
     "fhir_sub_create_perms": ("subscription", "create"),
     "fhir_sub_update_perms": ("subscription", "update"),
     "fhir_sub_delete_perms": ("subscription", "delete"),
@@ -59,6 +65,7 @@ class ApiFhirConfig(AppConfig):
     # `get_or_default`'s filter only looks at the top level. That was also the last
     # place `collect_all_gql_permissions` had to read a config from.
     fhir_sub_search_perms = RIGHTS.perms("subscription", "query")
+    fhir_sub_search_all_perms = RIGHTS.perms("subscription", "query_all")
     fhir_sub_create_perms = RIGHTS.perms("subscription", "create")
     fhir_sub_update_perms = RIGHTS.perms("subscription", "update")
     fhir_sub_delete_perms = RIGHTS.perms("subscription", "delete")

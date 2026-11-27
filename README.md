@@ -210,7 +210,20 @@ updated. Currently, supported resources are:
 - Invoice (All Bill and Invoice types defined in `invoiceMapping.py`)
 
 To use the subscription feature a user is required to have related subscription permissions and read permission for subscribed 
-resource. To create a subscription the following payload should be sent to `/Subscription/` endpoint:
+resource.
+
+Rights and authorization (OP-3351):
+- `158001` (`fhir_sub_search`) lists and reads the caller's **own** subscriptions; `158005` (`fhir_sub_search_all`)
+  lists and reads **every** subscription (administrators). Update and delete remain owner-only.
+- Creating or updating a subscription requires the read right of the subscribed resource's model, as the model declares
+  it (`Model.get_rights("query")`), so a right overridden in ModuleConfiguration applies. Health facilities, which
+  declare no rights yet, fall back to the FHIR Organisation read right.
+- Each notification is authorized per subscription and per instance: the owner must still be active, still hold the
+  read right, and the instance must be inside the owner's row scope (`Model.get_queryset`). Otherwise nothing is sent
+  and a failed `SubscriptionNotificationResult` records the reason. The resource is converted as the subscription
+  owner, not as the user who made the change.
+
+To create a subscription the following payload should be sent to `/Subscription/` endpoint:
 ```JSON
 {
     "status": "active",
