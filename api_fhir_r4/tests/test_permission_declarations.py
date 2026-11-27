@@ -10,7 +10,7 @@ GraphQL equivalent, whose model lives here - and that is the only thing `DJANGO_
 has to declare.
 
 What is locked down here:
-  * the identifiers 158001-158004, as deployed and as `permissions_map.json` carries
+  * the identifiers 158001-158005, as deployed and as `permissions_map.json` carries
     them - changing one withdraws access from the roles that hold it;
   * the fact that `DJANGO_PERMS` **redeclares no borrowed right**: another module's
     identifier copied here would be a second definition, free to diverge;
@@ -39,6 +39,7 @@ from api_fhir_r4.models.subscription import SubscriptionNotificationResult
 # this test has to be updated *and* the new right granted.
 EXPECTED_RIGHTS = {
     "fhir_sub_search_perms": ["158001"],
+    "fhir_sub_search_all_perms": ["158005"],
     "fhir_sub_create_perms": ["158002"],
     "fhir_sub_update_perms": ["158003"],
     "fhir_sub_delete_perms": ["158004"],
@@ -47,6 +48,7 @@ EXPECTED_RIGHTS = {
 # The `permissions_map.json` keys that carry these same identifiers.
 EXPECTED_MAP_ENTRIES = {
     "api_fhir_r4.fhir_sub_search": "158001",
+    "api_fhir_r4.fhir_sub_search_all": "158005",
     "api_fhir_r4.fhir_sub_create": "158002",
     "api_fhir_r4.fhir_sub_update": "158003",
     "api_fhir_r4.fhir_sub_delete": "158004",
@@ -220,8 +222,14 @@ class ApiFhirR4PermissionDeclarationTestCase(TestCase):
 
         permission = FHIRApiSubscriptionPermissions()
         self.assertIs(permission.rights_model, Subscription)
+        # GET takes either read right (OP-3351): `query` for one's own
+        # subscriptions, `query_all` for everybody's.
+        self.assertEqual(
+            permission.get_required_permissions("GET", Subscription),
+            list(Subscription.get_rights("query"))
+            + list(Subscription.get_rights("query_all")),
+        )
         for verb, action in (
-            ("GET", "query"),
             ("POST", "create"),
             ("PUT", "update"),
             ("DELETE", "delete"),

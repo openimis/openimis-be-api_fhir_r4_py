@@ -13,6 +13,7 @@ from api_fhir_r4.subscriptions.subscriptionSerializer import (
 from api_fhir_r4.views.fhir.base import BaseFHIRView
 from api_fhir_r4.views.filters import DateUpdatedRequestParameterFilter
 from api_fhir_r4.mixins import ListModelMixin, RetrieveModelMixin
+from core.rights_scope import has_model_right
 
 
 @extend_schema_view(
@@ -47,6 +48,13 @@ class SubscriptionViewSet(
         queryset = Subscription.objects.filter(is_deleted=False).order_by(
             "date_created"
         )
+        user = self.request.user
+        # A subscription carries its owner's endpoint and headers: the `query` right
+        # reads one's own, only `query_all` reads everybody's (OP-3351). Retrieve,
+        # update and delete go through this queryset too, so another user's
+        # subscription is simply not found.
+        if not has_model_right(user, Subscription, "query_all"):
+            queryset = queryset.filter(user_created=user)
         return DateUpdatedRequestParameterFilter(self.request).filter_queryset(queryset)
 
     def perform_destroy(self, instance):
