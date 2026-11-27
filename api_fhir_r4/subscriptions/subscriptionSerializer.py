@@ -7,11 +7,9 @@ from rest_framework.exceptions import ValidationError, APIException, PermissionD
 from api_fhir_r4.configurations import R4SubscriptionConfig
 from api_fhir_r4.subscriptions import SubscriptionConverter
 from api_fhir_r4.models import Subscription
-from api_fhir_r4.permissions import (
-    FHIRApiInsureePermissions,
-    FHIRApiInvoicePermissions,
-    FHIRApiHealthServicePermissions,
-    FHIRApiClaimPermissions,
+from api_fhir_r4.subscriptions.resourceRights import (
+    SUBSCRIBABLE_RESOURCES,
+    can_subscribe,
 )
 from api_fhir_r4.serializers import BaseFHIRSerializer
 from api_fhir_r4.services import SubscriptionService
@@ -21,13 +19,6 @@ from api_fhir_r4.mixins import RetrieveModelMixin
 class SubscriptionSerializer(BaseFHIRSerializer, RetrieveModelMixin):
     fhirConverter = SubscriptionConverter
     _error_while_saving = "Error while saving a subscription: %(msg)s"
-
-    resource_permissions = {
-        "patient": FHIRApiInsureePermissions.permissions_get,
-        "invoice": FHIRApiInvoicePermissions.permissions_get,
-        "organisation": FHIRApiHealthServicePermissions.permissions_get,
-        "claim": FHIRApiClaimPermissions.permissions_get,
-    }
 
     def create(self, validated_data):
         user = self.user or self.context["request"].user
@@ -74,12 +65,14 @@ class SubscriptionSerializer(BaseFHIRSerializer, RetrieveModelMixin):
             .get(R4SubscriptionConfig.get_fhir_sub_criteria_key_resource(), "")
             .lower()
         )
-        if not resource or resource not in self.resource_permissions:
+        if not resource or resource not in SUBSCRIBABLE_RESOURCES:
             raise ValidationError(
                 self._error_while_saving % {"msg": f"Invalid resource ({resource})"}
             )
 
-        if not user.has_perms(self.resource_permissions[resource]):
+        # The model's own read right, read at check time (OP-3351), not a list
+        # fixed at import: a right overridden in ModuleConfiguration is honoured.
+        if not can_subscribe(user, resource):
             raise PermissionDenied(
                 detail=self._error_while_saving
                 % {"msg": f"You have no permissions to subscribe to {resource}"}

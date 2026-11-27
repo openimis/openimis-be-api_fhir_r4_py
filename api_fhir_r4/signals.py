@@ -43,7 +43,7 @@ def bind_service_signals():
             try:
                 model = kwargs.get("result", None)
                 if model:
-                    notify_subscribers(model, PatientConverter(), "Patient", None)
+                    notify_subscribers(model, PatientConverter, "Patient", None)
             except Exception as e:
                 logger.error("Error while processing Patient Subscription", exc_info=e)
 
@@ -61,7 +61,7 @@ def bind_service_signals():
                 if model:
                     notify_subscribers(
                         model,
-                        HealthFacilityOrganisationConverter(),
+                        HealthFacilityOrganisationConverter,
                         "Organisation",
                         "bus",
                     )
@@ -86,7 +86,7 @@ def bind_service_signals():
                     model = Bill.objects.get(uuid=model_uuid)
                     notify_subscribers(
                         model,
-                        BillInvoiceConverter(),
+                        BillInvoiceConverter,
                         "Invoice",
                         BillTypeMapping.invoice_type[model.subject_type.model],
                     )
@@ -101,7 +101,7 @@ def bind_service_signals():
                     model = Invoice.objects.get(uuid=model_uuid)
                     notify_subscribers(
                         model,
-                        InvoiceConverter(),
+                        InvoiceConverter,
                         "Invoice",
                         InvoiceTypeMapping.invoice_type[model.subject_type.model],
                     )
@@ -129,7 +129,8 @@ def bind_service_signals():
                 model = kwargs.get("result", None)
                 user = get_current_user()
 
-                # Instantiate the correct converter (ClaimResponseConverter) with the user
+                # The converter's class is what matters: the notification manager
+                # converts the claim again as each subscription owner.
                 logger.info(
                     f"Processing subscription for claim {model.uuid} on behalf of user {user.username}"
                 )
@@ -154,6 +155,13 @@ def bind_service_signals():
 
 
 def notify_subscribers(model, converter, resource_name, resource_type_name):
+    """
+    Notify the subscriptions matching `model`.
+
+    `converter` is a converter class, or an instance whose class is used: each
+    subscription owner is authorized for this instance and gets the resource
+    converted as themselves, never as the user who made the change (OP-3351).
+    """
     try:
         subscriptions = SubscriptionCriteriaFilter(
             model, resource_name, resource_type_name
